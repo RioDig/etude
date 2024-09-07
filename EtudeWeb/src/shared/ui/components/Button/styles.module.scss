@@ -1,0 +1,53 @@
+.root {
+  cursor: pointer;
+
+  transition: background-color 100ms;
+
+  color: var(--White, #FFF);
+
+  text-align: center;
+  font-size: 20px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.primary {
+  background: var(--Accent-300, #E99E36);
+}
+
+.secondary {
+  background: var(--Gray-100, #F0F0F0);
+  color: var(--Gray-300, #727477);
+}
+
+.approve {
+  background: #51C170;
+}
+
+.deny {
+  background: #F26969;
+}
+
+.third {
+  background: transparent;
+  color: var(--Gray-400, #5C5F62);
+}
+
+.large {
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+.medium {
+  padding: 5px 10px;
+  font-size: 18px;
+  border-radius: 6px;
+}
+
+.small {
+  padding: 4px 7px;
+  font-size: 14px;
+  border-radius: 4px;
+}
+

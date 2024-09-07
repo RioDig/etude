@@ -1,20 +1,24 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import "../styles/App.css";
+import { env } from "../../shared/config.ts";
+import { Outlet } from "react-router-dom";
 
-function App() {
-  const [count, setCount] = useState(0);
 
+function BaseLayout() {
   return (
     <>
       <div className="border-2 border-red-500">
         <div className="flex border-2 border-emerald-700 mr-20 p-8">
           <div className="border-2 border-purple-500">Card One gfhfghfgh</div>
-
+          <div>
+            {env.WEB_API_URL}
+          </div>
           <div className="border-2 border-amber-600">Card Two</div>
           <div className="border-2 border-purple-500">Card Three</div>
         </div>
+      </div>
+
+      <div>
+        <Outlet/>
       </div>
 
       {/*<div>*/}
@@ -31,7 +35,7 @@ function App() {
       {/*    count is {count}*/}
       {/*  </button>*/}
       {/*  <p>*/}
-      {/*    Edit <code>src/App.tsx</code> and save to test HMR*/}
+      {/*    Edit <code>src/index.tsx</code> and save to test HMR*/}
       {/*  </p>*/}
       {/*</div>*/}
       {/*<p className="read-the-docs">*/}
@@ -41,4 +45,4 @@ function App() {
   );
 }
 
-export default App;
+export default BaseLayout;
