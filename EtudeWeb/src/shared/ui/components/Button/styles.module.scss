@@ -1,53 +1,82 @@
 .root {
   cursor: pointer;
 
-  transition: background-color 100ms;
-
-  color: var(--White, #FFF);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
 
   text-align: center;
-  font-size: 20px;
   font-style: normal;
   font-weight: 600;
   line-height: normal;
+
+  transition: ease-out 100ms;
 }
 
 .primary {
-  background: var(--Accent-300, #E99E36);
+  @apply
+  bg-yellow-300
+  text-white
+  hover:bg-yellow-400
+  active:bg-yellow-500
+  disabled:bg-yellow-200 disabled:text-yellow-50 disabled:cursor-not-allowed;
 }
 
 .secondary {
-  background: var(--Gray-100, #F0F0F0);
-  color: var(--Gray-300, #727477);
+  @apply
+  bg-gray-100
+  text-gray-300
+  hover:bg-gray-150 hover:text-gray-400
+  active:bg-gray-200 active:text-gray-900
+  disabled:bg-gray-100 disabled:text-gray-200 disabled:cursor-not-allowed;
 }
 
 .approve {
-  background: #51C170;
+  @apply
+  bg-green-300
+  text-white
+  hover:bg-green-300
+  active:bg-yellow-500
+  disabled:bg-yellow-200 disabled:text-yellow-50 disabled:cursor-not-allowed;
 }
 
 .deny {
-  background: #F26969;
+  @apply
+  bg-red-200
+  text-white
+  hover:bg-yellow-400
+  active:bg-yellow-500
+  disabled:bg-yellow-200 disabled:text-yellow-50 disabled:cursor-not-allowed;
 }
 
 .third {
-  background: transparent;
-  color: var(--Gray-400, #5C5F62);
+  @apply
+  bg-transparent
+  text-gray-400
+  hover:text-gray-500
+  active:text-gray-500
+  disabled:text-gray-200 disabled:cursor-not-allowed;
 }
 
 .large {
+  gap: 10px;
+  font-size: 20px;
   padding: 10px 12px;
   border-radius: 8px;
 }
 
 .medium {
-  padding: 5px 10px;
+  gap: 10px;
   font-size: 18px;
+  padding: 5px 10px;
   border-radius: 6px;
 }
 
 .small {
-  padding: 4px 7px;
+  gap: 6px;
   font-size: 14px;
+  padding: 4px 7px;
   border-radius: 4px;
 }
 
