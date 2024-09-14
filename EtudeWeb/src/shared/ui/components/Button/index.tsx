@@ -3,6 +3,21 @@ import cn from 'classnames';
 import styles from './styles.module.scss';
 import React from "react";
 import { Link } from "react-router-dom";
+import { OverridableComponent } from "@mui/material/OverridableComponent";
+import { SvgIconTypeMap } from "@mui/material/SvgIcon/SvgIcon";
+import { createTheme, ThemeProvider } from "@mui/material";
+
+const theme = createTheme({
+  components: {
+    MuiSvgIcon: {
+      styleOverrides: {
+        fontSizeLarge: {
+          fontSize: '2rem'
+        }
+      }
+    }
+  }
+})
 
 export enum ButtonType {
   button = 'button',
@@ -33,8 +48,8 @@ interface IButton {
   testId?: string;
   size?: ButtonSize;
   displayMode?: DisplayMode;
-  BeforeButtonIcon?: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
-  AfterButtonIcon?: React.FunctionComponent<React.SVGProps<SVGSVGElement>>
+  BeforeButtonIcon?: OverridableComponent<SvgIconTypeMap>;
+  AfterButtonIcon?: OverridableComponent<SvgIconTypeMap>;
 }
 
 export const Button = ({
@@ -45,7 +60,7 @@ export const Button = ({
   onClick,
   children,
   testId,
-  size = ButtonSize.large,
+  size = ButtonSize.medium,
   displayMode = DisplayMode.primary,
   BeforeButtonIcon,
   AfterButtonIcon,
@@ -68,18 +83,21 @@ export const Button = ({
   );
 
   const button = (
-    <button
-      className={buttonClassName}
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      data-testid={testId}
-    >
-      {BeforeButtonIcon && <BeforeButtonIcon />}
-      {children}
-      {AfterButtonIcon && <AfterButtonIcon />}
-    </button>
+    <ThemeProvider theme={theme}>
+      <button
+        className={buttonClassName}
+        type={type}
+        onClick={onClick}
+        disabled={disabled}
+        data-testid={testId}
+      >
+        {BeforeButtonIcon && <BeforeButtonIcon fontSize={size} />}
+        {children}
+        {AfterButtonIcon && <AfterButtonIcon fontSize={size}/>}
+      </button>
+    </ThemeProvider>
   )
+
 
   if (link) {
     return (
