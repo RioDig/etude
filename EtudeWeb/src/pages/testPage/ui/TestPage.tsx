@@ -1,15 +1,10 @@
 import styles from "./styles.module.scss";
 import { Button, ButtonSize, ButtonType, DisplayMode } from "../../../shared/ui/components/Button";
 import { IconButton } from "@mui/material";
-import { Cancel, Delete, Done, MailLock, TwoKPlus } from "@mui/icons-material";
+import { Cancel, Delete, Done, MailLock } from "@mui/icons-material";
 import { Badge, BadgeType } from "../../../shared/ui/components/Badge";
 import { Checkbox, CheckboxSize } from "../../../shared/ui/components/Checkbox";
-import { TestCheckbox } from "../../../shared/ui/components/Test";
-
-
-
-
-
+import { Comment, CommentType } from "../../../shared/ui/components/Comment";
 
 const TestPage = () => {
   return (
@@ -52,9 +47,12 @@ const TestPage = () => {
         Text
       </Badge>
 
-
-      <TestCheckbox
-        description={"fghfgh"}
+      <Comment
+        title="Title Full Name I allow you to provide that action"
+        fullName="Full Name"
+        position="Director I allow you to provide that action."
+        commentText="I allow you to provide that action. I allow you to provide that action. I allow you to provide that action. I allow you to provide that action. I allow you to provide that action."
+        type={CommentType.accept}
       />
 
       <IconButton size={"large"}>
