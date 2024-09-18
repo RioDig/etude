@@ -1,0 +1,26 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 12px;
+  padding: 16px 20px;
+  position: relative;
+  max-width: 584px;
+
+  border-left: 4px solid;
+
+  &.accept {
+    @apply border-green-400;
+
+    .commentTitle {
+      @apply text-green-400;
+    }
+  }
+  &.deny {
+    @apply border-red-300;
+
+    .commentTitle {
+      @apply text-red-300;
+    }
+  }
+}
