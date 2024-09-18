@@ -92,7 +92,9 @@ export const Button = ({
         data-testid={testId}
       >
         {BeforeButtonIcon && <BeforeButtonIcon fontSize={size} />}
-        {children}
+        <span>
+          {children}
+        </span>
         {AfterButtonIcon && <AfterButtonIcon fontSize={size}/>}
       </button>
     </ThemeProvider>

@@ -1,8 +1,15 @@
 import styles from "./styles.module.scss";
-import { Button, ButtonType, DisplayMode } from "../../../shared/ui/components/Button";
+import { Button, ButtonSize, ButtonType, DisplayMode } from "../../../shared/ui/components/Button";
 import { IconButton } from "@mui/material";
-import { Add, Cancel, ChevronLeft, Delete, Done, MailLock } from "@mui/icons-material";
+import { Cancel, Delete, Done, MailLock, TwoKPlus } from "@mui/icons-material";
 import { Badge, BadgeType } from "../../../shared/ui/components/Badge";
+import { Checkbox, CheckboxSize } from "../../../shared/ui/components/Checkbox";
+import { TestCheckbox } from "../../../shared/ui/components/Test";
+
+
+
+
+
 
 const TestPage = () => {
   return (
@@ -10,14 +17,28 @@ const TestPage = () => {
       <div>TestPage Container</div>
       <form action="https://echo.htmlacademy.ru/" method="POST">
         <input type="text" name={'dfg'} id={'aidi'}/>
+        <Checkbox
+          description={""}
+          checkboxSize={CheckboxSize.large}
+          name={""}
+          disabled={false}
+          tooltipText={"fghfdgh"}
+        />
+        <Checkbox
+          description={"Test Small"}
+          checkboxSize={CheckboxSize.small}
+          name={"yeah"}
+          disabled={false}
+          tooltipText={"fghfdgh"}
+        />
         <Button
           displayMode={DisplayMode.primary}
-          BeforeButtonIcon={Add}
-          AfterButtonIcon={ChevronLeft}
-          // size={ButtonSize.medium}
-          // disabled={false}
+          BeforeButtonIcon={Delete}
+          // AfterButtonIcon={ChevronLeft}
+          size={ButtonSize.medium}
+          disabled={false}
 
-          type={ButtonType.button}
+          type={ButtonType.submit}
         >
           Button
         </Button>
@@ -30,6 +51,11 @@ const TestPage = () => {
       >
         Text
       </Badge>
+
+
+      <TestCheckbox
+        description={"fghfgh"}
+      />
 
       <IconButton size={"large"}>
         <Delete/>
