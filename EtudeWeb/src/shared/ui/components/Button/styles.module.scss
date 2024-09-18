@@ -60,23 +60,32 @@
 }
 
 .large {
-  gap: 10px;
+  gap: 6px;
   font-size: 20px;
   padding: 10px 12px;
   border-radius: 8px;
+  & span {
+    padding: 0 4px;
+  }
 }
 
 .medium {
-  gap: 10px;
-  font-size: 18px;
-  padding: 5px 10px;
+  gap: 6px;
+  font-size: 16px;
+  padding: 8px 10px;
   border-radius: 6px;
+  & span {
+    padding: 0 4px;
+  }
 }
 
 .small {
-  gap: 6px;
+  gap: 4px;
   font-size: 14px;
-  padding: 4px 7px;
+  padding: 6px 8px;
   border-radius: 4px;
+  & span {
+    padding: 0 2px;
+  }
 }
 

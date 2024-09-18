@@ -58,7 +58,9 @@ export default {
     fontFamily: {
       sansSerif: ['Nunito Sans', 'sans-serif'],
     },
-    extend: {},
+    extend: {
+
+    },
   },
   plugins: [],
 };
