@@ -38,7 +38,7 @@ export enum DisplayMode {
   third = 'third',
 }
 
-interface IButton {
+export interface IButton {
   type?: ButtonType;
   disabled?: boolean;
   className?: string;
@@ -92,9 +92,7 @@ export const Button = ({
         data-testid={testId}
       >
         {BeforeButtonIcon && <BeforeButtonIcon fontSize={size} />}
-        <span>
-          {children}
-        </span>
+        {children && <span>{children}</span>}
         {AfterButtonIcon && <AfterButtonIcon fontSize={size}/>}
       </button>
     </ThemeProvider>
