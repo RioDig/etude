@@ -6,3 +6,7 @@
 .test {
     background-color: red !important;
 }
+
+.meow {
+    @apply bg-gray-150 #{!important};
+}

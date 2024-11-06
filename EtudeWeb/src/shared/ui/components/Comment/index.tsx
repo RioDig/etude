@@ -38,7 +38,7 @@ export const Comment = ({
         <div className={`font-bold text-base ${styles.commentTitle}`}>
           {title}
         </div>
-        <div className={"font-semibold text-base flex gap-1"}>
+        <div className={"font-semibold text-base flex flex-col gap-1"}>
           {fullName}
           {position &&
             <span className={"font-normal text-gray-300 text-base"}>
