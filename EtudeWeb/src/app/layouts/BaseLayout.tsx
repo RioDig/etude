@@ -6,16 +6,16 @@ import { Outlet } from "react-router-dom";
 function BaseLayout() {
   return (
     <>
-      <div className="border-2 border-red-500">
-        <div className="flex border-2 border-emerald-700 mr-20 p-8">
-          <div className="border-2 border-purple-500">Card One gfhfghfgh</div>
-          <div>
-            {env.WEB_API_URL}
-          </div>
-          <div className="border-2 border-amber-600">Card Two</div>
-          <div className="border-2 border-purple-500">Card Three</div>
-        </div>
-      </div>
+      {/*<div className="border-2 border-red-500">*/}
+      {/*  <div className="flex border-2 border-emerald-700 mr-20 p-8">*/}
+      {/*    <div className="border-2 border-purple-500">Card One gfhfghfgh</div>*/}
+      {/*    <div>*/}
+      {/*      {env.WEB_API_URL}*/}
+      {/*    </div>*/}
+      {/*    <div className="border-2 border-amber-600">Card Two</div>*/}
+      {/*    <div className="border-2 border-purple-500">Card Three</div>*/}
+      {/*  </div>*/}
+      {/*</div>*/}
 
       <div>
         <Outlet/>
