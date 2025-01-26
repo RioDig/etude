@@ -1,0 +1,93 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Build and Deploy to Server
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг 1. Клонирование репозитория
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Шаг 2. Установка Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+#          cache: 'yarn'
+
+      # Шаг 3. Кэширование зависимостей
+      - name: Cache node_modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ./node_modules
+          key: node-modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            node-modules-
+
+      # Шаг 4. Установка зависимостей
+      - name: Install dependencies
+        run: | 
+          cd EtudeWeb    
+          yarn install
+
+      # Шаг 5. Сборка Front-Etude
+      - name: Build Front-Etude
+        run: |
+          cd EtudeWeb
+          npx vite build
+
+      # Шаг 12. Билд образа
+      - name: Image Build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./EtudeWeb/Dockerfile
+          push: false
+          tags: |
+            etude-front:latest
+
+      # Шаг 13. Image to archive
+      - name: Image Packing
+        run: |
+          docker image save -o etude-front.tar etude-front:latest
+
+      # Шаг 14. Сжатие образа
+      - name: Image Gzip
+        run: |
+          gzip etude-front.tar
+          chmod 777 etude-front.tar.gz
+      
+      # Шаг 15. Перенос compose файла на сервер
+      - name: Move docker-compose file to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "./docker-compose.yml, etude-front.tar.gz"
+          target: "/home/detouche-admin/Deployment/"
+
+      # Шаг 16. Поднятие контейнера
+      - name: Docker-compose up
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            cd /home/detouche-admin/Deployment/
+            gunzip etude-front.tar.gz
+            docker load -i etude-front.tar
+            docker compose up -d
+            rm -rf etude*
