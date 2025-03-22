@@ -85,6 +85,11 @@ interface ButtonAsAnchorProps extends ButtonBaseProps, Omit<AnchorHTMLAttributes
    * URL для react-router-dom Link (используется только когда as='link')
    */
   to?: never;
+
+  /**
+   * Отключена ли ссылка
+   */
+  disabled?: boolean;
 }
 
 // Пропсы для кнопки как компонента Link из react-router-dom
@@ -103,6 +108,11 @@ interface ButtonAsLinkProps extends ButtonBaseProps, Omit<AnchorHTMLAttributes<H
    * URL для react-router-dom Link (используется только когда as='link')
    */
   to: string;
+
+  /**
+   * Отключена ли ссылка
+   */
+  disabled?: boolean;
 }
 
 // Объединение всех типов пропсов
@@ -158,6 +168,8 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
   // Получение правильного размера для MUI иконок в пикселях
   const getIconSize = () => {
+    if (as === 'a' || as === 'link') return '20px';
+
     if (size === 'large') return '28px';
     else if (size === 'medium') return '24px';
     else return '20px';
@@ -190,14 +202,57 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     className
   );
 
+  const baseLinkClasses = 'inline-flex items-center justify-center font-medium transition duration-100 ease-out '
+  const statesLinkClasses = 'text-blue-500 border border-white rounded-[4px] ' +
+    'hover:text-blue-700 hover:border-white ' +
+    'active:text-blue-900 active:border-white ' +
+    'focus:text-blue-500 focus:border-purple-600 ' +
+    'focus-visible:text-blue-500 focus-visible:border-purple-600 '
+
+  // Общие классы для ссылки
+  const linkClassName = clsx(
+    baseLinkClasses,
+    restProps.disabled ? 'text-mono-500 border-white cursor-default' : statesLinkClasses,
+    fullWidth ? 'w-full' : '',
+    className
+  );
+
   // Рендер компонента в зависимости от типа (button, a, link)
   if (as === 'a') {
-    const { href, ...anchorProps } = restProps as ButtonAsAnchorProps;
+    const { href, disabled, onClick, onDragStart, ...anchorProps } = restProps as ButtonAsAnchorProps;
+
+    // Если ссылка отключена, предотвращаем переход и добавляем специальные стили
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (disabled) {
+        e.preventDefault();
+        return;
+      }
+      onClick?.(e);
+    };
+
+    // Предотвращаем drag & drop для отключенных ссылок
+    const handleDragStart = (e: React.DragEvent<HTMLAnchorElement>) => {
+      if (disabled) {
+        e.preventDefault();
+        return;
+      }
+      onDragStart?.(e);
+    };
+
+    // Если ссылка отключена, удаляем href, чтобы она не была кликабельной
+    const anchorHref = disabled ? undefined : href;
+
+
     return (
       <a
         ref={ref as React.Ref<HTMLAnchorElement>}
-        href={href}
-        className={buttonClassName}
+        href={anchorHref}
+        className={linkClassName}
+        onClick={handleClick}
+        onDragStart={handleDragStart}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        role={'button'}
         {...anchorProps}
       >
         {leftIconElement}
@@ -208,12 +263,35 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
   }
 
   if (as === 'link') {
-    const { to, ...linkProps } = restProps as ButtonAsLinkProps;
+    const { to, disabled, onClick, onDragStart,  ...linkProps } = restProps as ButtonAsLinkProps;
+
+    const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+      if (disabled) {
+        e.preventDefault();
+        return;
+      }
+      onClick?.(e);
+    };
+
+    // Предотвращаем drag & drop для отключенных ссылок
+    const handleDragStart = (e: React.DragEvent<HTMLAnchorElement>) => {
+      if (disabled) {
+        e.preventDefault();
+        return;
+      }
+      onDragStart?.(e);
+    };
+
     return (
       <Link
         ref={ref as React.Ref<HTMLAnchorElement>}
         to={to}
-        className={buttonClassName}
+        className={linkClassName}
+        onClick={handleClick}
+        onDragStart={handleDragStart}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : undefined}
+        style={disabled ? { pointerEvents: 'none' } : undefined}
         {...linkProps}
       >
         {leftIconElement}
