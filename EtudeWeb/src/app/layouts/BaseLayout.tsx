@@ -1,5 +1,4 @@
 import "../styles/App.css";
-import { env } from "../../shared/config.ts";
 import { Outlet } from "react-router-dom";
 
 

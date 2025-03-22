@@ -153,8 +153,8 @@ console.log(distributeEvents(sortEvents(mockEvents)))
 
 const Calendar = () => {
   return (
-    <div className={clsx("gap-1 border-2 border-dashed border-red-900", styles.mainDiv)}>
-      <div className={"bg-gray-200"}>
+    <div className={clsx("gap-1 border-2 border-dashed", styles.mainDiv)}>
+      <div className={""}>
         <div>1</div>
         <div>2</div>
         <div>3</div>

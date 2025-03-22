@@ -1,141 +1,148 @@
-import styles from "./styles.module.scss";
-import { Button, ButtonSize, ButtonType, DisplayMode } from "../../../shared/ui/components/Button";
-import { IconButton } from "@mui/material";
-import { Add, Cancel, Category, Delete, Done, MailLock } from "@mui/icons-material";
-import { Badge, BadgeType } from "../../../shared/ui/components/Badge";
-import { Checkbox, CheckboxSize } from "../../../shared/ui/components/Checkbox";
-import { Comment, CommentType } from "../../../shared/ui/components/Comment";
-import { Hint } from "../../../shared/ui/components/Hint";
-import { CalendarCard, CourseCompetence, CourseFormat } from "../../../shared/ui/components/CalendarCard";
+import { Button } from "@/shared/ui/button/Button";
+import { OpenInNew, ArrowBack } from "@mui/icons-material";
 
 const TestPage = () => {
   return (
-    <main className={styles.main}>
-      <div>TestPage Container</div>
-      <form action="https://echo.htmlacademy.ru/" method="POST">
-        <input type="text" name={"dfg"} id={"aidi"} />
-        <Checkbox
-          description={""}
-          checkboxSize={CheckboxSize.large}
-          name={""}
-          disabled={false}
-          tooltipText={"fghfdgh"}
-        />
-        <Checkbox
-          description={"Test Small"}
-          checkboxSize={CheckboxSize.small}
-          name={"yeah"}
-          disabled={false}
-          tooltipText={"fghfdgh"}
-        />
-        <Button
-          displayMode={DisplayMode.secondary}
-          BeforeButtonIcon={Delete}
-          // AfterButtonIcon={ChevronLeft}
-          size={ButtonSize.medium}
-          disabled={false}
+    <div className="p-8 flex flex-col gap-6">
+      <h1 className="text-2xl font-bold mb-4">Примеры кнопок</h1>
 
-          type={ButtonType.submit}
-        >
-          Button
-        </Button>
+      {/* Секция с primary кнопками */}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Primary</h2>
+        <div className="flex flex-wrap gap-4">
+          <Button
+            variant="primary"
+            size="large"
+            leftIcon={<OpenInNew />}
+          >
+            Button
+          </Button>
 
-      </form>
+          <Button
+            variant="primary"
+            size="medium"
+          >
+            Button
+          </Button>
 
-      <br />
+          <Button
+            variant="secondary"
+            size="large"
+            rightIcon={<ArrowBack />}
+            leftIcon={<ArrowBack />}
+          >
+            Button
+          </Button>
 
+          <Button
+            variant="primary"
+            size="large"
+            disabled
+          >
+            Disabled
+          </Button>
+        </div>
+      </div>
 
+      {/* Секция с secondary кнопками */}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Secondary</h2>
+        <div className="flex flex-wrap gap-4">
+          <Button
+            variant="secondary"
+            size="large"
+            leftIcon={<OpenInNew />}
+          >
+            Button
+          </Button>
 
+          <Button
+            variant="secondary"
+            size="medium"
+          >
+            Button
+          </Button>
 
-      <Hint
-        badges={[
-          { text: "Soft skills" },
-          { text: "Очный" }
-        ]}
-        title={"Title"}
-        description={"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec rutrum, nisl sit amet mollis sodales, nibh ipsum efficitur ex, vitae dapibus risus sem id arcu."}
-        button={{
-          displayMode: DisplayMode.secondary,
-          className: styles.meow,
-          size: ButtonSize.small,
-          BeforeButtonIcon: Add
-        }}
-      >
-        <Button>
-          TestButton
-        </Button>
-      </Hint>
+          <Button
+            variant="secondary"
+            size="small"
+            rightIcon={<ArrowBack />}
+          >
+            Button
+          </Button>
 
-      <br />
-      <br />
+          <Button
+            variant="secondary"
+            size="large"
+            disabled
+          >
+            Disabled
+          </Button>
+        </div>
+      </div>
 
-      <Hint
-        badges={[
-          { text: "Soft skills" },
-          { text: "Очный" }
-        ]}
-        title={"Title"}
-        description={"Description"}
-        button={{
-          displayMode: DisplayMode.secondary,
-          className: styles.meow,
-          size: ButtonSize.small,
-          BeforeButtonIcon: Add
-        }}
-      >
-        fghfdhg
-      </Hint>
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <CalendarCard
-        title={'Название fgfghfgh'}
-        competence={CourseCompetence.manage}
-        format={CourseFormat.partTime}
-        CardIcon={Category}
-      />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <br />
-      <Badge
-        type={BadgeType.green}
-        BeforeBadgeIcon={Cancel}
-        AfterBadgeIcon={Done}
-      >
-        Text
-      </Badge>
+      {/* Секция с third кнопками */}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Third</h2>
+        <div className="flex flex-wrap gap-4">
+          <Button
+            variant="third"
+            size="large"
+            leftIcon={<OpenInNew />}
+          >
+            Button
+          </Button>
 
-      <Comment
-        title="Title Full Name I allow you to provide that action"
-        fullName="Full Name"
-        position="Director I allow you to provide that action."
-        commentText="I allow you to provide that action. I allow you to provide that action. I allow you to provide that action. I allow you to provide that action. I allow you to provide that action."
-        type={CommentType.accept}
-      />
+          <Button
+            variant="third"
+            size="medium"
+          >
+            Button
+          </Button>
 
-      <IconButton size={"large"}>
-        <Delete />
-      </IconButton>
-      <Badge badgeContent={4} color="primary">
-        <MailLock color="action" />
-      </Badge>
-    </main>
+          <Button
+            variant="third"
+            size="small"
+            rightIcon={<ArrowBack />}
+          >
+            Button
+          </Button>
+
+          <Button
+            variant="third"
+            size="large"
+            disabled
+          >
+            Disabled
+          </Button>
+        </div>
+      </div>
+
+      {/* Пример использования в качестве ссылки */}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Использование как ссылка</h2>
+        <div className="flex flex-wrap gap-4">
+          <Button
+            as="a"
+            href="https://example.com"
+            variant="third"
+            size="large"
+            rightIcon={<OpenInNew />}
+          >
+            Внешняя ссылка
+          </Button>
+
+          <Button
+            as="link"
+            to="/calendar"
+            variant="third"
+            size="medium"
+          >
+            Внутренняя ссылка (react-router)
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };
 
