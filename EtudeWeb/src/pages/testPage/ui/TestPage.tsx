@@ -127,6 +127,7 @@ const TestPage = () => {
             href="https://example.com"
             variant="third"
             size="large"
+            leftIcon={<OpenInNew />}
             rightIcon={<OpenInNew />}
           >
             Внешняя ссылка
