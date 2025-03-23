@@ -116,7 +116,7 @@ interface ButtonAsLinkProps extends ButtonBaseProps, Omit<AnchorHTMLAttributes<H
 }
 
 // Объединение всех типов пропсов
-type ButtonProps = ButtonAsButtonProps | ButtonAsAnchorProps | ButtonAsLinkProps;
+export type ButtonProps = ButtonAsButtonProps | ButtonAsAnchorProps | ButtonAsLinkProps;
 
 /**
  * Универсальный компонент кнопки, который может быть отрендерен как кнопка или ссылка
@@ -134,42 +134,96 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     ...restProps
   } = props;
 
-  // Базовые классы для всех вариантов кнопок
-  const baseClasses = 'inline-flex items-center justify-center font-medium transition duration-100 ease-out';
+  // Определяем, отключен ли элемент
+  const isDisabled =
+    as === 'button'
+      ? !!restProps.disabled
+      : (as === 'a' || as === 'link')
+        ? !!(restProps).disabled
+        : false;
 
-  // Классы для разных вариантов кнопок
+  // Базовые классы для всех вариантов кнопок
+  const baseClasses = clsx(
+    'inline-flex items-center justify-center font-medium transition duration-100 ease-out',
+    isDisabled && 'pointer-events-none'
+  );
+
+  // Классы для типографики в зависимости от размера кнопки
+  const typographyClasses = {
+    large: 'text-b2', // 18px Medium для размера 52px
+    medium: 'text-b3', // 16px Medium для размера 40px
+    small: 'text-b4', // 14px Medium для размера 36px
+  };
+
+  // Классы для disabled состояний с исправлениями согласно макету
+  const getDisabledClasses = () => {
+    if (!isDisabled) return '';
+
+    switch (variant) {
+      case 'primary':
+        return 'bg-mono-200 border border-mono-200 text-mono-500';
+      case 'secondary':
+        return 'bg-white border border-mono-400 text-mono-400';
+      case 'third':
+        return 'bg-transparent border border-transparent text-mono-400';
+      default:
+        return '';
+    }
+  };
+
+  // Primary
+  const primaryClasses = clsx(
+    !isDisabled && 'bg-blue-500 text-white border border-blue-500',
+    !isDisabled && 'hover:bg-blue-600 hover:border-blue-600 hover:text-white',
+    !isDisabled && 'active:bg-blue-700 active:border-blue-700 active:text-white',
+    !isDisabled && 'focus:bg-blue-400 focus:border-purple-600 focus:text-white focus-visible:bg-blue-400 focus-visible:border-purple-600 focus-visible:text-white'
+  );
+
+  // Secondary
+  const secondaryClasses = clsx(
+    !isDisabled && 'bg-white text-mono-800 border border-mono-800',
+    !isDisabled && 'hover:border-mono-900 hover:text-mono-900',
+    !isDisabled && 'active:border-mono-950 active:text-mono-950',
+    !isDisabled && 'focus:border-purple-600 focus:text-mono-950 focus-visible:border-purple-600 focus-visible:text-mono-950'
+  );
+
+  // Third
+  const thirdClasses = clsx(
+    !isDisabled && 'bg-white border border-transparent text-mono-900',
+    !isDisabled && 'hover:bg-mono-200 hover:border-mono-200 hover:text-mono-900',
+    !isDisabled && 'active:bg-mono-300 active:border-mono-300 active:text-mono-900',
+    !isDisabled && 'focus:bg-white focus:border-purple-600 focus:text-mono-900 focus-visible:bg-white focus-visible:border-purple-600 focus-visible:text-mono-900'
+  );
+
+  // Группируем варианты классов
   const variantClasses = {
-    primary: 'bg-blue-500 text-white border-1 border-blue-500 ' +
-      'hover:bg-blue-600 hover:border-blue-600 ' +
-      'active:bg-blue-700 active:border-blue-700 ' +
-      'focus:bg-blue-400 focus:border-purple-600 ' +
-      'focus-visible:bg-blue-400 focus-visible:border-purple-600 ' +
-      'disabled:bg-mono-200 disabled:border-mono-200 disabled:text-mono-500',
-    secondary: 'bg-white text-mono-800 border-[1px] border-mono-800 ' +
-      'hover:border-mono-900 hover:text-mono-900 ' +
-      'active:border-mono-950 active:text-mono-950 ' +
-      'focus:border-purple-600 focus:text-mono-950 ' +
-      'focus-visible:border-purple-600 focus-visible:text-mono-950 ' +
-      'disabled:border-mono-400 disabled:text-mono-400',
-    third: 'bg-white border-[1px] border-white ' +
-      'hover:bg-mono-200 hover:border-mono-200 hover:text-mono-900 ' +
-      'active:bg-mono-300 active:border-mono-300 active:text-mono-900 ' +
-      'focus:bg-white focus:border-purple-600 focus:text-mono-900 ' +
-      'focus-visible:bg-white focus-visible:border-purple-600 focus-visible:text-mono-900 ' +
-      'disabled:bg-white disabled:border-white disabled:text-mono-400',
+    primary: primaryClasses,
+    secondary: secondaryClasses,
+    third: thirdClasses
   };
 
   // Классы для разных размеров кнопок
   const sizeClasses = {
-    large: 'h-[52px] px-[16px] py-[12px] text-xl rounded-[8px]',
-    medium: 'h-[40px] px-[16px] py-[8px] text-base rounded-[6px]',
-    small: 'h-[36px] px-[12px] py-[8px] text-sm rounded-[4px]',
+    large: 'h-[52px] px-4 py-3 rounded-[8px]',
+    medium: 'h-[40px] px-4 py-2 rounded-[6px]',
+    small: 'h-[36px] px-3 py-2 rounded-[4px]',
   };
+
+  // Классы для линковых элементов (a и link) с обновленными стилями
+  const linkClasses = (as === 'a' || as === 'link') ? clsx(
+    'inline-flex items-center justify-center font-medium transition duration-100 ease-out',
+    !isDisabled ? 'text-blue-500 border border-transparent rounded-[4px]' : 'text-mono-500 border-transparent',
+    !isDisabled && 'hover:text-blue-700 hover:underline',
+    !isDisabled && 'active:text-blue-900 active:underline',
+    !isDisabled && 'focus:text-blue-500 focus:border-purple-600 focus-visible:text-blue-500 focus-visible:border-purple-600',
+  ) : '';
 
   // Получение правильного размера для MUI иконок в пикселях
   const getIconSize = () => {
+    // Для ссылок всегда используем 20px размер иконок
     if (as === 'a' || as === 'link') return '20px';
 
+    // Для обычных кнопок размер зависит от размера кнопки
     if (size === 'large') return '28px';
     else if (size === 'medium') return '24px';
     else return '20px';
@@ -197,22 +251,18 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
   const buttonClassName = clsx(
     baseClasses,
     variantClasses[variant],
+    getDisabledClasses(), // Применяем disabled стили отдельно
     sizeClasses[size],
+    typographyClasses[size],
     fullWidth ? 'w-full' : '',
     className
   );
 
-  const baseLinkClasses = 'inline-flex items-center justify-center font-medium transition duration-100 ease-out '
-  const statesLinkClasses = 'text-blue-500 border border-white rounded-[4px] ' +
-    'hover:text-blue-700 hover:border-white ' +
-    'active:text-blue-900 active:border-white ' +
-    'focus:text-blue-500 focus:border-purple-600 ' +
-    'focus-visible:text-blue-500 focus-visible:border-purple-600 '
-
   // Общие классы для ссылки
-  const linkClassName = clsx(
-    baseLinkClasses,
-    restProps.disabled ? 'text-mono-500 border-white cursor-default' : statesLinkClasses,
+  const anchorClassName = clsx(
+    linkClasses,
+    isDisabled && 'text-mono-500', // Применяем disabled стили для ссылок
+    typographyClasses[size],
     fullWidth ? 'w-full' : '',
     className
   );
@@ -242,16 +292,16 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
     // Если ссылка отключена, удаляем href, чтобы она не была кликабельной
     const anchorHref = disabled ? undefined : href;
 
-
     return (
       <a
         ref={ref as React.Ref<HTMLAnchorElement>}
         href={anchorHref}
-        className={linkClassName}
+        className={anchorClassName}
         onClick={handleClick}
         onDragStart={handleDragStart}
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : undefined}
+        style={disabled ? { pointerEvents: 'none' } : undefined}
         role={'button'}
         {...anchorProps}
       >
@@ -263,7 +313,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
   }
 
   if (as === 'link') {
-    const { to, disabled, onClick, onDragStart,  ...linkProps } = restProps as ButtonAsLinkProps;
+    const { to, disabled, onClick, onDragStart, ...linkProps } = restProps as ButtonAsLinkProps;
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
       if (disabled) {
@@ -286,7 +336,7 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
       <Link
         ref={ref as React.Ref<HTMLAnchorElement>}
         to={to}
-        className={linkClassName}
+        className={anchorClassName}
         onClick={handleClick}
         onDragStart={handleDragStart}
         aria-disabled={disabled}

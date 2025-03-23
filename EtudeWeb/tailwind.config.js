@@ -80,21 +80,117 @@ export default {
     fontFamily: {
       sansSerif: ['Inter', 'sans-serif'],
     },
+    // Обновленная типографика на основе дизайн-системы из Figma
     fontSize: {
-      sm: '0.875rem',
-      base: '1rem',
-      xl: '1.125rem',
-      '2xl': '1.563rem',
-      '3xl': '1.953rem',
-      '4xl': '2.441rem',
-      '5xl': '3.052rem',
+      // Heading styles
+      'h1': ['32px', {
+        // lineHeight: '100%',
+        fontWeight: 600, // SemiBold
+      }],
+      'h2': ['24px', {
+        // lineHeight: '140%',
+        fontWeight: 600, // SemiBold
+      }],
+      'h2-regular': ['24px', {
+        // lineHeight: '140%',
+        fontWeight: 400, // Regular
+      }],
+
+      // Body styles
+      'b1': ['20px', {
+        // lineHeight: '130%',
+        fontWeight: 500, // Medium
+      }],
+      'b2': ['18px', {
+        // lineHeight: '130%',
+        fontWeight: 500, // Medium
+      }],
+      'b2-regular': ['18px', {
+        // lineHeight: '130%',
+        fontWeight: 400, // Regular
+      }],
+      'b3-semibold': ['16px', {
+        // lineHeight: '130%',
+        fontWeight: 600, // SemiBold
+      }],
+      'b3': ['16px', {
+        // lineHeight: '130%',
+        fontWeight: 500, // Medium
+      }],
+      'b3-regular': ['16px', {
+        // lineHeight: '130%',
+        fontWeight: 400, // Regular
+      }],
+      'b4-semibold': ['14px', {
+        // lineHeight: '130%',
+        fontWeight: 600, // SemiBold
+      }],
+      'b4': ['14px', {
+        // lineHeight: '130%',
+        fontWeight: 500, // Medium
+      }],
+      'b4-regular': ['14px', {
+        // lineHeight: '130%',
+        fontWeight: 400, // Regular
+      }],
+      'b4-light': ['14px', {
+        // lineHeight: '130%',
+        fontWeight: 300, // Light
+      }],
+      'b5': ['12px', {
+        // lineHeight: '130%',
+        fontWeight: 400, // Regular
+      }],
     },
     extend: {
+      // Добавляем custom тени для компонента Hint
+      boxShadow: {
+        'hint': '0px 0px 13px 0px rgba(0, 0, 0, 0.06)',
+      },
+      // Добавляем специфические размеры для компонентов
+      height: {
+        'tag-md': '26px',
+        'tag-sm': '22px',
+      },
+      // Добавляем специфичные z-индексы
+      zIndex: {
+        'hint': '50',
+      },
+      // Добавляем transition durations для Hint
+      transitionDuration: {
+        '100': '100ms',
+      },
+      // Добавляем спейсинги специфические для компонентов
+      spacing: {
+        '6-hint': '6px', // border-radius для Hint
+      },
+      // Определение специфических opacity значений
+      opacity: {
+        '5': '0.05',  // для tag background
+        '20': '0.20', // для tag border
+      },
+      animation: {
+        'hint-appear': 'hintAppear 100ms ease',
+        'hint-disappear': 'hintDisappear 100ms ease',
+      },
+      keyframes: {
+        hintAppear: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        hintDisappear: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
+      },
     },
   },
   variants: {
     extend: {
       textDecoration: ['focus-visible'],
+      opacity: ['disabled'],
+      cursor: ['disabled'],
+      pointerEvents: ['disabled'],
     }
   },
   plugins: [],
