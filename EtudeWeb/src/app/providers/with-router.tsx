@@ -1,8 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import BaseLayout from "@/app/layouts/BaseLayout.tsx";
-import { TestPage } from "@/pages/testPage";
+
 import { TestCalendarPage } from "@/pages/testCalendarPage";
+import { TestButtonPage } from "@/pages/testButtonPage";
+import { TestHintPage } from "@/pages/testHintPage";
+import { TestTypographyPage } from "@/pages/testTypographyPage";
+
 
 
 const router = createBrowserRouter([
@@ -11,7 +15,9 @@ const router = createBrowserRouter([
     errorElement: <div>Error404</div>,
     children: [
       { path: "/", element: <div>ErrorMain</div> },
-      { path: "/test", element: <TestPage/> },
+      { path: "/test-button", element: <TestButtonPage/> },
+      { path: "/test-hint", element: <TestHintPage/> },
+      { path: "/test-typography", element: <TestTypographyPage/> },
       { path: "/calendar", element: <TestCalendarPage/>},
     ],
   },
