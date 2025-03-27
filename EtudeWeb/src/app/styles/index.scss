@@ -8,6 +8,42 @@
 
 }
 
+
+/* Применяем стили скроллбара ко всем элементам, а не только к body */
+body, div, ul, ol, li, section, main, article, aside, nav, header, footer, pre, code {
+  --sb-track-color: #efefef;
+  --sb-thumb-color: #d4d4d4;
+  --sb-thumb-hover-color: #C1C1C1;
+  --sb-size: 6px;
+}
+
+/* Применяем стили ко всем скроллбарам */
+*::-webkit-scrollbar {
+  width: var(--sb-size)
+}
+
+*::-webkit-scrollbar-track {
+  border-radius: 6px;
+  background: var(--sb-track-color);
+}
+
+*::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background: var(--sb-thumb-color);
+  &:hover {
+    background: var(--sb-thumb-hover-color);
+  }
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-color: var(--sb-thumb-color)
+    var(--sb-track-color);
+    scrollbar-width: thin;
+  }
+}
+
+
 :root {
   font-family: 'Inter', sans-serif;
   font-weight: 500;
