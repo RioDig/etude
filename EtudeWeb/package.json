@@ -43,6 +43,8 @@
     "postcss": "^8.4.40",
     "prettier": "3.3.3",
     "tailwindcss": "^3.4.7",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.2.2",
     "vite": "6.0.9"
   }
