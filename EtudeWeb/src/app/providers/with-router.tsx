@@ -10,6 +10,7 @@ import { TestBadgePage } from "@/pages/testBadgePage";
 import { TestControlPage } from "@/pages/testControlPage";
 import { TestCheckboxPage } from "@/pages/testCheckboxPage";
 import { TestDropdownMenuPage } from "@/pages/testDropdownmenuPage";
+import { TestCounterPage } from "@/pages/testCounterPage";
 
 
 
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
       { path: "/test-control", element: <TestControlPage/> },
       { path: "/test-checkbox", element: <TestCheckboxPage/> },
       { path: "/test-dropdownmenu", element: <TestDropdownMenuPage/> },
+      { path: "/test-counter", element: <TestCounterPage/> },
       { path: "/calendar", element: <TestCalendarPage/>},
     ],
   },
