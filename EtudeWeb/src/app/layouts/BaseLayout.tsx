@@ -1,5 +1,6 @@
 import "../styles/App.css";
 import { Outlet } from "react-router-dom";
+import { NotificationContainer } from "@/shared/ui/notification";
 
 
 function BaseLayout() {
@@ -19,6 +20,8 @@ function BaseLayout() {
       <div>
         <Outlet/>
       </div>
+
+      <NotificationContainer />
 
       {/*<div>*/}
       {/*  <a href="https://vitejs.dev" target="_blank">*/}
