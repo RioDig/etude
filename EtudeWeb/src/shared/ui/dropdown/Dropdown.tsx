@@ -169,7 +169,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
               aria-selected={isSelected || undefined}
               className={clsx(
                 'px-4 py-2',
-                'h-[52px] flex items-center justify-between',
+                'max-h-[52px] min-h-[34px] flex items-center justify-between',
                 'focus-visible:outline-none',
                 'transition-colors duration-150 ease-in-out',
                 /* Default состояние */
