@@ -19,7 +19,8 @@ body, div, ul, ol, li, section, main, article, aside, nav, header, footer, pre, 
 
 /* Применяем стили ко всем скроллбарам */
 *::-webkit-scrollbar {
-  width: var(--sb-size)
+  width: var(--sb-size);
+  height: var(--sb-size);
 }
 
 *::-webkit-scrollbar-track {
