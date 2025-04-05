@@ -16,6 +16,7 @@ import { TestEmptyMessagePage } from "@/pages/testEmptyMessagePage";
 import { TestStepperPage } from "@/pages/testStepperPage";
 import { TestNotificationPage } from "@/pages/testNotificationPage";
 import { TestFilterPage } from "@/pages/testFilterPage";
+import { TestModalPage } from "@/pages/testModalPage";
 
 
 
@@ -39,6 +40,7 @@ const router = createBrowserRouter([
       { path: "/test-stepper", element: <TestStepperPage/> },
       { path: "/test-notification", element: <TestNotificationPage/> },
       { path: "/test-filter", element: <TestFilterPage/> },
+      { path: "/test-modal", element: <TestModalPage/> },
       { path: "/calendar", element: <TestCalendarPage/>},
     ],
   },
