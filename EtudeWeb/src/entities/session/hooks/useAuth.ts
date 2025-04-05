@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSessionStore } from '../model/session.store.ts';
+import { useSessionStore } from 'src/entities/session/model/store.ts';
 import { sessionApi } from '../api/sessionApi';
 
 export const useAuth = () => {
