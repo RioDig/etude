@@ -37,8 +37,8 @@ export const Tag: React.FC<TagProps> = ({
   testId = 'tag',
 }) => {
   const sizeClasses = {
-    medium: 'h-[26px] py-1 px-2 text-b4-regular',
-    small: 'h-[22px] py-0.5 px-2 text-b5',
+    medium: 'min-h-[26px] py-1 px-2 text-b4-regular',
+    small: 'min-h-[22px]  py-0.5 px-2 text-b5',
   };
 
   return (

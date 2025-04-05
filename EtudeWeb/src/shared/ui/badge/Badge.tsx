@@ -49,7 +49,7 @@ export const Badge: React.FC<BadgeProps> = ({
   testId = 'badge',
 }) => {
   // Базовые стили для всех вариантов
-  const baseStyles = 'inline-flex items-center justify-center h-[26px] px-2 rounded-[4px] text-b4-regular';
+  const baseStyles = 'inline-flex items-center justify-center min-h-[26px] px-2 rounded-[4px] text-b4-regular';
 
   // Стили в зависимости от варианта
   const variantStyles = {
