@@ -1,14 +1,21 @@
-export interface User {
-  id: string;
+import { User } from '@/entities/user';
+
+export interface LoginCredentials {
   email: string;
-  isAdmin: boolean;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
   firstName: string;
   lastName: string;
 }
 
-export interface SessionStore {
+export interface SessionState {
   user: User | null;
   isAuthenticated: boolean;
-  setUser: (user: User | null) => void;
-  logout: () => void;
+  isLoading: boolean;
+  error: string | null;
+  initialized: boolean;
 }
