@@ -11,6 +11,7 @@ import React, {
 import clsx from 'clsx'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { SortDefaultIcon, SortAscIcon, SortDescIcon } from '@/shared/assets/icons'
+import EmptyMessageIcon from '@/shared/assets/images/empty-states/empty.svg'
 
 // Типы для сортировки
 export type SortDirection = 'asc' | 'desc' | null
@@ -336,9 +337,10 @@ export function Table<T = any>({
         {emptyComponent || (
           <EmptyMessage
             variant="small"
-            imageUrl="/empty-state.svg"
+            imageUrl={EmptyMessageIcon}
             title="Нет данных"
             description="В таблице нет данных для отображения"
+            className="p-8"
           />
         )}
       </div>

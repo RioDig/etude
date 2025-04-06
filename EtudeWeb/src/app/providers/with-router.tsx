@@ -19,13 +19,14 @@ import { TestFilterPage } from '@/pages/testFilterPage'
 import { TestModalPage } from '@/pages/testModalPage'
 import { TestTablePage } from '@/pages/testTablePage'
 import { TestSidebarPage } from '@/pages/testSidebarPage'
+import { TestMainPage } from '@/pages/testMainPage'
 
 const router = createBrowserRouter([
   {
     element: <BaseLayout />,
     errorElement: <div>Error404</div>,
     children: [
-      { path: '/', element: <div>ErrorMain</div> },
+      { path: '/', element: <TestMainPage /> },
       { path: '/test-button', element: <TestButtonPage /> },
       { path: '/test-hint', element: <TestHintPage /> },
       { path: '/test-typography', element: <TestTypographyPage /> },

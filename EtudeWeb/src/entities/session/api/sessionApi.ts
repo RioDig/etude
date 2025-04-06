@@ -19,7 +19,7 @@ export const sessionApi = {
   login: async (credentials: LoginCredentials): Promise<User> => {
     if (isMockMode()) {
       // Имитируем задержку для более реалистичного поведения
-      await delay(700)
+      await delay(10)
 
       const user = MOCK_USERS.find((u) => u.email === credentials.email)
 
