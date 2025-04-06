@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { Modal } from '@/shared/ui/modal'
 import { MiniModal } from '@/shared/ui/modal'
 import { Button } from '@/shared/ui/button'

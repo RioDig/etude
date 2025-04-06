@@ -6,7 +6,7 @@ import { withQuery } from './with-query';
 import { withAuth } from "./with-auth";
 
 export const withProviders = compose(
-  withRouter,
   withAuth,
   withQuery,
+  withRouter,
 );

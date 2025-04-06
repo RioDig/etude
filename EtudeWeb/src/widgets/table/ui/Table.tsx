@@ -1,4 +1,13 @@
-import React, { useState, useMemo, createContext, useContext, forwardRef } from 'react'
+import React, {
+  useState,
+  useMemo,
+  createContext,
+  useContext,
+  forwardRef,
+  useRef,
+  useCallback,
+  useEffect
+} from 'react'
 import clsx from 'clsx'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { SortDefaultIcon, SortAscIcon, SortDescIcon } from '@/shared/assets/icons'
@@ -65,6 +74,35 @@ export interface TableProps<T = any> {
    * @default true
    */
   scrollable?: boolean
+
+  /**
+   * Использовать бесконечный скролл для загрузки данных
+   * @default false
+   */
+  infiniteScroll?: boolean
+
+  /**
+   * Функция для загрузки следующей страницы данных при скролле
+   */
+  onLoadMore?: () => void
+
+  /**
+   * Есть ли еще данные для загрузки
+   * @default false
+   */
+  hasMore?: boolean
+
+  /**
+   * Загружаются ли данные в данный момент
+   * @default false
+   */
+  loading?: boolean
+
+  /**
+   * Порог загрузки новых данных (в пикселях от нижней границы)
+   * @default 200
+   */
+  threshold?: number
 
   /**
    * Дочерние элементы для декларативного подхода
@@ -135,8 +173,20 @@ export interface TableCellProps {
   testId?: string
 }
 
+// Компонент индикатора загрузки
+const LoadingIndicator = () => (
+  <tr>
+    <td colSpan={100} className="text-center py-4">
+      <div className="flex justify-center items-center">
+        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+        <span className="ml-2 text-b4-regular text-mono-800">Загрузка...</span>
+      </div>
+    </td>
+  </tr>
+)
+
 /**
- * Компонент таблицы с поддержкой декларативного подхода и API на основе пропсов
+ * Компонент таблицы с поддержкой декларативного подхода, API на основе пропсов и бесконечного скролла
  */
 export function Table<T = any>({
   data = [],
@@ -145,6 +195,11 @@ export function Table<T = any>({
   sortState: externalSortState,
   emptyComponent,
   scrollable = true,
+  infiniteScroll = false,
+  onLoadMore,
+  hasMore = false,
+  loading = false,
+  threshold = 200,
   children,
   className,
   headerClassName,
@@ -160,6 +215,9 @@ export function Table<T = any>({
 
   // Используем внешнее состояние сортировки, если оно предоставлено, иначе используем локальное
   const currentSortState = externalSortState || localSortState
+
+  // Реф для контейнера таблицы
+  const containerRef = useRef<HTMLDivElement>(null)
 
   // Обработчик нажатия на заголовок для сортировки
   const handleSort = (field: string) => {
@@ -187,6 +245,32 @@ export function Table<T = any>({
       setLocalSortState(newSortState)
     }
   }
+
+  // Функция для обработки прокрутки
+  const handleScroll = useCallback(() => {
+    if (!infiniteScroll || !onLoadMore || !hasMore || loading || !containerRef.current) {
+      return
+    }
+
+    const { scrollTop, scrollHeight, clientHeight } = containerRef.current
+    const scrollBottom = scrollHeight - scrollTop - clientHeight
+
+    // Если достигли порога загрузки, вызываем onLoadMore
+    if (scrollBottom < threshold) {
+      onLoadMore()
+    }
+  }, [infiniteScroll, onLoadMore, hasMore, loading, threshold])
+
+  // Эффект для добавления/удаления обработчика прокрутки
+  useEffect(() => {
+    const currentContainer = containerRef.current
+    if (infiniteScroll && currentContainer) {
+      currentContainer.addEventListener('scroll', handleScroll)
+      return () => {
+        currentContainer.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [infiniteScroll, handleScroll])
 
   // Значение контекста для обмена состоянием между компонентами
   const contextValue = {
@@ -243,7 +327,7 @@ export function Table<T = any>({
   }, [data, currentSortState, onSort, externalSortState, children])
 
   // Если нет данных и нет декларативных дочерних элементов, показываем пустое состояние
-  if (!children && !data.length) {
+  if (!children && !data.length && !loading) {
     return (
       <div
         className={clsx('rounded-[4px] border border-mono-200 overflow-hidden', className)}
@@ -270,10 +354,13 @@ export function Table<T = any>({
 
     const tableClass = scrollable ? 'min-w-full border-collapse' : 'w-full border-collapse'
 
-    const tableContainer = scrollable ? 'overflow-x-auto w-full' : 'w-full'
+    const tableContainerClass = clsx(
+      scrollable ? 'overflow-x-auto w-full' : 'w-full',
+      infiniteScroll && 'max-h-[600px] overflow-y-auto'
+    )
 
     return (
-      <div className={tableContainer}>
+      <div className={tableContainerClass} ref={containerRef}>
         <table className={tableClass} style={tableStyles}>
           {/* Для фиксированных ширин используем colgroup */}
           {scrollable && (
@@ -291,7 +378,10 @@ export function Table<T = any>({
           )}
 
           <thead>
-            <tr className={clsx('bg-mono-200', headerClassName)} data-testid={`${testId}-header`}>
+            <tr
+              className={clsx('bg-mono-200 sticky top-0 z-10', headerClassName)}
+              data-testid={`${testId}-header`}
+            >
               {columns.map((column) => (
                 <th
                   key={column.id}
@@ -357,7 +447,34 @@ export function Table<T = any>({
                 ))}
               </tr>
             ))}
+            {loading && <LoadingIndicator />}
           </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  // Декларативный вариант таблицы с бесконечным скроллом
+  const renderDeclarativeTableWithInfiniteScroll = () => {
+    // Вычисляем классы для контейнера таблицы с учетом бесконечного скролла
+    const tableContainerClass = clsx(
+      scrollable ? 'overflow-x-auto w-full' : 'w-full',
+      infiniteScroll && 'max-h-[600px] overflow-y-auto'
+    )
+
+    // Адаптируем стили для таблицы
+    const tableClass = scrollable ? 'min-w-full border-collapse' : 'w-full border-collapse'
+
+    // Возвращаем таблицу с контейнером, который отслеживает скролл
+    return (
+      <div className={tableContainerClass} ref={containerRef}>
+        <table className={tableClass}>
+          {children}
+          {loading && (
+            <tbody>
+              <LoadingIndicator />
+            </tbody>
+          )}
         </table>
       </div>
     )
@@ -369,7 +486,7 @@ export function Table<T = any>({
       data-testid={testId}
     >
       <TableContext.Provider value={contextValue}>
-        {children || renderPropBasedTable()}
+        {children ? renderDeclarativeTableWithInfiniteScroll() : renderPropBasedTable()}
       </TableContext.Provider>
     </div>
   )
@@ -383,7 +500,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({
 }) => {
   return (
     <thead>
-      <tr className={clsx('bg-mono-200', className)} data-testid={testId}>
+      <tr className={clsx('bg-mono-200 sticky top-0 z-10', className)} data-testid={testId}>
         {children}
       </tr>
     </thead>
