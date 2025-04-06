@@ -172,6 +172,9 @@ export default {
       animation: {
         'hint-appear': 'hintAppear 100ms ease',
         'hint-disappear': 'hintDisappear 100ms ease',
+        'fadeIn': 'fadeIn 300ms ease-out',
+        'slideInRight': 'slideInRight 300ms ease-out',
+        'slideOutRight': 'slideOutRight 300ms ease-out',
       },
       keyframes: {
         hintAppear: {
@@ -181,6 +184,18 @@ export default {
         hintDisappear: {
           '0%': { opacity: '1' },
           '100%': { opacity: '0' },
+        },
+        fadeIn: {
+          '0%': { opacity: 0 },
+          '100%': { opacity: 1 },
+        },
+        slideInRight: {
+          '0%': { transform: 'translateX(100%)' },
+          '100%': { transform: 'translateX(0)' },
+        },
+        slideOutRight: {
+          '0%': { transform: 'translateX(0)' },
+          '100%': { transform: 'translateX(100%)' },
         },
       },
     },
