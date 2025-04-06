@@ -1,103 +1,103 @@
-import React, { useRef, useEffect, useState } from 'react';
-import clsx from 'clsx';
-import { SvgIconProps } from '@mui/material';
+import React, { useRef, useEffect, useState } from 'react'
+import clsx from 'clsx'
+import { SvgIconProps } from '@mui/material'
 
 // Тип для пункта меню
-export type MenuItemVariant = 'default' | 'warning';
+export type MenuItemVariant = 'default' | 'warning'
 
 export interface MenuItemProps {
   /**
    * Текст пункта меню
    */
-  label: string;
+  label: string
 
   /**
    * Вариант стиля пункта
    * @default 'default'
    */
-  variant?: MenuItemVariant;
+  variant?: MenuItemVariant
 
   /**
    * MUI иконка слева от текста
    */
-  icon?: React.ReactElement<SvgIconProps>;
+  icon?: React.ReactElement<SvgIconProps>
 
   /**
    * Отключение пункта меню
    * @default false
    */
-  disabled?: boolean;
+  disabled?: boolean
 
   /**
    * Обработчик клика по пункту
    */
-  onClick?: () => void;
+  onClick?: () => void
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }
 
 export interface DropdownMenuProps {
   /**
    * Флаг открытия меню
    */
-  open: boolean;
+  open: boolean
 
   /**
    * Обработчик закрытия меню
    */
-  onClose: () => void;
+  onClose: () => void
 
   /**
    * Элемент, относительно которого позиционируется меню
    */
-  anchorEl?: HTMLElement | null;
+  anchorEl?: HTMLElement | null
 
   /**
    * Позиция меню относительно элемента
    * @default 'bottom-right'
    */
-  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
 
   /**
    * Элементы меню стандартного стиля
    */
-  defaultItems?: MenuItemProps[];
+  defaultItems?: MenuItemProps[]
 
   /**
    * Элементы меню с предупреждающим стилем
    */
-  warningItems?: MenuItemProps[];
+  warningItems?: MenuItemProps[]
 
   /**
    * Максимальное количество отображаемых записей
    * @default 7
    */
-  maxItems?: number;
+  maxItems?: number
 
   /**
    * Расстояние между меню и элементом-якорем (в пикселях)
    * @default 8
    */
-  offset?: number;
+  offset?: number
 
   /**
    * Ширина меню (в пикселях)
    * @default 300
    */
-  width?: number;
+  width?: number
 
   /**
    * Дополнительные CSS классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }
 
 /**
@@ -114,46 +114,62 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
   offset = 8,
   width = 300,
   className,
-  testId = 'dropdown-menu',
+  testId = 'dropdown-menu'
 }) => {
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+  const menuRef = useRef<HTMLDivElement>(null)
+  const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
+  // Состояние для контроля видимости меню при позиционировании
+  const [isPositioned, setIsPositioned] = useState(false)
 
   // Обработчик клика по пункту меню
   const handleItemClick = (onClick?: () => void) => () => {
-    if (onClick) onClick();
-    onClose();
-  };
+    if (onClick) onClick()
+    onClose()
+  }
 
   // Обновление позиции меню при изменении anchorEl или position
   useEffect(() => {
     if (anchorEl && open) {
-      const anchorRect = anchorEl.getBoundingClientRect();
-      const { top, left, bottom, right } = anchorRect;
+      // Сначала сбрасываем флаг позиционирования
+      setIsPositioned(false)
 
-      let newTop = 0;
-      let newLeft = 0;
+      // Задержка для вычисления правильной позиции
+      requestAnimationFrame(() => {
+        const anchorRect = anchorEl.getBoundingClientRect()
+        const { top, left, bottom, right } = anchorRect
 
-      // Позиционирование по вертикали
-      if (position.startsWith('bottom')) {
-        newTop = bottom + offset;
-      } else if (position.startsWith('top')) {
-        newTop = top - offset;
-        if (menuRef.current) {
-          newTop -= menuRef.current.offsetHeight;
+        let newTop = 0
+        let newLeft = 0
+
+        // Позиционирование по вертикали
+        if (position.startsWith('bottom')) {
+          newTop = bottom + offset
+        } else if (position.startsWith('top')) {
+          newTop = top - offset
+          if (menuRef.current) {
+            newTop -= menuRef.current.offsetHeight
+          }
         }
-      }
 
-      // Позиционирование по горизонтали
-      if (position.endsWith('right')) {
-        newLeft = right - width;
-      } else if (position.endsWith('left')) {
-        newLeft = left;
-      }
+        // Позиционирование по горизонтали
+        if (position.endsWith('right')) {
+          newLeft = right - width
+        } else if (position.endsWith('left')) {
+          newLeft = left
+        }
 
-      setMenuPosition({ top: newTop, left: newLeft });
+        setMenuPosition({ top: newTop, left: newLeft })
+
+        // Устанавливаем флаг позиционирования после вычисления
+        requestAnimationFrame(() => {
+          setIsPositioned(true)
+        })
+      })
+    } else {
+      // Если меню закрыто, сбрасываем флаг позиционирования
+      setIsPositioned(false)
     }
-  }, [anchorEl, open, position, offset, width]);
+  }, [anchorEl, open, position, offset, width])
 
   // Закрытие меню при клике вне компонента
   useEffect(() => {
@@ -165,26 +181,26 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         // Клик по якорю (кнопке-триггеру) уже обрабатывается самой кнопкой
         !(anchorEl === event.target || anchorEl?.contains(event.target as Node))
       ) {
-        onClose();
+        onClose()
       }
-    };
+    }
 
     if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [open, onClose, anchorEl]);
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [open, onClose, anchorEl])
 
   // Обрезаем списки до максимального количества элементов
-  const limitedDefaultItems = defaultItems.slice(0, maxItems);
-  const remainingItems = Math.max(0, maxItems - limitedDefaultItems.length);
-  const limitedWarningItems = warningItems.slice(0, remainingItems);
+  const limitedDefaultItems = defaultItems.slice(0, maxItems)
+  const remainingItems = Math.max(0, maxItems - limitedDefaultItems.length)
+  const limitedWarningItems = warningItems.slice(0, remainingItems)
 
   // Если меню не открыто, не рендерим его
-  if (!open) return null;
+  if (!open) return null
 
   return (
     <div
@@ -192,13 +208,14 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
       className={clsx(
         'fixed z-50 overflow-hidden bg-mono-25',
         'w-[300px] rounded-lg shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]',
-        'py-2',
+        'py-2 transition-opacity duration-150',
+        isPositioned ? 'opacity-100' : 'opacity-0', // Управляем видимостью через opacity
         className
       )}
       style={{
         top: `${menuPosition.top}px`,
         left: `${menuPosition.left}px`,
-        width: `${width}px`,
+        width: `${width}px`
       }}
       data-testid={testId}
     >
@@ -237,8 +254,8 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
 /**
  * Компонент MenuItem - пункт выпадающего меню
@@ -249,29 +266,29 @@ const MenuItem: React.FC<MenuItemProps> = ({
   icon,
   disabled = false,
   onClick,
-  testId = 'menu-item',
+  testId = 'menu-item'
 }) => {
   // Стили для различных вариантов пунктов
   const variantStyles = disabled
     ? 'text-mono-500'
     : variant === 'warning'
       ? 'text-red-500'
-      : 'text-mono-950';
+      : 'text-mono-950'
 
   // Обработчик клика на пункт меню
   const handleClick = () => {
     if (!disabled && onClick) {
-      onClick();
+      onClick()
     }
-  };
+  }
 
   // Подготовка иконки с единым размером, если она предоставлена
   const iconElement = icon
     ? React.cloneElement(icon, {
-      sx: { width: 20, height: 20, fontSize: 20 },
-      className: clsx('mr-3', icon.props.className) // mr-3 = 12px в Tailwind
-    })
-    : null;
+        sx: { width: 20, height: 20, fontSize: 20 },
+        className: clsx('mr-3', icon.props.className) // mr-3 = 12px в Tailwind
+      })
+    : null
 
   return (
     <div
@@ -289,7 +306,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
       {iconElement}
       {label}
     </div>
-  );
-};
+  )
+}
 
-export default DropdownMenu;
+export default DropdownMenu

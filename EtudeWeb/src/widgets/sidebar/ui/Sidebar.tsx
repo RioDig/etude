@@ -4,6 +4,7 @@ import { Close, MoreHoriz } from '@mui/icons-material'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
+import { createPortal } from 'react-dom'
 
 export interface SidebarAction {
   label: string
@@ -194,6 +195,11 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
     updateVisibleActions()
   }, [updateVisibleActions])
 
+  // Функция открытия/закрытия дропдауна
+  const toggleDropdown = () => {
+    setIsDropdownOpen(prev => !prev);
+  };
+
   return (
     <div className="mt-4">
       <div
@@ -218,7 +224,7 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
           <Button
             ref={setMoreButtonRef}
             variant="secondary"
-            onClick={() => setIsDropdownOpen(true)}
+            onClick={toggleDropdown}
             data-testid="more-actions-button"
             className="shrink-0"
           >
@@ -227,23 +233,26 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
         )}
       </div>
 
-      {/* Выпадающее меню со скрытыми действиями */}
-      <DropdownMenu
-        open={isDropdownOpen}
-        onClose={() => setIsDropdownOpen(false)}
-        anchorEl={moreButtonRef}
-        position="bottom-right"
-        defaultItems={hiddenActions.map((action) => ({
-          label: action.label,
-          onClick: () => {
-            action.onClick()
-            setIsDropdownOpen(false)
-          },
-          disabled: action.disabled
-        }))}
-      />
+      {/* Рендерим DropdownMenu через Portal, чтобы избежать проблем с трансформацией */}
+      {hiddenActions.length > 0 && isDropdownOpen && createPortal(
+        <DropdownMenu
+          open={isDropdownOpen}
+          onClose={() => setIsDropdownOpen(false)}
+          anchorEl={moreButtonRef}
+          position="bottom-right"
+          defaultItems={hiddenActions.map(action => ({
+            label: action.label,
+            onClick: () => {
+              action.onClick();
+              setIsDropdownOpen(false);
+            },
+            disabled: action.disabled
+          }))}
+        />,
+        document.body
+      )}
     </div>
-  )
+  );
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
