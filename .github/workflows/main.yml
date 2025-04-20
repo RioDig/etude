@@ -44,11 +44,54 @@ jobs:
           chmod 777 etude-front.tar.gz
           chmod 777 etude-backend.tar.gz
 
-      # Шаг 5. Подготовка docker-compose для сервера
-      - name: Prepare docker-compose
+      # Шаг 5. Создание fixed-docker-compose.yml для сервера
+      - name: Create fixed docker-compose
         run: |
-          sed -i 's|build:|image: etude-front:latest|g; s|context: ./EtudeWeb|#context: ./EtudeWeb|g; s|dockerfile: Dockerfile|#dockerfile: Dockerfile|g' docker-compose.yml
-          sed -i 's|build:|image: etude-backend:latest|g; s|context: ./EtudeBackend|#context: ./EtudeBackend|g; s|dockerfile: Dockerfile|#dockerfile: Dockerfile|g' docker-compose.yml
+          cat > fixed-docker-compose.yml << 'EOL'
+          version: '3.8'
+
+          services:
+            web:
+              container_name: "web"
+              image: etude-front:latest
+              ports:
+                - "3000:80"
+              environment:
+                - NODE_ENV=development
+              restart: always
+
+            db:
+              container_name: "db"
+              image: postgres:alpine3.18
+              restart: always
+              environment:
+                - POSTGRES_USER=postgres
+                - POSTGRES_PASSWORD=postgres
+                - POSTGRES_DB=postgres
+              ports:
+                - "5432:5432"
+
+            redis:
+              image: docker.io/redis/redis-stack:latest
+              ports:
+                - "6379:6379"
+                - "8001:8001"
+              environment:
+                REDIS_ARGS: --requirepass secret
+              restart: always
+
+            backend:
+              container_name: "backend"
+              image: etude-backend:latest
+              ports:
+                - "8080:8080"
+                - "8081:8081"
+              depends_on:
+                - db
+                - redis
+              environment:
+                - ASPNETCORE_ENVIRONMENT=Development
+          EOL
 
       # Шаг 6. Перенос образов и docker-compose на сервер
       - name: Transfer files to server
@@ -58,7 +101,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "./docker-compose.yml, etude-front.tar.gz, etude-backend.tar.gz"
+          source: "./fixed-docker-compose.yml, etude-front.tar.gz, etude-backend.tar.gz"
           target: "/home/detouche-admin/Deployment/"
 
       # Шаг 7. Запуск контейнеров на сервере
@@ -76,5 +119,6 @@ jobs:
             gunzip -f etude-backend.tar.gz
             docker load -i etude-front.tar
             docker load -i etude-backend.tar
-            docker compose up -d
+            docker compose -f fixed-docker-compose.yml up -d
+            docker ps
             rm -rf etude*.tar

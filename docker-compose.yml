@@ -3,14 +3,9 @@ version: '3.8'
 services:
   web:
     container_name: "web"
-    build:
-      context: ./EtudeWeb
-      dockerfile: Dockerfile
+    image: etude-front:latest
     ports:
-      - "3000:80"
-    volumes:
-      - ./EtudeWeb:/app
-      - /app/node_modules
+      - "3000:80"  # Nginx в фронтенд-образе слушает на порту 80
     environment:
       - NODE_ENV=development
     restart: always
@@ -37,9 +32,7 @@ services:
 
   backend:
     container_name: "backend"
-    build:
-      context: ./EtudeBackend
-      dockerfile: Dockerfile
+    image: etude-backend:latest
     ports:
       - "8080:8080"
       - "8081:8081"
