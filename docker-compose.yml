@@ -1,7 +1,0 @@
-services:
-  etude_front:
-    image: etude-front:latest
-    container_name: etude-front
-    restart: always
-    ports:
-      - "80:80"
