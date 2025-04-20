@@ -1,4 +1,6 @@
-﻿services:
+﻿version: '3.8'
+
+services:
   db:
     container_name: "db"
     image: postgres:alpine3.18
@@ -9,7 +11,7 @@
       - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
-        
+  
   redis:
     image: docker.io/redis/redis-stack:latest
     ports:
@@ -18,4 +20,17 @@
     environment:
       REDIS_ARGS: --requirepass secret
     restart: always
-    
+  
+  backend:
+    container_name: "backend"
+    build:
+      context: ./EtudeBackend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+    depends_on:
+      - db
+      - redis
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
