@@ -38,13 +38,10 @@ services:
   backend:
     container_name: "backend"
     build:
-      context: ./EtudeBackend
+      context: ./EtudeBackend/EtudeBackend
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
-      - "8081:8081"
     depends_on:
       - db
       - redis
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
