@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   web:
     container_name: "web"
     image: etude-front:latest
     ports:
-      - "3000:80"  # Nginx в фронтенд-образе слушает на порту 80
+      - "80:80"
     environment:
       - NODE_ENV=development
     restart: always
@@ -34,10 +32,7 @@ services:
     container_name: "backend"
     image: etude-backend:latest
     ports:
-      - "8080:8080"
-      - "8081:8081"
+      - "0.0.0.0:8080:8080"
     depends_on:
       - db
       - redis
-    environment:
-      - ASPNETCORE_ENVIRONMENT=Development
