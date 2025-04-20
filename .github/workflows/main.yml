@@ -44,7 +44,13 @@ jobs:
           chmod 777 etude-front.tar.gz
           chmod 777 etude-backend.tar.gz
 
-      # Шаг 5. Перенос образов и docker-compose на сервер
+      # Шаг 5. Подготовка docker-compose для сервера
+      - name: Prepare docker-compose
+        run: |
+          sed -i 's|build:|image: etude-front:latest|g; s|context: ./EtudeWeb|#context: ./EtudeWeb|g; s|dockerfile: Dockerfile|#dockerfile: Dockerfile|g' docker-compose.yml
+          sed -i 's|build:|image: etude-backend:latest|g; s|context: ./EtudeBackend|#context: ./EtudeBackend|g; s|dockerfile: Dockerfile|#dockerfile: Dockerfile|g' docker-compose.yml
+
+      # Шаг 6. Перенос образов и docker-compose на сервер
       - name: Transfer files to server
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -55,7 +61,7 @@ jobs:
           source: "./docker-compose.yml, etude-front.tar.gz, etude-backend.tar.gz"
           target: "/home/detouche-admin/Deployment/"
 
-      # Шаг 6. Запуск контейнеров на сервере
+      # Шаг 7. Запуск контейнеров на сервере
       - name: Deploy Services
         uses: appleboy/ssh-action@v1.0.3
         with:
