@@ -1,47 +1,22 @@
 import "../styles/App.css";
-import { env } from "../../shared/config.ts";
 import { Outlet } from "react-router-dom";
+import { NotificationContainer } from "@/shared/ui/notification";
+import { Header } from "@/widgets/header";
+import React from "react";
 
 
 function BaseLayout() {
   return (
-    <>
-      <div className="border-2 border-red-500">
-        <div className="flex border-2 border-emerald-700 mr-20 p-8">
-          <div className="border-2 border-purple-500">Card One gfhfghfgh</div>
-          <div>
-            {env.WEB_API_URL}
-          </div>
-          <div className="border-2 border-amber-600">Card Two</div>
-          <div className="border-2 border-purple-500">Card Three</div>
-        </div>
-      </div>
-
-      <div>
-        <Outlet/>
-      </div>
-
-      {/*<div>*/}
-      {/*  <a href="https://vitejs.dev" target="_blank">*/}
-      {/*    <img src={viteLogo} className="logo" alt="Vite logo" />*/}
-      {/*  </a>*/}
-      {/*  <a href="https://react.dev" target="_blank">*/}
-      {/*    <img src={reactLogo} className="logo react" alt="React logo" />*/}
-      {/*  </a>*/}
-      {/*</div>*/}
-      {/*<h1>Vite + React</h1>*/}
-      {/*<div className="card">*/}
-      {/*  <button onClick={() => setCount((count) => count + 1)}>*/}
-      {/*    count is {count}*/}
-      {/*  </button>*/}
-      {/*  <p>*/}
-      {/*    Edit <code>src/index.tsx</code> and save to test HMR*/}
-      {/*  </p>*/}
-      {/*</div>*/}
-      {/*<p className="read-the-docs">*/}
-      {/*  Click on the Vite and React logos to learn more*/}
-      {/*</p>*/}
-    </>
+    <div className="flex flex-col min-h-screen w-full">
+      <Header
+        notificationsCount={5}
+        className="sticky top-0 z-50 bg-white"
+      />
+      <main className="flex-1 overflow-auto">
+        <Outlet />
+      </main>
+      <NotificationContainer />
+    </div>
   );
 }
 

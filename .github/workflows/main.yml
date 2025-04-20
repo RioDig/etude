@@ -9,76 +9,54 @@ jobs:
   deploy:
     name: Build and Deploy to Server
     runs-on: ubuntu-latest
-
     steps:
       # Шаг 1. Клонирование репозитория
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Шаг 2. Установка Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-#          cache: 'yarn'
-
-      # Шаг 3. Кэширование зависимостей
-      - name: Cache node_modules
-        uses: actions/cache@v3
-        with:
-          path: |
-            node_modules
-            ./node_modules
-          key: node-modules-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            node-modules-
-
-      # Шаг 4. Установка зависимостей
-      - name: Install dependencies
-        run: | 
-          cd EtudeWeb    
-          yarn install
-
-      # Шаг 5. Сборка Front-Etude
-      - name: Build Front-Etude
-        run: |
-          cd EtudeWeb
-          npx vite build
-
-      # Шаг 12. Билд образа
-      - name: Image Build
+      # Шаг 2. Билд фронтенд образа (сборка выполняется внутри Dockerfile)
+      - name: Frontend Image Build
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./EtudeWeb
           file: ./EtudeWeb/Dockerfile
           push: false
           tags: |
             etude-front:latest
 
-      # Шаг 13. Image to archive
-      - name: Image Packing
+      # Шаг 3. Билд бэкенд образа (сборка выполняется внутри Dockerfile)
+      - name: Backend Image Build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./EtudeBackend/EtudeBackend/Dockerfile
+          push: false
+          tags: |
+            etude-backend:latest
+
+      # Шаг 4. Образы в архивы
+      - name: Images Packing
         run: |
           docker image save -o etude-front.tar etude-front:latest
-
-      # Шаг 14. Сжатие образа
-      - name: Image Gzip
-        run: |
+          docker image save -o etude-backend.tar etude-backend:latest
           gzip etude-front.tar
+          gzip etude-backend.tar
           chmod 777 etude-front.tar.gz
-      
-      # Шаг 15. Перенос compose файла на сервер
-      - name: Move docker-compose file to server
+          chmod 777 etude-backend.tar.gz
+
+      # Шаг 5. Перенос образов и docker-compose на сервер
+      - name: Transfer files to server
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "./docker-compose.yml, etude-front.tar.gz"
+          source: "./docker-compose.yml, etude-front.tar.gz, etude-backend.tar.gz"
           target: "/home/detouche-admin/Deployment/"
 
-      # Шаг 16. Поднятие контейнера
-      - name: Docker-compose up
+      # Шаг 6. Запуск контейнеров на сервере
+      - name: Deploy Services
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_IP }}
@@ -87,7 +65,10 @@ jobs:
           port: ${{ secrets.SERVER_PORT }}
           script: |
             cd /home/detouche-admin/Deployment/
-            gunzip etude-front.tar.gz
+            docker compose down
+            gunzip -f etude-front.tar.gz
+            gunzip -f etude-backend.tar.gz
             docker load -i etude-front.tar
+            docker load -i etude-backend.tar
             docker compose up -d
-            rm -rf etude*
+            rm -rf etude*.tar
