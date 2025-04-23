@@ -23,7 +23,7 @@ class Settings(BaseSettings):
 
     # Зарегистрированные клиенты OAuth (в продакшене должны храниться в БД)
     OAUTH_CLIENTS: dict = {
-        "etude_backend": {
+        "etude_backend_client": {
             "client_id": "etude_backend_client",
             "client_secret": "etude_backend_secret",
             "redirect_uris": ["http://localhost:5055/api/auth/callback", "https://localhost:7124/api/auth/callback"],

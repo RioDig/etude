@@ -22,12 +22,15 @@ public static class ServiceCollectionExtensions
         // Регистрация общих репозиториев
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         
-        //Кэширование
+        // Кэширование
         services.AddStackExchangeRedisCache(opts =>
         {
             opts.Configuration = configuration.GetConnectionString("Redis");
             opts.InstanceName = "etude";
         });
+
+        // Добавление HttpClient для OAuth сервиса
+        services.AddHttpClient<IOAuthService, OAuthService>();
 
         return services;
     }
@@ -51,7 +54,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICourseTemplateService, CourseTemplateService>();
         services.AddScoped<IReportTemplateService, ReportTemplateService>();
         services.AddScoped<IReportService, ReportService>();
-        
+        services.AddScoped<IOAuthService, OAuthService>();
+
         return services;
     }
 }

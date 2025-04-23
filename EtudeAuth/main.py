@@ -73,6 +73,7 @@ async def authorize(
 ):
     # Проверяем, что клиент зарегистрирован
     if client_id not in settings.OAUTH_CLIENTS:
+        print()
         return HTMLResponse(content="Недействительный client_id", status_code=400)
 
     client = settings.OAUTH_CLIENTS[client_id]

@@ -13,6 +13,23 @@ services:
       - NODE_ENV=development
     restart: always
 
+  auth:
+    container_name: "auth"
+    build:
+      context: ./EtudeAuth
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASS=postgres
+    restart: always
+
   db:
     container_name: "db"
     image: postgres:alpine3.18
