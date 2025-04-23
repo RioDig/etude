@@ -1,4 +1,5 @@
-﻿using EtudeBackend.Features.Reports.Services;
+﻿using EtudeBackend.Features.Auth.Services;
+using EtudeBackend.Features.Reports.Services;
 using EtudeBackend.Features.Templates.Repositories;
 using EtudeBackend.Features.Templates.Services;
 using EtudeBackend.Features.TrainingRequests.Repositories;
