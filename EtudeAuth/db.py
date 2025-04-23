@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy.sql import func
 from datetime import datetime
 
@@ -10,17 +10,18 @@ Base = declarative_base()
 
 # Создаем асинхронное подключение к PostgreSQL
 engine = create_async_engine(
-    f"postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}",
+    f"postgresql+psycopg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}",
     echo=False
 )
 
 # Создаем асинхронную фабрику сессий
-async_session_maker = AsyncSession(engine, expire_on_commit=False)
-
+async_session_factory = sessionmaker(
+    engine, class_=AsyncSession, expire_on_commit=False
+)
 
 # Функция для получения асинхронной сессии
 async def get_async_session():
-    async with async_session_maker as session:
+    async with async_session_factory() as session:
         yield session
 
 
