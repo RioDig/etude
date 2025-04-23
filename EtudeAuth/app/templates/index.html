@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Система внутреннего документооборота</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 2rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            min-height: 80vh;
+        }
+        h1, h2 {
+            color: #2c3e50;
+        }
+        .api-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        .endpoint {
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #fff;
+            border-left: 4px solid #2c3e50;
+        }
+        code {
+            background-color: #f1f1f1;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .method {
+            font-weight: bold;
+            margin-right: 1rem;
+        }
+        .get { color: #3498db; }
+        .post { color: #2ecc71; }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Система внутреннего документооборота</h1>
+        <p>OAuth сервис для аутентификации пользователей</p>
+    </header>
+
+    <div class="container">
+        <section>
+            <h2>О системе</h2>
+            <p>Это имитация системы внутреннего документооборота компании, которая поддерживает OAuth аутентификацию для внешних приложений.</p>
+            <p>Данная система позволяет пользователям безопасно авторизоваться и предоставить доступ внешним приложениям к своим документам.</p>
+        </section>
+
+        <section class="api-section">
+            <h2>OAuth 2.0 Endpoints</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/oauth/authorize</code>
+                <p>Точка входа для авторизации пользователя. Перенаправляет на страницу входа.</p>
+                <p>Параметры: <code>response_type=code</code>, <code>client_id</code>, <code>redirect_uri</code>, <code>scope</code>, <code>state</code> (опционально)</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/oauth/login</code>
+                <p>Обработка формы входа пользователя.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/oauth/token</code>
+                <p>Обмен кода авторизации на токены доступа.</p>
+                <p>Поддерживает: <code>grant_type=authorization_code</code> и <code>grant_type=refresh_token</code></p>
+            </div>
+        </section>
+
+        <section class="api-section">
+            <h2>API-эндпоинты документов</h2>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/api/documents</code>
+                <p>Получение списка документов текущего пользователя.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/api/documents/{document_id}</code>
+                <p>Получение конкретного документа по ID.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/api/documents</code>
+                <p>Создание нового документа.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method post">POST</span>
+                <code>/api/token/validate</code>
+                <p>Валидация токена доступа. Используется внешними сервисами для проверки токена.</p>
+            </div>
+
+            <div class="endpoint">
+                <span class="method get">GET</span>
+                <code>/api/user/me</code>
+                <p>Получение информации о текущем пользователе.</p>
+            </div>
+        </section>
+
+        <div class="footer">
+            &copy; 2025 Система внутреннего документооборота. Все права защищены.
+        </div>
+    </div>
+</body>
+</html>
