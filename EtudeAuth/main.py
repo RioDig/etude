@@ -4,6 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 from typing import Optional, List, Dict
 from datetime import datetime, timedelta
 import json
@@ -35,18 +36,31 @@ auth_codes = {}
 
 # Аутентификация пользователя (пример - в продакшене использовать БД)
 async def authenticate_user(db: AsyncSession, email: str, password: str):
-    user = await db.query(User).filter(User.email == email).first()
+    stmt = select(User).where(User.email == email)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
     if not user:
         return False
     if user.disabled:
         return False
+
     # В реальном приложении здесь должна быть проверка хеша пароля
+    # Для примера можно добавить такую проверку:
+    # import hashlib
+    # hashed_input = hashlib.sha256(password.encode()).hexdigest()
+    # if user.hashed_password != hashed_input:
+    #    return False
+
     return user
 
 
 # Проверка клиента OAuth
 async def validate_client(db: AsyncSession, client_id: str, redirect_uri: str):
-    client = await db.query(OAuthClient).filter(OAuthClient.client_id == client_id).first()
+    stmt = select(OAuthClient).where(OAuthClient.client_id == client_id)
+    result = await db.execute(stmt)
+    client = result.scalars().first()
+
     if not client:
         return False
     if redirect_uri not in client.redirect_uris.split(","):
@@ -60,39 +74,132 @@ async def root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-# Эндпоинт авторизации
+# Эндпоинт авторизации с лучшей обработкой ошибок
 @app.get("/oauth/authorize", response_class=HTMLResponse)
 async def authorize(
         request: Request,
-        response_type: str,
-        client_id: str,
-        redirect_uri: str,
+        response_type: Optional[str] = None,
+        client_id: Optional[str] = None,
+        redirect_uri: Optional[str] = None,
         scope: str = "profile",
         state: Optional[str] = None,
         db: AsyncSession = Depends(get_async_session)
 ):
+    # Проверка необходимых параметров
+    if not response_type:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Отсутствует обязательный параметр response_type",
+                "client_id": client_id or "",
+                "redirect_uri": redirect_uri or "",
+                "state": state or "",
+                "scope": scope,
+                "client_name": "Неизвестное приложение",
+                "scopes": scope.split()
+            }
+        )
+
+    if not client_id:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Отсутствует обязательный параметр client_id",
+                "client_id": "",
+                "redirect_uri": redirect_uri or "",
+                "state": state or "",
+                "scope": scope,
+                "client_name": "Неизвестное приложение",
+                "scopes": scope.split()
+            }
+        )
+
+    if not redirect_uri:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Отсутствует обязательный параметр redirect_uri",
+                "client_id": client_id,
+                "redirect_uri": "",
+                "state": state or "",
+                "scope": scope,
+                "client_name": "Неизвестное приложение",
+                "scopes": scope.split()
+            }
+        )
+
     # Проверяем, что клиент зарегистрирован
     if client_id not in settings.OAUTH_CLIENTS:
-        print()
-        return HTMLResponse(content="Недействительный client_id", status_code=400)
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Недействительный client_id",
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+                "state": state or "",
+                "scope": scope,
+                "client_name": "Неизвестное приложение",
+                "scopes": scope.split()
+            }
+        )
 
     client = settings.OAUTH_CLIENTS[client_id]
 
     # Проверяем redirect_uri
     if redirect_uri not in client["redirect_uris"]:
-        return HTMLResponse(content="Недействительный redirect_uri", status_code=400)
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Недействительный redirect_uri",
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+                "state": state or "",
+                "scope": scope,
+                "client_name": client["name"] if "name" in client else client_id,
+                "scopes": scope.split()
+            }
+        )
 
     # Проверяем, что используется code flow
     if response_type != "code":
-        return HTMLResponse(content="Поддерживается только flow authorization_code", status_code=400)
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Поддерживается только flow authorization_code",
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+                "state": state or "",
+                "scope": scope,
+                "client_name": client["name"] if "name" in client else client_id,
+                "scopes": scope.split()
+            }
+        )
 
     # Разбиваем scope на отдельные разрешения
     scopes = scope.split()
 
     # Проверяем, что запрашиваемые scopes разрешены для клиента
-    for s in scopes:
-        if s not in client["allowed_scopes"]:
-            return HTMLResponse(content=f"Scope '{s}' не разрешен для данного клиента", status_code=400)
+    invalid_scopes = [s for s in scopes if s not in client["allowed_scopes"]]
+    if invalid_scopes:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": f"Scope(s) '{', '.join(invalid_scopes)}' не разрешены для данного клиента",
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+                "state": state or "",
+                "scope": scope,
+                "client_name": client["name"] if "name" in client else client_id,
+                "scopes": scopes
+            }
+        )
 
     # Отображаем страницу авторизации
     return templates.TemplateResponse(
@@ -110,29 +217,29 @@ async def authorize(
     )
 
 
-# Обработка формы входа
+# Исправленная функция login с правильным запросом к базе данных
 @app.post("/oauth/login")
 async def login(
-        email: str = Form(...),
-        password: str = Form(...),
+        request: Request,
+        email: Optional[str] = Form(None),
+        password: Optional[str] = Form(None),
         client_id: str = Form(...),
         redirect_uri: str = Form(...),
         scope: str = Form("profile"),
         state: Optional[str] = Form(None),
         db: AsyncSession = Depends(get_async_session)
 ):
-    # Аутентифицируем пользователя
-    user = await authenticate_user(db, email, password)
-    if not user:
+    # Проверка наличия обязательных полей
+    if not email or not password:
         return templates.TemplateResponse(
             "login.html",
             {
-                "request": Request,
+                "request": request,
                 "client_id": client_id,
                 "redirect_uri": redirect_uri,
                 "state": state if state else "",
                 "scope": scope,
-                "error": "Неверный email или пароль",
+                "error": "Введите email и пароль",
                 "client_name": settings.OAUTH_CLIENTS[client_id]["name"] if "name" in settings.OAUTH_CLIENTS[
                     client_id] else client_id,
                 "scopes": scope.split()
@@ -140,28 +247,129 @@ async def login(
             status_code=400
         )
 
-    # Генерируем код авторизации
-    code = str(uuid.uuid4())
+    try:
+        # Проверяем, что клиент существует
+        if client_id not in settings.OAUTH_CLIENTS:
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "client_id": client_id,
+                    "redirect_uri": redirect_uri,
+                    "state": state if state else "",
+                    "scope": scope,
+                    "error": "Недействительный client_id",
+                    "client_name": "Неизвестное приложение",
+                    "scopes": scope.split()
+                },
+                status_code=400
+            )
 
-    # Сохраняем код в временное хранилище (в продакшене использовать Redis/БД)
-    auth_codes[code] = {
-        "email": email,
-        "client_id": client_id,
-        "scopes": scope.split(),
-        "redirect_uri": redirect_uri,
-        "expires_at": datetime.utcnow() + timedelta(minutes=10)  # код действителен 10 минут
-    }
+        # Аутентификация пользователя
+        # Исправленный запрос к базе данных
+        stmt = select(User).where(User.email == email)
+        result = await db.execute(stmt)
+        user = result.scalars().first()
 
-    # Создаем параметры для редиректа
-    params = {"code": code}
-    if state:
-        params["state"] = state
+        if not user:
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "client_id": client_id,
+                    "redirect_uri": redirect_uri,
+                    "state": state if state else "",
+                    "scope": scope,
+                    "error": "Пользователь с таким email не найден",
+                    "client_name": settings.OAUTH_CLIENTS[client_id]["name"] if "name" in settings.OAUTH_CLIENTS[
+                        client_id] else client_id,
+                    "scopes": scope.split()
+                },
+                status_code=400
+            )
 
-    # Формируем URL для редиректа
-    redirect_url = f"{redirect_uri}?{urlencode(params)}"
+        # Простая проверка пароля (исправлено преобразование типов)
+        import hashlib
+        hashed_input = hashlib.sha256(password.encode()).hexdigest()
 
-    # Перенаправляем на redirect_uri с кодом авторизации
-    return RedirectResponse(url=redirect_url, status_code=303)
+        if user.hashed_password != hashed_input:
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "client_id": client_id,
+                    "redirect_uri": redirect_uri,
+                    "state": state if state else "",
+                    "scope": scope,
+                    "error": "Неверный пароль",
+                    "client_name": settings.OAUTH_CLIENTS[client_id]["name"] if "name" in settings.OAUTH_CLIENTS[
+                        client_id] else client_id,
+                    "scopes": scope.split()
+                },
+                status_code=400
+            )
+
+        if user.disabled:
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "client_id": client_id,
+                    "redirect_uri": redirect_uri,
+                    "state": state if state else "",
+                    "scope": scope,
+                    "error": "Аккаунт отключен",
+                    "client_name": settings.OAUTH_CLIENTS[client_id]["name"] if "name" in settings.OAUTH_CLIENTS[
+                        client_id] else client_id,
+                    "scopes": scope.split()
+                },
+                status_code=400
+            )
+
+        # Генерируем код авторизации
+        code = str(uuid.uuid4())
+
+        # Сохраняем код в временное хранилище (в продакшене использовать Redis/БД)
+        auth_codes[code] = {
+            "email": email,
+            "client_id": client_id,
+            "scopes": scope.split(),
+            "redirect_uri": redirect_uri,
+            "expires_at": datetime.utcnow() + timedelta(minutes=10)  # код действителен 10 минут
+        }
+
+        # Создаем параметры для редиректа
+        params = {"code": code}
+        if state:
+            params["state"] = state
+
+        # Формируем URL для редиректа
+        redirect_url = f"{redirect_uri}?{urlencode(params)}"
+
+        # Перенаправляем на redirect_uri с кодом авторизации
+        return RedirectResponse(url=redirect_url, status_code=303)
+
+    except Exception as e:
+        # Логирование ошибки
+        print(f"Error during login: {str(e)}")
+
+        # Отображаем пользователю страницу с ошибкой
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "client_id": client_id,
+                "redirect_uri": redirect_uri,
+                "state": state if state else "",
+                "scope": scope,
+                "error": "Произошла ошибка при авторизации. Пожалуйста, попробуйте снова позже.",
+                "client_name": settings.OAUTH_CLIENTS[client_id][
+                    "name"] if client_id in settings.OAUTH_CLIENTS and "name" in settings.OAUTH_CLIENTS[
+                    client_id] else client_id,
+                "scopes": scope.split()
+            },
+            status_code=500
+        )
 
 
 # Обмен кода авторизации на токены
@@ -175,6 +383,7 @@ async def token(
         refresh_token: Optional[str] = Form(None),
         db: AsyncSession = Depends(get_async_session)
 ):
+    print(auth_codes)
     # Проверяем клиента
     if client_id not in settings.OAUTH_CLIENTS or settings.OAUTH_CLIENTS[client_id]["client_secret"] != client_secret:
         return JSONResponse(
@@ -247,8 +456,11 @@ async def token(
         }
 
     elif grant_type == "refresh_token":
-        # Проверяем refresh token
-        refresh_token_obj = await db.query(RefreshToken).filter(RefreshToken.token == refresh_token).first()
+        # Проверяем refresh token - исправленный код
+        stmt = select(RefreshToken).where(RefreshToken.token == refresh_token)
+        result = await db.execute(stmt)
+        refresh_token_obj = result.scalars().first()
+
         if not refresh_token_obj:
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Invalid refresh token"},
@@ -301,8 +513,11 @@ async def validate_token_endpoint(
             status_code=200
         )
 
-    # Получаем информацию о пользователе
-    user = await db.query(User).filter(User.email == token_data.sub).first()
+    # Получаем информацию о пользователе - исправленный запрос
+    stmt = select(User).where(User.email == token_data.sub)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
     if not user or user.disabled:
         return JSONResponse(
             content={"valid": False, "reason": "User not found or disabled"},
@@ -346,7 +561,7 @@ async def revoke_token_endpoint(
         return JSONResponse(content={"success": False}, status_code=400)
 
 
-# Получение информации о пользователе
+# Исправленный код для получения информации о пользователе
 @app.get("/api/user/me")
 async def get_user_info(
         request: Request,
@@ -360,7 +575,23 @@ async def get_user_info(
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-    token = authorization.split(" ")[1]
+    # Безопасное разделение строки
+    try:
+        auth_parts = authorization.split(" ")
+        if len(auth_parts) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authorization format",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        token = auth_parts[1]
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization format",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     token_data = validate_token(token, ["profile"])
 
     if not token_data:
@@ -371,7 +602,10 @@ async def get_user_info(
         )
 
     # Получаем информацию о пользователе
-    user = await db.query(User).filter(User.email == token_data.sub).first()
+    stmt = select(User).where(User.email == token_data.sub)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
     if not user or user.disabled:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -388,6 +622,7 @@ async def get_user_info(
 
 
 # API для получения списка документов
+# API для получения списка документов - исправленный код
 @app.get("/api/documents")
 async def get_documents(
         request: Request,
@@ -401,7 +636,22 @@ async def get_documents(
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-    token = authorization.split(" ")[1]
+    try:
+        auth_parts = authorization.split(" ")
+        if len(auth_parts) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authorization format",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        token = auth_parts[1]
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization format",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     token_data = validate_token(token, ["documents"])
 
     if not token_data:
@@ -444,7 +694,22 @@ async def get_document(
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-    token = authorization.split(" ")[1]
+    try:
+        auth_parts = authorization.split(" ")
+        if len(auth_parts) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authorization format",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        token = auth_parts[1]
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization format",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     token_data = validate_token(token, ["documents"])
 
     if not token_data:
@@ -492,7 +757,22 @@ async def create_document(
             headers={"WWW-Authenticate": "Bearer"}
         )
 
-    token = authorization.split(" ")[1]
+    try:
+        auth_parts = authorization.split(" ")
+        if len(auth_parts) < 2:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authorization format",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
+        token = auth_parts[1]
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authorization format",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     token_data = validate_token(token, ["documents", "write"])
 
     if not token_data:
@@ -502,16 +782,132 @@ async def create_document(
             headers={"WWW-Authenticate": "Bearer"}
         )
 
+    # Получаем пользователя из БД
+    stmt = select(User).where(User.email == token_data.sub)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+            headers={"WWW-Authenticate": "Bearer"}
+        )
+
     # В реальном приложении здесь был бы запрос к БД для сохранения документа
-    # Для демонстрации возвращаем фиктивные данные
-    return {
+    # Для демонстрации создаем новый документ
+    new_document = {
         "id": 3,
         "title": title,
         "content": content,
         "created_at": datetime.utcnow(),
-        "type": "document"
+        "type": "document",
+        "owner_id": user.id
     }
 
+    # Здесь в реальном приложении вы сохранили бы документ в БД
+    # document = Document(
+    #     title=title,
+    #     content=content,
+    #     type="document",
+    #     owner_id=user.id
+    # )
+    # db.add(document)
+    # await db.commit()
+    # await db.refresh(document)
+
+    return new_document
+
+
+# Модель для запроса регистрации
+@app.get("/register", response_class=HTMLResponse)
+async def register_form(request: Request):
+    """Отображает форму регистрации нового пользователя"""
+    return templates.TemplateResponse(
+        "register.html",
+        {
+            "request": request,
+            "error": None
+        }
+    )
+
+
+# Исправленный код регистрации пользователя
+@app.post("/register")
+async def register(
+        request: Request,
+        email: str = Form(...),
+        full_name: str = Form(...),
+        password: str = Form(...),
+        password_confirm: str = Form(...),
+        db: AsyncSession = Depends(get_async_session)
+):
+    """Регистрирует нового пользователя в системе"""
+    # Проверяем, совпадают ли пароли
+    if password != password_confirm:
+        return templates.TemplateResponse(
+            "register.html",
+            {
+                "request": request,
+                "error": "Пароли не совпадают",
+                "email": email,
+                "full_name": full_name
+            },
+            status_code=400
+        )
+
+    # Проверяем, что пользователь с таким email не существует
+    stmt = select(User).where(User.email == email)
+    result = await db.execute(stmt)
+    existing_user = result.scalars().first()
+
+    if existing_user:
+        return templates.TemplateResponse(
+            "register.html",
+            {
+                "request": request,
+                "error": "Пользователь с таким email уже существует",
+                "email": email,
+                "full_name": full_name
+            },
+            status_code=400
+        )
+
+    try:
+        # В реальном приложении нужно хешировать пароль
+        # Для примера используем простой хеш
+        import hashlib
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+        # Создаем нового пользователя
+        new_user = User(
+            email=email,
+            full_name=full_name,
+            hashed_password=hashed_password,
+            disabled=False,
+            created_at=datetime.utcnow()
+        )
+
+        db.add(new_user)
+        await db.commit()
+
+        # Переадресуем на страницу успешной регистрации
+        return templates.TemplateResponse(
+            "register_success.html",
+            {"request": request, "email": email}
+        )
+    except Exception as e:
+        await db.rollback()
+        return templates.TemplateResponse(
+            "register.html",
+            {
+                "request": request,
+                "error": f"Ошибка при регистрации: {str(e)}",
+                "email": email,
+                "full_name": full_name
+            },
+            status_code=500
+        )
 
 if __name__ == "__main__":
     import uvicorn

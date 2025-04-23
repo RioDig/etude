@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         "etude_backend_client": {
             "client_id": "etude_backend_client",
             "client_secret": "etude_backend_secret",
-            "redirect_uris": ["http://localhost:5055/api/auth/callback", "https://localhost:7124/api/auth/callback"],
+            "redirect_uris": ["http://localhost:8080/api/auth/callback", "https://localhost:7124/api/auth/callback"],
             "allowed_scopes": ["profile", "documents", "write"]
         }
     }

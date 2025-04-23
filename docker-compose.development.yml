@@ -1,17 +1,17 @@
 services:
-  web:
-    container_name: "web"
-    build:
-      context: ./EtudeWeb
-      dockerfile: Dockerfile
-    ports:
-      - "3000:80"
-    volumes:
-      - ./EtudeWeb:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-    restart: always
+#  web:
+#    container_name: "web"
+#    build:
+#      context: ./EtudeWeb
+#      dockerfile: Dockerfile
+#    ports:
+#      - "3000:80"
+#    volumes:
+#      - ./EtudeWeb:/app
+#      - /app/node_modules
+#    environment:
+#      - NODE_ENV=development
+#    restart: always
 
   auth:
     container_name: "auth"
