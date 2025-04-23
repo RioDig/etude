@@ -80,7 +80,8 @@ public class AuthController : ControllerBase
                 // TODO: Создание пользователя, если его нет в системе
                 // В реальном приложении здесь может быть логика регистрации нового пользователя
                 // или другая обработка
-                return BadRequest("User not found in system");
+                // return BadRequest("User not found in system");
+                _logger.LogWarning("Создание пользователя не реализовано");
             }
 
             // Сохраняем токены в сессии или cookies для дальнейшего использования

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, ARRAY
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy.sql import func
@@ -108,6 +108,17 @@ class Document(Base):
 
     # Отношения
     owner = relationship("User", back_populates="documents")
+
+class AuthToken(Base):
+    __tablename__ = "auth_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String)
+    email = Column(String)
+    scopes = Column(ARRAY(String))
+    client_id = Column(String)
+    redirect_uri = Column(String)
+    expires_at = Column(DateTime)
 
 
 # Функция для инициализации базы данных

@@ -44,3 +44,11 @@ class Document(BaseModel):
     content: Optional[str] = None
     created_at: datetime
     type: str
+
+class AuthToken(BaseModel):
+    code: str
+    email: str
+    client_id: str
+    scopes: List[str]
+    redirect_uri: str
+    expires_at: int

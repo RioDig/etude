@@ -1,11 +1,12 @@
 from fastapi import HTTPException, status
-from jose import jwt, JWTError
+# from jose import jwt, JWTError
+import jwt
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime, timedelta
 import uuid
 from config import settings
-
+from fastapi.security import SecurityScopes
 
 # Модели данных
 class TokenData(BaseModel):
@@ -66,17 +67,16 @@ def decode_token(token: str):
     """Декодирует JWT токен и проверяет его на валидность"""
     try:
         payload = jwt.decode(token, settings.SECRET, algorithms=["HS256"])
-
         # Проверяем, не был ли токен отозван
         if payload.get("jti") in REVOKED_TOKENS:
             return None
 
         return payload
-    except JWTError:
+    except:
         return None
 
 
-def validate_token(token: str, required_scopes: List[str] = None):
+def validate_token(token: str, required_scopes: SecurityScopes = None):
     """Проверяет валидность токена и наличие необходимых scope"""
     payload = decode_token(token)
     if not payload:
@@ -99,7 +99,7 @@ def validate_token(token: str, required_scopes: List[str] = None):
 
     # Проверяем наличие необходимых scopes
     if required_scopes:
-        for scope in required_scopes:
+        for scope in required_scopes.scopes:
             if scope not in scopes:
                 return None
 

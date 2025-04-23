@@ -1,21 +1,24 @@
-from fastapi import FastAPI, Depends, HTTPException, status, Request, Form, Cookie, Header
+from fastapi import FastAPI, Depends, Security, HTTPException, status, Request, Form, Cookie, Header
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Annotated
 from datetime import datetime, timedelta
 import json
 import uuid
 from urllib.parse import urlencode
-
-from db import get_async_session, User, OAuthClient, AuthorizationCode, RefreshToken
+# from jose import jwt, JWTError
+import jwt
+from db import get_async_session, User, OAuthClient, AuthorizationCode, RefreshToken, AuthToken
 from oauth2 import create_access_token, create_refresh_token, validate_token, revoke_token
 from config import settings
-
+from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 app = FastAPI(title="EtudeAuth - Система документооборота OAuth")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/token")
 
 # Настраиваем CORS
 app.add_middleware(
@@ -31,8 +34,47 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 # Временное хранилище кодов авторизации (в продакшене использовать Redis)
-auth_codes = {}
+# auth_codes = {}
 
+async def get_user(email: str, db: AsyncSession):
+    stmt = select(User).where(User.email == email)
+    result = await db.execute(stmt)
+    user = result.scalars().first()
+
+    if not user:
+        return None
+    if user.disabled:
+        return None
+
+    return user
+
+async def get_current_user(
+        security_scopes: SecurityScopes,
+        token: Annotated[str, Depends(oauth2_scheme)],
+        db: Annotated[AsyncSession, Depends(get_async_session)]
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    token_data = validate_token(token, security_scopes)
+
+    if token_data is None:
+        raise credentials_exception
+
+    user = await get_user(email=token_data.sub, db=db)
+
+    if user is None:
+        raise credentials_exception
+    return user
+
+async def get_current_active_user(
+    current_user: Annotated[User, Security(get_current_user)],
+):
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
 
 # Аутентификация пользователя (пример - в продакшене использовать БД)
 async def authenticate_user(db: AsyncSession, email: str, password: str):
@@ -330,13 +372,24 @@ async def login(
         code = str(uuid.uuid4())
 
         # Сохраняем код в временное хранилище (в продакшене использовать Redis/БД)
-        auth_codes[code] = {
-            "email": email,
-            "client_id": client_id,
-            "scopes": scope.split(),
-            "redirect_uri": redirect_uri,
-            "expires_at": datetime.utcnow() + timedelta(minutes=10)  # код действителен 10 минут
-        }
+        auth_code = AuthToken(
+            code=code,
+            email=email,
+            client_id=client_id,
+            scopes=scope.split(),
+            redirect_uri=redirect_uri,
+            expires_at=datetime.utcnow() + timedelta(minutes=10)
+        )
+        db.add(auth_code)
+        await db.commit()
+
+        # auth_codes[code] = {
+        #     "email": email,
+        #     "client_id": client_id,
+        #     "scopes": scope.split(),
+        #     "redirect_uri": redirect_uri,
+        #     "expires_at": datetime.utcnow() + timedelta(minutes=10)  # код действителен 10 минут
+        # }
 
         # Создаем параметры для редиректа
         params = {"code": code}
@@ -383,7 +436,6 @@ async def token(
         refresh_token: Optional[str] = Form(None),
         db: AsyncSession = Depends(get_async_session)
 ):
-    print(auth_codes)
     # Проверяем клиента
     if client_id not in settings.OAUTH_CLIENTS or settings.OAUTH_CLIENTS[client_id]["client_secret"] != client_secret:
         return JSONResponse(
@@ -393,31 +445,38 @@ async def token(
 
     if grant_type == "authorization_code":
         # Проверяем код авторизации
-        if code not in auth_codes:
+        stmt = select(AuthToken).where(AuthToken.code == code)
+        result = await db.execute(stmt)
+        res_code = result.scalars().first()
+
+        if code != res_code.code:
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Invalid authorization code"},
                 status_code=400
             )
 
-        code_data = auth_codes[code]
+
+        stmt = select(AuthToken).where(AuthToken.code == code)
+        result = await db.execute(stmt)
+        code_data = result.scalars().first()
 
         # Проверяем время жизни кода
-        if datetime.utcnow() > code_data["expires_at"]:
-            del auth_codes[code]  # Удаляем просроченный код
+        if datetime.utcnow() > code_data.expires_at:
+            #del auth_codes[code]  # Удаляем просроченный код
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Authorization code expired"},
                 status_code=400
             )
 
         # Проверяем redirect_uri
-        if code_data["redirect_uri"] != redirect_uri:
+        if code_data.redirect_uri != redirect_uri:
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Redirect URI mismatch"},
                 status_code=400
             )
 
         # Проверяем client_id
-        if code_data["client_id"] != client_id:
+        if code_data.client_id != client_id:
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Client ID mismatch"},
                 status_code=400
@@ -425,8 +484,8 @@ async def token(
 
         # Создаем токены
         access_token_data = {
-            "sub": code_data["email"],
-            "scopes": code_data["scopes"],
+            "sub": code_data.email,
+            "scopes": code_data.scopes,
             "client_id": client_id
         }
 
@@ -436,15 +495,15 @@ async def token(
         # Сохраняем refresh token в БД
         db_refresh_token = RefreshToken(
             token=refresh_token_value,
-            email=code_data["email"],
-            scopes=",".join(code_data["scopes"]),
+            email=code_data.email,
+            scopes=",".join(code_data.scopes),
             client_id=client_id
         )
         db.add(db_refresh_token)
         await db.commit()
 
         # Удаляем использованный код авторизации
-        del auth_codes[code]
+        #del auth_codes[code]
 
         # Возвращаем токены
         return {
@@ -452,7 +511,7 @@ async def token(
             "token_type": "bearer",
             "expires_in": settings.JWT_ACCESS_TTL,
             "refresh_token": refresh_token_value,
-            "scope": " ".join(code_data["scopes"])
+            "scope": " ".join(code_data.scopes)
         }
 
     elif grant_type == "refresh_token":
@@ -565,59 +624,14 @@ async def revoke_token_endpoint(
 @app.get("/api/user/me")
 async def get_user_info(
         request: Request,
-        db: AsyncSession = Depends(get_async_session),
-        authorization: Optional[str] = Header(None)
+        current_user: Annotated[User, Security(get_current_active_user, scopes=["profile"])],
+        db: AsyncSession = Depends(get_async_session)
 ):
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization header",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    # Безопасное разделение строки
-    try:
-        auth_parts = authorization.split(" ")
-        if len(auth_parts) < 2:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid authorization format",
-                headers={"WWW-Authenticate": "Bearer"}
-            )
-        token = auth_parts[1]
-    except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid authorization format",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    token_data = validate_token(token, ["profile"])
-
-    if not token_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
-    # Получаем информацию о пользователе
-    stmt = select(User).where(User.email == token_data.sub)
-    result = await db.execute(stmt)
-    user = result.scalars().first()
-
-    if not user or user.disabled:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found or disabled",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-
     # Возвращаем информацию о пользователе
     return {
-        "email": user.email,
-        "full_name": user.full_name,
-        "scopes": token_data.scopes
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "scopes": ["profile"],
     }
 
 
