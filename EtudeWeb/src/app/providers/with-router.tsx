@@ -19,6 +19,7 @@ import { TestFilterPage } from '@/pages/testFilterPage'
 import { TestModalPage } from '@/pages/testModalPage'
 import { TestTablePage } from '@/pages/testTablePage'
 import { TestSidebarPage } from '@/pages/testSidebarPage'
+import { TestEventCardPage } from '@/pages/testEventCardPage'
 import { TestMainPage } from '@/pages/testMainPage'
 
 const router = createBrowserRouter([
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
       { path: '/test-modal', element: <TestModalPage /> },
       { path: '/test-table', element: <TestTablePage /> },
       { path: '/test-sidebar', element: <TestSidebarPage /> },
+      { path: '/test-eventcard', element: <TestEventCardPage /> },
       { path: '/calendar', element: <TestCalendarPage /> }
     ]
   }
