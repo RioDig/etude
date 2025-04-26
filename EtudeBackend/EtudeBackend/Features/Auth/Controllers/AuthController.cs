@@ -102,7 +102,7 @@ public class AuthController : ControllerBase
             // В реальном приложении здесь была бы логика сохранения токенов
             // и выдачи внутреннего токена авторизации
             
-            var usr = await _userManager.FindByNameAsync(userInfo.OrgEmail);
+            var usr = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
             // TODO что сохранить в Items? code или state?
 
             if (usr != null)

@@ -150,6 +150,7 @@ public class OAuthService : IOAuthService
             }
 
             var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation(content);
             var userInfo = JsonSerializer.Deserialize<UserInfoResponse>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true

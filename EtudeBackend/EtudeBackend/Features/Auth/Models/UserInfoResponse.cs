@@ -6,15 +6,15 @@ public class UserInfoResponse
 {
     [JsonPropertyName("id")]
     public int UserId { get; set; }
-    [JsonPropertyName("Name")]
+    [JsonPropertyName("name")]
     public string Name { get; set; }
-    [JsonPropertyName("Surname")]
+    [JsonPropertyName("surname")]
     public string Surname { get; set; }
-    [JsonPropertyName("Patronymic")]
+    [JsonPropertyName("patronymic")]
     public string Patronymic { get; set; }
-    [JsonPropertyName("OrgEmail")]
+    [JsonPropertyName("org_email")]
     public string OrgEmail { get; set; }
-    [JsonPropertyName("Position")]
+    [JsonPropertyName("position")]
     public string Position { get; set; }
     
 }

@@ -629,9 +629,12 @@ async def get_user_info(
 ):
     # Возвращаем информацию о пользователе
     return {
-        "email": current_user.email,
-        "full_name": current_user.full_name,
-        "scopes": ["profile"],
+        "id": current_user.id,
+        "name": current_user.full_name,
+        "surname": current_user.full_name,
+        "patronymic": current_user.full_name,
+        "org_email": current_user.email,
+        "position": current_user.full_name + '_position',
     }
 
 
