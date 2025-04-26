@@ -180,46 +180,66 @@ export const Calendar: React.FC<CalendarProps> = ({
   const { distributedCards, maxRows } = useMemo(() => {
     // Сортируем карточки по длительности (от самых длинных к коротким)
     const sortedCards = [...visibleCards].sort((a, b) => {
-      const durationA = Math.abs(a.endDate.getTime() - a.startDate.getTime())
-      const durationB = Math.abs(b.endDate.getTime() - b.startDate.getTime())
+      const durationA = a.endDate.getTime() - a.startDate.getTime()
+      const durationB = b.endDate.getTime() - b.startDate.getTime()
       return durationB - durationA
     })
 
-    const firstDay = calendarDays[0].getTime()
     const rows: Array<{ card: CalendarCard; startCol: number; endCol: number }[]> = []
 
     // Проходим по отсортированным карточкам и распределяем их по строкам
     sortedCards.forEach((card) => {
-      const cardStart = Math.max(card.startDate.getTime(), firstDay)
-      const cardStartDate = new Date(cardStart)
-
-      // Находим начальную и конечную колонки для карточки
-      const startCol = calendarDays.findIndex(
-        (day) =>
-          day.getDate() === cardStartDate.getDate() &&
-          day.getMonth() === cardStartDate.getMonth() &&
-          day.getFullYear() === cardStartDate.getFullYear()
+      // Определяем начальную и конечную позицию карточки в сетке календаря
+      const startDate = new Date(Math.max(card.startDate.getTime(), calendarDays[0].getTime()))
+      const endDate = new Date(
+        Math.min(card.endDate.getTime(), calendarDays[calendarDays.length - 1].getTime())
       )
 
-      const endCol = calendarDays.findIndex((day) => {
+      // Находим индексы начальной и конечной колонок
+      let startCol = -1
+      let endCol = -1
+
+      for (let i = 0; i < calendarDays.length; i++) {
+        const day = calendarDays[i]
+        const dayStart = new Date(day)
+        dayStart.setHours(0, 0, 0, 0)
         const dayEnd = new Date(day)
         dayEnd.setHours(23, 59, 59, 999)
-        return dayEnd.getTime() >= card.endDate.getTime()
-      })
+
+        // Находим начальную колонку
+        if (
+          startCol === -1 &&
+          startDate.getTime() >= dayStart.getTime() &&
+          startDate.getTime() <= dayEnd.getTime()
+        ) {
+          startCol = i
+        }
+
+        // Находим конечную колонку
+        if (endDate.getTime() >= dayStart.getTime() && endDate.getTime() <= dayEnd.getTime()) {
+          endCol = i
+          break
+        }
+      }
 
       // Если карточка не попадает в видимый диапазон, пропускаем
-      if (startCol === -1 || endCol === -1) return
+      if (startCol === -1) {
+        startCol = 0 // Если начало до первого дня, начинаем с 0
+      }
 
-      // Находим подходящую строку, где нет пересечений
+      if (endCol === -1) {
+        endCol = calendarDays.length - 1 // Если конец после последнего дня, заканчиваем последним
+      }
+
+      // Ищем строку, куда можно поместить карточку
       let rowIndex = -1
 
       for (let i = 0; i < rows.length; i++) {
         const row = rows[i]
         let canFit = true
 
-        for (let j = 0; j < row.length; j++) {
-          const existingCard = row[j]
-          // Проверяем, пересекается ли текущая карточка с существующей
+        for (const existingCard of row) {
+          // Проверяем, пересекается ли текущая карточка с существующими в строке
           if (startCol <= existingCard.endCol && endCol >= existingCard.startCol) {
             canFit = false
             break
@@ -232,7 +252,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         }
       }
 
-      // Если нет подходящей строки, создаем новую
+      // Если не нашли подходящую строку, создаем новую
       if (rowIndex === -1) {
         rows.push([{ card, startCol, endCol }])
       } else {
@@ -396,13 +416,16 @@ export const Calendar: React.FC<CalendarProps> = ({
         {/* Шапка с номерами дней */}
         <div
           className={clsx('grid gap-px bg-mono-100', viewMode === 'half-year' && 'min-w-max')}
-          style={{ gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))`,
+            background: 'white' // Убираем фон разделителя
+          }}
         >
           {calendarDays.map((day, index) => (
             <div
               key={`header-${index}`}
               className={clsx(
-                'h-10 flex items-center justify-center text-b4-regular bg-mono-50',
+                'h-10 flex items-center justify-center text-b4-regular',
                 (day.getDay() === 0 || day.getDay() === 6) && 'text-red-600'
               )}
             >
@@ -420,36 +443,19 @@ export const Calendar: React.FC<CalendarProps> = ({
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))`,
-            gridTemplateRows: `repeat(${Math.max(1, maxRows)}, minmax(0, auto))`,
-            gridGap: '1px',
-            background: '#f0f0f0' // Цвет разделителей между ячейками
+            gridTemplateRows: `repeat(${Math.max(1, maxRows)}, minmax(100px, auto))`,
+            gap: '0', // Убираем промежутки между ячейками
+            background: 'white', // Убираем серый фон разделителей
+            position: 'relative' // Добавляем relative для правильного позиционирования карточек
           }}
         >
-          {/* Пустые ячейки (фон) для каждого дня в каждой строке */}
-          {Array.from({ length: Math.max(1, maxRows) }).map((_, rowIndex) =>
-            calendarDays.map((day, colIndex) => (
-              <div
-                key={`cell-${rowIndex}-${colIndex}`}
-                className={clsx(
-                  'bg-white',
-                  (day.getDay() === 0 || day.getDay() === 6) && 'bg-mono-50'
-                )}
-                style={{
-                  gridColumn: `${colIndex + 1} / span 1`,
-                  gridRow: `${rowIndex + 1} / span 1`,
-                  minHeight: '100px'
-                }}
-              />
-            ))
-          )}
+          {/* Убираем пустые ячейки и используем абсолютное позиционирование для карточек */}
 
-          {/* Ячейки для карточек */}
+          {/* Карточки для курсов */}
           {distributedCards.flatMap((row, rowIndex) =>
             row.map(({ card, startCol, endCol }) => {
               const colSpan = endCol - startCol + 1
               const isMinSize = colSpan === 1
-
-              // Определяем контент для карточки в зависимости от её размера
               const showStatus = colSpan > 1
               const showDates = colSpan > 2
 
@@ -461,17 +467,16 @@ export const Calendar: React.FC<CalendarProps> = ({
                 >
                   <div
                     className={clsx(
-                      'bg-white border p-3 flex flex-col cursor-pointer',
+                      'border p-3 flex flex-col cursor-pointer',
                       getStatusColor(card.status),
                       isMinSize ? 'min-h-[80px]' : 'min-h-[100px]'
                     )}
                     style={{
                       gridColumn: `${startCol + 1} / span ${colSpan}`,
                       gridRow: `${rowIndex + 1} / span 1`,
-                      margin: '4px',
+                      margin: '4px', // Добавляем отступы вместо gap
                       borderRadius: '4px',
-                      overflow: 'hidden',
-                      zIndex: 1 // Чтобы карточки отображались поверх фоновых ячеек
+                      overflow: 'hidden'
                     }}
                     onClick={() => handleCardClick(card)}
                   >

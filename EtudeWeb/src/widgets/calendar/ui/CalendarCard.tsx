@@ -140,11 +140,18 @@ export const CalendarCardItem: React.FC<CalendarCardProps> = ({
     <Hint content={hintContent} position="top-right">
       <div
         className={clsx(
-          'bg-white border p-3 flex flex-col',
-          getStatusColor(status),
+          'border p-3 flex flex-col cursor-pointer',
+          getStatusColor(card.status),
           isMinSize ? 'min-h-[80px]' : 'min-h-[100px]'
         )}
-        style={style}
+        style={{
+          gridColumn: `${startCol + 1} / span ${colSpan}`,
+          gridRow: `${rowIndex + 1} / span 1`,
+          margin: '4px',
+          borderRadius: '4px',
+          overflow: 'hidden',
+        }}
+        onClick={() => handleCardClick(card)}
       >
         {showStatus && <div className="text-b5 text-mono-700 mb-1">{getStatusText(status)}</div>}
 
