@@ -2,6 +2,7 @@
 using EtudeBackend.Features.TrainingRequests.Services;
 using EtudeBackend.Shared.Extensions;
 using EtudeBackend.Shared.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Distributed;
@@ -10,6 +11,7 @@ namespace EtudeBackend.Features.TrainingRequests.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ApplicationController : ControllerBase
 {
     private readonly IApplicationService _applicationService;

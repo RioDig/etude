@@ -21,15 +21,31 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      - authdb
     environment:
-      - DB_HOST=db
+      - DB_HOST=authdb
       - DB_PORT=5432
       - DB_NAME=postgres
       - DB_USER=postgres
       - DB_PASS=postgres
     restart: always
-
+    networks:
+      - solo
+      - solo-etude
+  
+  authdb:
+    container_name: "authdb"
+    image: postgres:alpine3.18
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "6432:5432"
+    networks:
+      - solo
+        
   db:
     container_name: "db"
     image: postgres:alpine3.18
@@ -40,6 +56,8 @@ services:
       - POSTGRES_DB=postgres
     ports:
       - "5432:5432"
+    networks:
+      - etude
 
   redis:
     image: docker.io/redis/redis-stack:latest
@@ -49,6 +67,8 @@ services:
     environment:
       REDIS_ARGS: --requirepass secret
     restart: always
+    networks:
+      - etude
 
   backend:
     container_name: "backend"
@@ -62,3 +82,11 @@ services:
       - redis
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - etude
+      - solo-etude
+  
+networks:
+  etude:
+  solo:
+  solo-etude:

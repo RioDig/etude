@@ -11,7 +11,7 @@ config = context.config
 
 # Обновляем строку подключения для локального запуска
 # Используем localhost вместо db
-DB_URL = "postgresql+psycopg://postgres:postgres@db:5432/postgres"
+DB_URL = "postgresql+psycopg://postgres:postgres@authdb:5432/postgres"
 config.set_main_option("sqlalchemy.url", DB_URL)
 
 # Interpret the config file for Python logging.

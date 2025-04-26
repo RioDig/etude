@@ -7,6 +7,7 @@ namespace EtudeBackend.Features.Users.Services;
 
 public class UserService : IUserService
 {
+    // Переписать на UserManager
     private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
 
