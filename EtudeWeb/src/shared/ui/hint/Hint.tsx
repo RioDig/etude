@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import clsx from 'clsx';
 import { Tag } from "@/shared/ui/tag";
+import { createPortal } from 'react-dom'
 
 type HintPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'left' | 'right' | 'bottom';
 
@@ -320,7 +321,7 @@ export const Hint: React.FC<HintProps> = ({
   }, [isVisible]);
 
   return (
-    <div className="relative inline-block" data-testid={`${testId}-container`}>
+    <div className="relative " data-testid={`${testId}-container`}>
       <div
         ref={triggerRef}
         onMouseEnter={handleMouseEnter}
@@ -332,11 +333,11 @@ export const Hint: React.FC<HintProps> = ({
         {children}
       </div>
 
-      {isVisible && (
+      {isVisible && createPortal(
         <div
           ref={hintRef}
           className={clsx(
-            'fixed z-50 flex flex-col items-start gap-3 p-3 max-w-[520px]',
+            'fixed z-[1000] flex flex-col items-start gap-3 p-3 max-w-[520px]',
             'rounded-[6px] bg-white shadow-[0px_0px_13px_0px_rgba(0,0,0,0.06)]',
             'animate-[fadeIn_100ms_ease-in]',
             className
@@ -389,7 +390,7 @@ export const Hint: React.FC<HintProps> = ({
               {actions}
             </div>
           )}
-        </div>
+        </div>, document.body
       )}
     </div>
   );
