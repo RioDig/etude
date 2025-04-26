@@ -5,6 +5,8 @@ import { Hint } from '@/shared/ui/hint'
 import { Tag } from '@/shared/ui/tag'
 import { CalendarTodayOutlined, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import clsx from 'clsx'
+import { Badge } from '@/shared/ui/badge'
+import { AccessTime } from '@mui/icons-material'
 import { CalendarCard, CalendarProps, CalendarViewMode, CardStatus } from '../model/types'
 // Функция для форматирования даты
 const formatDate = (date: Date): string => {
@@ -74,15 +76,30 @@ const getTypeLabel = (type: string) => {
 const getStatusColor = (status: CardStatus): string => {
   switch (status) {
     case 'pending':
-      return 'bg-yellow-100 border-yellow-300'
+      return 'border-yellow-300 bg-yellow-100 hover:bg-yellow-200'
     case 'approved':
-      return 'bg-green-100 border-green-300'
+      return 'border-green-300 bg-green-100 hover:bg-green-200'
     case 'rejected':
-      return 'bg-red-100 border-red-300'
+      return 'border-red-300 bg-red-100 hover:bg-red-200'
     case 'completed':
-      return 'bg-mono-100 border-mono-300'
+      return 'border-mono-300 bg-mono-100 hover:bg-mono-300'
     default:
-      return 'bg-mono-100 border-mono-300'
+      return 'border-mono-300 bg-mono-100 hover:bg-mono-300'
+  }
+}
+
+const getStatusBadgeVariant = (status: CardStatus): 'default' | 'success' | 'warning' | 'error' => {
+  switch (status) {
+    case 'pending':
+      return 'warning'
+    case 'approved':
+      return 'success'
+    case 'rejected':
+      return 'error'
+    case 'completed':
+      return 'default'
+    default:
+      return 'default'
   }
 }
 
@@ -455,8 +472,8 @@ export const Calendar: React.FC<CalendarProps> = ({
             <div
               key={`header-${index}`}
               className={clsx(
-                'h-[50px] flex items-center px-[16px] py-[12px] text-b1 font-medium text-mono-950 justify-center [&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200',
-                (day.getDay() === 0 || day.getDay() === 6) && 'text-red-600'
+                'h-[50px] flex items-center px-[16px] py-[12px] text-b1 text-mono-950 justify-center [&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200'
+                // (day.getDay() === 0 || day.getDay() === 6) && 'text-red-600'
               )}
             >
               {day.getDate()}
@@ -489,10 +506,12 @@ export const Calendar: React.FC<CalendarProps> = ({
           {/* Карточки с новыми отступами */}
           {distributedCards.flatMap((row, rowIndex) =>
             row.map(({ card, startCol, endCol }) => {
-              const colSpan = endCol - startCol + 1
-              const isMinSize = colSpan === 1
-              const showStatus = colSpan > 1
-              const showDates = colSpan > 2
+              const colSpan = endCol - startCol + 1;
+
+              // Определяем, что показывать в зависимости от размера
+              const isMinSize = colSpan === 1;       // Только цвет фона
+              const showBadge = colSpan > 3;         // Показываем бейдж, если колспан > 2
+              const showDates = colSpan > 3;         // Показываем даты, если колспан > 3
 
               return (
                 <div
@@ -505,39 +524,48 @@ export const Calendar: React.FC<CalendarProps> = ({
                     zIndex: 10
                   }}
                 >
-                  <Hint content={getCardHintContent(card)} position="top-right">
+                  <Hint
+                    content={getCardHintContent(card)}
+                    position="top-right"
+                  >
                     <div
                       className={clsx(
-                        'border w-full h-full p-3 flex flex-col cursor-pointer rounded-md',
+                        'border w-full h-[77px] p-3 flex flex-col cursor-pointer rounded-[8px] transition-colors',
                         getStatusColor(card.status)
                       )}
                       onClick={() => handleCardClick(card)}
                     >
-                      {showStatus && (
-                        <div className="text-b5 text-mono-700 mb-1">
-                          {getStatusText(card.status)}
-                        </div>
-                      )}
+                      {!isMinSize && (
+                        <>
+                          <div className="flex items-center gap-2 mb-[6px]">
+                            {showBadge && (
+                              <Badge
+                                variant={getStatusBadgeVariant(card.status)}
+                                className="whitespace-nowrap shrink-0"
+                              >
+                                {getStatusText(card.status)}
+                              </Badge>
+                            )}
 
-                      <div
-                        className={clsx(
-                          'font-medium',
-                          isMinSize ? 'text-b5' : 'text-b4',
-                          'truncate'
-                        )}
-                      >
-                        {card.title}
-                      </div>
+                            <div className="text-b2 font-medium text-mono-900 truncate flex-1">
+                              {card.title}
+                            </div>
+                          </div>
 
-                      {showDates && (
-                        <div className="text-b5 text-mono-600 mt-1">
-                          {formatDate(card.startDate)} – {formatDate(card.endDate)}
-                        </div>
+                          {showDates && (
+                            <div className="flex items-center">
+                              <AccessTime className="text-mono-800 shrink-0" style={{ width: 16, height: 16 }} />
+                              <span className="ml-2 text-b3-regular text-mono-800 truncate">
+                      {formatDate(card.startDate)} – {formatDate(card.endDate)}
+                    </span>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </Hint>
                 </div>
-              )
+              );
             })
           )}
         </div>

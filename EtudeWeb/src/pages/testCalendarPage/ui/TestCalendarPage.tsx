@@ -205,7 +205,7 @@ const mockCards: CalendarCard[] = [
     title: 'Публичные выступления',
     status: 'approved',
     startDate: createDate(2025, 1, 5),
-    endDate: createDate(2025, 1, 6),
+    endDate: createDate(2025, 1, 5),
     description: 'Навыки эффективных выступлений перед аудиторией, подготовка презентаций',
     employee: 'Королева Анастасия',
     format: 'offline',
@@ -329,8 +329,7 @@ const TestCalendarPage: React.FC = () => {
 
         <div className="space-y-4 text-b4-regular">
           <p>
-            <strong>Режимы отображения:</strong> Календарь поддерживает три режима - неделя, месяц и
-            полугодие.
+            <strong>Режимы отображения:</strong> Календарь поддерживает два режима - неделя, месяц.
           </p>
 
           <p>
