@@ -96,7 +96,7 @@ const mockCards: CalendarCard[] = [
     title: 'UX/UI-дизайнер Plus',
     status: 'approved',
     startDate: createDate(2025, 1, 1),
-    endDate: createDate(2025, 1, 31),
+    endDate: createDate(2025, 2, 5),
     description:
       'Курс для продвинутых UI/UX дизайнеров, включающий современные тренды и инструменты',
     employee: 'Иванов Иван',

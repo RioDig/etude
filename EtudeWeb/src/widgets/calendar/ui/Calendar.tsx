@@ -1,13 +1,13 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { DatePicker } from '@/shared/ui/datepicker/Datepicker'
 import { Switch } from '@/shared/ui/switch'
 import { Hint } from '@/shared/ui/hint'
 import { Tag } from '@/shared/ui/tag'
-import { CalendarTodayOutlined, ChevronLeft, ChevronRight } from '@mui/icons-material'
+import { AccessTime, CalendarTodayOutlined, ChevronLeft, ChevronRight } from '@mui/icons-material'
 import clsx from 'clsx'
 import { Badge } from '@/shared/ui/badge'
-import { AccessTime } from '@mui/icons-material'
 import { CalendarCard, CalendarProps, CalendarViewMode, CardStatus } from '../model/types'
+import { useElementSize } from '@/shared/helpers/useElementSize.tsx'
 // Функция для форматирования даты
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString('ru-RU', {
@@ -134,6 +134,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   const [currentDate, setCurrentDate] = useState<Date>(initialDate)
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null)
+  const cardRowMapRef = useRef<Record<string, number>>({})
 
   // Количество дней для отображения в зависимости от режима просмотра
   const daysToShow = useMemo(() => {
@@ -143,8 +144,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       case 'month': {
         const date = new Date(currentDate)
         date.setDate(1)
-        const lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-        return lastDay
+        return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
       }
       case 'half-year':
         return 30 // Фиксированное количество дней для полугодия с горизонтальным скроллом
@@ -201,14 +201,34 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   // Алгоритм распределения карточек по строкам
   const { distributedCards, maxRows } = useMemo(() => {
-    // Сортируем карточки по длительности (от самых длинных к коротким)
+    // Сортируем карточки сначала по времени начала, затем по длительности (от самых длинных к коротким)
     const sortedCards = [...visibleCards].sort((a, b) => {
+      // Сначала сортируем по времени начала
+      const startTimeA = a.startDate.getTime()
+      const startTimeB = b.startDate.getTime()
+
+      if (startTimeA !== startTimeB) {
+        return startTimeA - startTimeB // Сначала более ранние события
+      }
+
+      // При одинаковом времени начала сортируем по длительности
       const durationA = a.endDate.getTime() - a.startDate.getTime()
       const durationB = b.endDate.getTime() - b.startDate.getTime()
-      return durationB - durationA
+      return durationB - durationA // Длинные события выше
     })
 
-    const rows: Array<{ card: CalendarCard; startCol: number; endCol: number }[]> = []
+    // Используем сохраненную информацию о строках из ref
+    const cardRowMap = cardRowMapRef.current
+
+    const rows: Array<
+      {
+        card: CalendarCard
+        startCol: number
+        endCol: number
+        isStartExtending: boolean
+        isEndExtending: boolean
+      }[]
+    > = []
 
     // Функция для получения индекса дня в календарной сетке
     const getDayIndex = (date: Date): number => {
@@ -235,6 +255,21 @@ export const Calendar: React.FC<CalendarProps> = ({
       return calendarDays.length
     }
 
+    // Функция для определения, выходит ли карточка за границы видимой области
+    const isCardExtendingOutside = (card: CalendarCard, position: 'start' | 'end'): boolean => {
+      if (position === 'start') {
+        // Проверяем, начинается ли карточка раньше первого дня в сетке
+        const firstDayStart = new Date(calendarDays[0])
+        firstDayStart.setHours(0, 0, 0, 0)
+        return card.startDate.getTime() < firstDayStart.getTime()
+      } else {
+        // Проверяем, заканчивается ли карточка позже последнего дня в сетке
+        const lastDayEnd = new Date(calendarDays[calendarDays.length - 1])
+        lastDayEnd.setHours(23, 59, 59, 999)
+        return card.endDate.getTime() > lastDayEnd.getTime()
+      }
+    }
+
     // Проходим по каждой карточке и определяем её позицию
     sortedCards.forEach((card) => {
       let startCol = getDayIndex(card.startDate)
@@ -253,33 +288,76 @@ export const Calendar: React.FC<CalendarProps> = ({
         return
       }
 
-      // Находим подходящую строку для карточки
+      // Определяем, выходит ли карточка за пределы видимой области
+      const isStartExtending = isCardExtendingOutside(card, 'start')
+      const isEndExtending = isCardExtendingOutside(card, 'end')
+
+      // Сохраняем эту информацию вместе с карточкой
+      const cardData = {
+        card,
+        startCol,
+        endCol,
+        isStartExtending,
+        isEndExtending
+      }
+
+      // Проверяем, назначена ли уже карточка на определенную строку
       let rowIndex = -1
 
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i]
-        let canFit = true
+      // Если для этой карточки уже есть назначенная строка, пытаемся использовать её
+      if (cardRowMap[card.id] !== undefined) {
+        const preferredRowIndex = cardRowMap[card.id]
 
-        for (const existingCard of row) {
-          // Проверяем пересечение с существующими карточками
-          if (startCol <= existingCard.endCol && endCol >= existingCard.startCol) {
-            canFit = false
-            break
+        // Проверяем, можно ли разместить карточку в предпочтительной строке
+        if (preferredRowIndex < rows.length) {
+          const row = rows[preferredRowIndex]
+          let canFit = true
+
+          for (const existingCard of row) {
+            // Проверяем пересечение с существующими карточками
+            if (startCol <= existingCard.endCol && endCol >= existingCard.startCol) {
+              canFit = false
+              break
+            }
+          }
+
+          if (canFit) {
+            rowIndex = preferredRowIndex
           }
         }
+      }
 
-        if (canFit) {
-          rowIndex = i
-          break
+      // Если не удалось использовать предпочтительную строку, ищем любую подходящую
+      if (rowIndex === -1) {
+        for (let i = 0; i < rows.length; i++) {
+          const row = rows[i]
+          let canFit = true
+
+          for (const existingCard of row) {
+            // Проверяем пересечение с существующими карточками
+            if (startCol <= existingCard.endCol && endCol >= existingCard.startCol) {
+              canFit = false
+              break
+            }
+          }
+
+          if (canFit) {
+            rowIndex = i
+            break
+          }
         }
       }
 
       // Если не нашли подходящую строку, создаем новую
       if (rowIndex === -1) {
-        rows.push([{ card, startCol, endCol }])
+        rowIndex = rows.length
+        rows.push([cardData])
       } else {
-        rows[rowIndex].push({ card, startCol, endCol })
+        rows[rowIndex].push(cardData)
       }
+
+      // Сохраняем индекс строки для этой карточки
+      cardRowMap[card.id] = rowIndex
     })
 
     return {
@@ -304,13 +382,16 @@ export const Calendar: React.FC<CalendarProps> = ({
             1
         }))
       )
-      console.log('Card spans:', cardSpans)
+      // console.log('Card spans:', cardSpans)
     }
   }, [distributedCards])
 
   // Обработка изменения вида календаря
   useEffect(() => {
     if (onViewModeChange && viewMode !== initialViewMode) {
+      // При изменении режима просмотра, мы можем очистить сохраненные данные о позиции,
+      // так как разные режимы имеют разную структуру строк
+      cardRowMapRef.current = {}
       onViewModeChange(viewMode)
     }
   }, [viewMode, initialViewMode, onViewModeChange])
@@ -332,6 +413,8 @@ export const Calendar: React.FC<CalendarProps> = ({
     } else {
       date.setMonth(date.getMonth() - 6)
     }
+    // Сохраняем cardRowMap перед переключением на новый период
+    // чтобы карточки оставались на тех же строках
     setCurrentDate(date)
   }
 
@@ -345,6 +428,8 @@ export const Calendar: React.FC<CalendarProps> = ({
     } else {
       date.setMonth(date.getMonth() + 6)
     }
+    // Сохраняем cardRowMap перед переключением на новый период
+    // чтобы карточки оставались на тех же строках
     setCurrentDate(date)
   }
 
@@ -398,10 +483,17 @@ export const Calendar: React.FC<CalendarProps> = ({
     }
   }
 
-  console.log('Rendering calendar with:', {
-    distributedCards,
-    maxRows
-  })
+  // console.log('Rendering calendar with:', {
+  //   distributedCards,
+  //   maxRows
+  // })
+
+  const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const { width, height } = useElementSize(element);
+
+  const ref = useCallback((node: HTMLDivElement | null) => {
+    setElement(node);
+  }, []);
 
   return (
     <div className={clsx('flex flex-col', className)}>
@@ -445,7 +537,7 @@ export const Calendar: React.FC<CalendarProps> = ({
           options={[
             { id: 'week', label: 'Неделя' },
             { id: 'month', label: 'Месяц' },
-            { id: 'half-year', label: 'Полугодие' }
+            // { id: 'half-year', label: 'Полугодие' }
           ]}
           value={viewMode}
           onChange={(value) => setViewMode(value as CalendarViewMode)}
@@ -456,118 +548,141 @@ export const Calendar: React.FC<CalendarProps> = ({
       {/* Календарная сетка */}
       <div
         className={clsx(
-          'border border-mono-200 rounded-[8px] overflow-hidden bg-white',
+          'border border-mono-200 rounded-[8px] overflow-auto bg-white',
           viewMode === 'half-year' && 'overflow-x-auto'
         )}
       >
-        {/* Шапка с номерами дней - обновленные стили */}
         <div
-          className="grid bg-mono-50"
           style={{
-            gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))`,
-            borderBottom: '1px solid #E3E3E3' // Mono/200
+            width: 'fit-content',
+            minWidth: '100%'
           }}
         >
-          {calendarDays.map((day, index) => (
-            <div
-              key={`header-${index}`}
-              className={clsx(
-                'h-[50px] flex items-center px-[16px] py-[12px] text-b1 text-mono-950 justify-center [&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200'
-                // (day.getDay() === 0 || day.getDay() === 6) && 'text-red-600'
-              )}
-            >
-              {day.getDate()}
-            </div>
-          ))}
-        </div>
+          {/* Шапка с номерами дней - обновленные стили */}
+          <div
+            className="grid bg-mono-50"
+            style={{
+              gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))`,
+              borderBottom: '1px solid #E3E3E3' // Mono/200
+            }}
+            ref={ref}
+          >
+            {calendarDays.map((day, index) => (
+              <div
+                key={`header-${index}`}
+                className={clsx(
+                  'h-[50px] flex items-center px-[16px] py-[12px] text-b1 text-mono-950 justify-center [&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200'
+                  // 'w-full'
+                  // (day.getDay() === 0 || day.getDay() === 6) && 'text-red-600'
+                )}
 
-        {/* Сетка календаря - без горизонтальных разделителей */}
-        <div
-          className="relative"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))`,
-            gridTemplateRows: `repeat(${Math.max(1, maxRows)}, minmax(100px, auto))`
-          }}
-        >
-          {/* Вертикальные разделители */}
-          {Array.from({ length: daysToShow }).map((_, index) => (
-            <div
-              key={`divider-${index}`}
-              className={index !== daysToShow - 1 ? 'border-r border-mono-200' : ''}
-              style={{
-                gridColumn: index + 1,
-                gridRow: '1 / span ' + Math.max(1, maxRows),
-                height: '100%'
-              }}
-            />
-          ))}
+              >
+                {day.getDate()}
+              </div>
+            ))}
+          </div>
 
-          {/* Карточки с новыми отступами */}
-          {distributedCards.flatMap((row, rowIndex) =>
-            row.map(({ card, startCol, endCol }) => {
-              const colSpan = endCol - startCol + 1;
+          {/* Сетка календаря - без горизонтальных разделителей */}
+          <div
+            className="relative"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${daysToShow}, minmax(50px, 1fr))`,
+              gridTemplateRows: `repeat(${Math.max(1, maxRows)}, minmax(100px, auto))`
+            }}
+          >
+            {/* Вертикальные разделители */}
+            {Array.from({ length: daysToShow }).map((_, index) => (
+              <div
+                key={`divider-${index}`}
+                className={index !== daysToShow - 1 ? 'border-r border-mono-200' : ''}
+                style={{
+                  gridColumn: index + 1,
+                  gridRow: '1 / span ' + Math.max(1, maxRows),
+                  height: '100%'
+                }}
+              />
+            ))}
 
-              // Определяем, что показывать в зависимости от размера
-              const isMinSize = colSpan === 1;       // Только цвет фона
-              const showBadge = colSpan > 3;         // Показываем бейдж, если колспан > 2
-              const showDates = colSpan > 3;         // Показываем даты, если колспан > 3
+            {/* Карточки с новыми отступами */}
+            {distributedCards.flatMap((row, rowIndex) =>
+              row.map(({ card, startCol, endCol, isStartExtending, isEndExtending }) => {
+                const colSpan = endCol - startCol + 1
+                const colWidth = width / calendarDays.length
+                // Определяем, что показывать в зависимости от размера
+                const isMinSize = viewMode === 'week' ? false : colSpan === 1 // Только цвет фона
+                const showBadge = colSpan > 1 && colSpan * colWidth > 350 // Показываем бейдж, если колспан > 2
+                const showDates = colSpan * colWidth > 250
 
-              return (
-                <div
-                  key={`card-${card.id}-${rowIndex}`}
-                  style={{
-                    gridColumn: `${startCol + 1} / span ${colSpan}`,
-                    gridRow: `${rowIndex + 1}`,
-                    padding: '8px 16px', // Отступы по вертикали и горизонтали
-                    position: 'relative',
-                    zIndex: 10
-                  }}
-                >
-                  <Hint
-                    content={getCardHintContent(card)}
-                    position="top-right"
+                return (
+                  <div
+                    key={`card-${card.id}-${rowIndex}`}
+                    style={{
+                      gridColumn: `${startCol + 1} / span ${colSpan}`,
+                      gridRow: `${rowIndex + 1}`,
+                      // padding: '8px 16px', // Отступы по вертикали и горизонтали
+                      position: 'relative',
+                      zIndex: 10
+                    }}
+                    className={clsx(
+                      'pt-2 pb-2',
+                      !isStartExtending ? 'pl-3' : 'pl-0',
+                      !isEndExtending ? 'pr-3' : 'pr-0'
+                    )}
                   >
-                    <div
-                      className={clsx(
-                        'border w-full h-[77px] p-3 flex flex-col cursor-pointer rounded-[8px] transition-colors',
-                        getStatusColor(card.status)
-                      )}
-                      onClick={() => handleCardClick(card)}
-                    >
-                      {!isMinSize && (
-                        <>
-                          <div className="flex items-center gap-2 mb-[6px]">
-                            {showBadge && (
-                              <Badge
-                                variant={getStatusBadgeVariant(card.status)}
-                                className="whitespace-nowrap shrink-0"
-                              >
-                                {getStatusText(card.status)}
-                              </Badge>
+                    <Hint content={getCardHintContent(card)} position="top-right">
+                      <div
+                        className={clsx(
+                          'border w-full h-[77px] flex flex-col cursor-pointer transition-colors',
+                          getStatusColor(card.status),
+                          // Применяем скругление углов только для тех сторон, которые не выходят за границы видимой области
+                          'rounded-none',
+                          !isStartExtending ? 'rounded-l-[8px]' : '',
+                          !isEndExtending ? 'rounded-r-[8px]' : '',
+                          // Применяем отступы, но убираем их для сторон, которые выходят за границы видимой области
+
+                          'pl-3 pr-3',
+                          'pt-3 pb-3'
+                        )}
+                        onClick={() => handleCardClick(card)}
+                      >
+                        {!isMinSize && (
+                          <>
+                            <div className="flex items-center gap-2 mb-[6px]">
+                              {showBadge && (
+                                <Badge
+                                  variant={getStatusBadgeVariant(card.status)}
+                                  className="whitespace-nowrap shrink-0"
+                                >
+                                  {getStatusText(card.status)}
+                                </Badge>
+                              )}
+
+                              <div className="text-b2 font-medium text-mono-900 truncate flex-1">
+                                {card.title}
+                              </div>
+                            </div>
+
+                            {showDates && (
+                              <div className="flex items-center">
+                                <AccessTime
+                                  className="text-mono-800 shrink-0"
+                                  style={{ width: 16, height: 16 }}
+                                />
+                                <span className="ml-2 text-b3-regular text-mono-800 truncate">
+                                  {formatDate(card.startDate)} – {formatDate(card.endDate)}
+                                </span>
+                              </div>
                             )}
-
-                            <div className="text-b2 font-medium text-mono-900 truncate flex-1">
-                              {card.title}
-                            </div>
-                          </div>
-
-                          {showDates && (
-                            <div className="flex items-center">
-                              <AccessTime className="text-mono-800 shrink-0" style={{ width: 16, height: 16 }} />
-                              <span className="ml-2 text-b3-regular text-mono-800 truncate">
-                      {formatDate(card.startDate)} – {formatDate(card.endDate)}
-                    </span>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </Hint>
-                </div>
-              );
-            })
-          )}
+                          </>
+                        )}
+                      </div>
+                    </Hint>
+                  </div>
+                )
+              })
+            )}
+          </div>
         </div>
       </div>
     </div>
