@@ -32,7 +32,20 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     
 });
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+    {
+        // Отключаем требование не буквенно-цифровых символов
+        options.Password.RequireNonAlphanumeric = false;
+
+        // Также можно смягчить другие требования
+        options.Password.RequireDigit = false; // Не требовать цифр
+        options.Password.RequireLowercase = false; // Не требовать строчных букв
+        options.Password.RequireUppercase = false; // Не требовать заглавных букв
+        options.Password.RequiredLength = 4; // Минимальная длина 6 символов
+
+        // Уникальность email
+        options.User.RequireUniqueEmail = false;
+    })
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // Add Swagger

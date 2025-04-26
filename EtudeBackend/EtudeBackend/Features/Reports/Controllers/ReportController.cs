@@ -1,11 +1,13 @@
 ﻿using EtudeBackend.Features.Reports.DTOs;
 using EtudeBackend.Features.Reports.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EtudeBackend.Features.Reports.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ReportController : ControllerBase
 {
     private readonly IReportService _reportService;

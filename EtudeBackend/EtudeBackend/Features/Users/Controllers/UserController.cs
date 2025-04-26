@@ -1,11 +1,15 @@
-﻿using EtudeBackend.Features.Users.DTOs;
+﻿using System.Security.Claims;
+using EtudeBackend.Features.Users.DTOs;
 using EtudeBackend.Features.Users.Services;
+using Microsoft.AspNetCore.Authentication.BearerToken;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EtudeBackend.Features.Users.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -29,10 +33,10 @@ public class UserController : ControllerBase
     /// <summary>
     /// Получает информацию о пользователе по идентификатору
     /// </summary>
-    [HttpGet("{id:int}")]
+    [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUserById(int id)
+    public async Task<IActionResult> GetUserById(string id)
     {
         var user = await _userService.GetUserByIdAsync(id);
             
@@ -52,9 +56,9 @@ public class UserController : ControllerBase
     {
         // Здесь должна быть логика получения текущего пользователя из токена
         // Но пока просто используем временную реализацию для демонстрации
-        int currentUserId = 1; // Заглушка
+        //int currentUserId = 1; // Заглушка
         
-        var user = await _userService.GetUserByIdAsync(currentUserId);
+        var user = await _userService.GetUserByIdAsync(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
             
         if (user == null)
             return Unauthorized();

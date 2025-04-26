@@ -3,6 +3,7 @@ using EtudeBackend.Features.Auth.Services;
 using EtudeBackend.Features.Users.Services;
 using EtudeBackend.Shared.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,7 @@ namespace EtudeBackend.Features.Auth.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class AuthController : ControllerBase
 {
     private readonly IOAuthService _oauthService;
@@ -63,79 +65,108 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string state)
+{
+    if (string.IsNullOrEmpty(code))
     {
-        if (string.IsNullOrEmpty(code))
-        {
-            return BadRequest("Authorization code is missing");
-        }
-
-        try
-        {
-            // Получаем URL для callback
-            var baseUrl = _configuration["Application:BaseUrl"];
-            var callbackUrl = $"{baseUrl}/api/auth/callback";
-
-            // Обмениваем код на токены
-            var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
-
-            // Получаем информацию о пользователе
-            var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
-
-            // Проверяем, существует ли пользователь в нашей системе
-            var user = await _userService.GetUserByEmailAsync(userInfo.OrgEmail);
-
-            if (user == null)
-            {
-                // TODO: Создание пользователя, если его нет в системе
-                // В реальном приложении здесь может быть логика регистрации нового пользователя
-                // или другая обработка
-                // return BadRequest("User not found in system");
-                await _userManager.CreateAsync(new ApplicationUser()
-                {
-                    Name = userInfo.Name, Surname = userInfo.Surname,
-                    Patronymic = userInfo.Patronymic, OrgEmail = userInfo.OrgEmail, Position = userInfo.Position,
-                    SoloUserId = userInfo.UserId, IsActive = true
-                });
-            }
-
-            // Сохраняем токены в сессии или cookies для дальнейшего использования
-            // В реальном приложении здесь была бы логика сохранения токенов
-            // и выдачи внутреннего токена авторизации
-            
-            var usr = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
-            // TODO что сохранить в Items? code или state?
-
-            if (usr != null)
-                await _signInManager.SignInAsync(usr,
-                    new AuthenticationProperties(new Dictionary<string, string>() { { usr.Id.ToString(), code } }!)
-                    {
-                        AllowRefresh = true,
-                        ExpiresUtc = DateTimeOffset.FromUnixTimeSeconds(53000),
-                        IsPersistent = true
-                    });
-
-            // Перенаправляем пользователя на исходную страницу, если она была указана
-            string redirectUrl = "/";
-            if (!string.IsNullOrEmpty(state))
-            {
-                try
-                {
-                    redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
-                }
-                catch
-                {
-                    _logger.LogWarning("Invalid state parameter: {State}", state);
-                }
-            }
-
-            return Redirect(redirectUrl);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during OAuth callback processing");
-            return BadRequest("Authentication failed");
-        }
+        return BadRequest("Authorization code is missing");
     }
+
+    try
+    {
+        // Получаем URL для callback
+        var baseUrl = _configuration["Application:BaseUrl"];
+        var callbackUrl = $"{baseUrl}/api/auth/callback";
+
+        // Обмениваем код на токены
+        var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
+
+        // Получаем информацию о пользователе
+        var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
+
+        // Проверяем, существует ли пользователь в нашей системе
+        var user = await _userService.GetUserByEmailAsync(userInfo.OrgEmail);
+
+        if (user == null)
+        {
+            // Создаем нового пользователя
+            var appUser = new ApplicationUser
+            {
+                UserName = userInfo.OrgEmail, // Обязательное поле для IdentityUser
+                Email = userInfo.OrgEmail,    // Обязательное поле для IdentityUser
+                EmailConfirmed = true,        // Подтверждаем email сразу
+                Name = userInfo.Name,
+                Surname = userInfo.Surname,
+                Patronymic = userInfo.Patronymic,
+                OrgEmail = userInfo.OrgEmail,
+                Position = userInfo.Position,
+                SoloUserId = userInfo.UserId,
+                IsActive = true
+            };
+
+            // Генерируем случайный пароль для нового пользователя
+            string temporaryPassword = GenerateRandomPassword();
+
+            // Создаем пользователя и обрабатываем результат
+            var result = await _userManager.CreateAsync(appUser, temporaryPassword);
+
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Ошибка при создании пользователя: {Errors}", 
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return BadRequest("Не удалось создать пользователя");
+            }
+
+            // Здесь можно отправить email с временным паролем или инструкциями по его смене
+            _logger.LogInformation("Создан новый пользователь: {Email}", userInfo.OrgEmail);
+        }
+
+        // Находим пользователя для аутентификации
+        var userToLogin = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
+        if (userToLogin == null)
+        {
+            _logger.LogError("Пользователь не найден после регистрации: {Email}", userInfo.OrgEmail);
+            return BadRequest("Ошибка авторизации");
+        }
+
+        // Выполняем вход пользователя
+        await _signInManager.SignInAsync(userToLogin,
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+            });
+
+        // Перенаправляем пользователя на исходную страницу, если она была указана
+        string redirectUrl = "/";
+        if (!string.IsNullOrEmpty(state))
+        {
+            try
+            {
+                redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+            }
+            catch
+            {
+                _logger.LogWarning("Invalid state parameter: {State}", state);
+            }
+        }
+
+        return Redirect(redirectUrl);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error during OAuth callback processing");
+        return BadRequest("Authentication failed");
+    }
+}
+
+// Вспомогательный метод для генерации случайного пароля
+private string GenerateRandomPassword(int length = 12)
+{
+    const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
+    var random = new Random();
+    return new string(Enumerable.Repeat(chars, length)
+        .Select(s => s[random.Next(s.Length)]).ToArray());
+}
 
     /// <summary>
     /// Тестовый эндпоинт для проверки авторизации через OAuth

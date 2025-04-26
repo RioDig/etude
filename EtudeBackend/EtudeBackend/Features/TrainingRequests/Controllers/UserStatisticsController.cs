@@ -1,11 +1,13 @@
 ﻿using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EtudeBackend.Features.TrainingRequests.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class UserStatisticsController : ControllerBase
 {
     private readonly IUserStatisticsService _userStatisticsService;

@@ -2,9 +2,11 @@ using System.Text;
 using System.Text.Json;
 using EtudeBackend.Features.Auth.Models;
 using EtudeBackend.Shared.Exceptions;
+using Microsoft.AspNetCore.Authorization;
 
 namespace EtudeBackend.Features.Auth.Services;
 
+[Authorize]
 public class OAuthService : IOAuthService
 {
     private readonly HttpClient _httpClient;

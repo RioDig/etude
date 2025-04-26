@@ -1,11 +1,13 @@
 ﻿using EtudeBackend.Features.Templates.DTOs;
 using EtudeBackend.Features.Templates.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EtudeBackend.Features.Templates.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class CourseTemplateController : ControllerBase
 {
     private readonly ICourseTemplateService _templateService;

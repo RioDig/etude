@@ -1,31 +1,33 @@
 ﻿using AutoMapper;
 using EtudeBackend.Features.Users.DTOs;
 using EtudeBackend.Features.Users.Repositories;
+using EtudeBackend.Shared.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace EtudeBackend.Features.Users.Services;
 
 public class UserService : IUserService
 {
-    // Переписать на UserManager
-    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public UserService(IUserRepository userRepository, IMapper mapper)
+
+    public UserService(IMapper mapper, UserManager<ApplicationUser> userManager) 
     {
-        _userRepository = userRepository;
         _mapper = mapper;
+        _userManager = userManager;
     }
 
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
-        var users = await _userRepository.GetAllAsync();
+        var users = await _userManager.Users.ToListAsync();
         return _mapper.Map<List<UserDto>>(users);
     }
 
-    public async Task<UserDto?> GetUserByIdAsync(int id)
+    public async Task<UserDto?> GetUserByIdAsync(string id)
     {
-        var user = await _userRepository.GetByUserIdAsync(id);
+        var user = await _userManager.FindByIdAsync(id);
         if (user == null)
             return null;
             
@@ -34,7 +36,7 @@ public class UserService : IUserService
 
     public async Task<UserDto?> GetUserByEmailAsync(string email)
     {
-        var user = await _userRepository.GetByEmailAsync(email);
+        var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
             return null;
             
