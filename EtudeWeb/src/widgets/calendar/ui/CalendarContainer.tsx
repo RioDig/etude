@@ -1,56 +1,63 @@
+// src/widgets/calendar/ui/CalendarContainer.tsx
 import React, { useState } from 'react'
 import { Calendar } from './Calendar'
 import { Button } from '@/shared/ui/button'
 import { Typography } from '@/shared/ui/typography'
 import { Add } from '@mui/icons-material'
-import { CalendarCard, CalendarViewMode } from '@/widgets/calendar'
+import { CalendarCard, CalendarViewMode, CardStatus } from '../model/types'
+import { getStatusText, getStatusColor } from '../utils/calendar-helpers'
 
 interface CalendarContainerProps {
+  /**
+   * Массив карточек для отображения в календаре
+   */
   cards: CalendarCard[]
+
+  /**
+   * Обработчик добавления новой карточки
+   */
   onAddCard?: () => void
+
+  /**
+   * Обработчик клика по карточке
+   */
+  onCardClick?: (card: CalendarCard) => void
+
+  /**
+   * Начальный режим отображения
+   * @default 'month'
+   */
   initialViewMode?: CalendarViewMode
+
+  /**
+   * Начальная дата для отображения
+   * @default new Date()
+   */
   initialDate?: Date
+
+  /**
+   * Дополнительные классы
+   */
   className?: string
 }
 
 export const CalendarContainer: React.FC<CalendarContainerProps> = ({
   cards,
   onAddCard,
+  onCardClick,
   initialViewMode = 'month',
   initialDate = new Date(),
   className
 }) => {
-  const [currentViewMode, setCurrentViewMode] = useState<CalendarViewMode>(initialViewMode)
+  // Состояние для отображения легенды статусов
   const [showLegend, setShowLegend] = useState(true)
 
-  const getStatusText = (status: string): string => {
-    switch (status) {
-      case 'pending':
-        return 'На согласовании'
-      case 'approved':
-        return 'Согласовано'
-      case 'rejected':
-        return 'Отклонено'
-      case 'completed':
-        return 'Пройдено'
-      default:
-        return ''
-    }
-  }
+  // Состояние для текущего режима отображения
+  const [currentViewMode, setCurrentViewMode] = useState<CalendarViewMode>(initialViewMode)
 
-  const getStatusColor = (status: string): string => {
-    switch (status) {
-      case 'pending':
-        return 'bg-yellow-100 border-yellow-300'
-      case 'approved':
-        return 'bg-green-100 border-green-300'
-      case 'rejected':
-        return 'bg-red-100 border-red-300'
-      case 'completed':
-        return 'bg-mono-100 border-mono-300'
-      default:
-        return ''
-    }
+  // Обработчик изменения режима отображения
+  const handleViewModeChange = (mode: CalendarViewMode) => {
+    setCurrentViewMode(mode)
   }
 
   return (
@@ -81,15 +88,23 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
 
           {['pending', 'approved', 'rejected', 'completed'].map((status) => (
             <div key={status} className="flex items-center gap-2">
-              <div className={`w-4 h-4 rounded ${getStatusColor(status)}`} />
-              <span className="text-b4-regular">{getStatusText(status)}</span>
+              <div
+                className={`w-4 h-4 rounded ${getStatusColor(status as CardStatus).split(' ')[0]} ${getStatusColor(status as CardStatus).split(' ')[1]}`}
+              />
+              <span className="text-b4-regular">{getStatusText(status as CardStatus)}</span>
             </div>
           ))}
         </div>
       )}
 
       {/* Календарь */}
-      <Calendar cards={cards} initialViewMode={currentViewMode} initialDate={initialDate} />
+      <Calendar
+        cards={cards}
+        initialViewMode={currentViewMode}
+        initialDate={initialDate}
+        onViewModeChange={handleViewModeChange}
+        onCardClick={onCardClick}
+      />
     </div>
   )
 }

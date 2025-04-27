@@ -1,5 +1,5 @@
+// src/pages/testCalendarPage/ui/TestCalendarPage.tsx
 import React, { useState } from 'react'
-
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
 import { Tag } from '@/shared/ui/tag'
@@ -66,7 +66,6 @@ const createRandomCard = (id: string): CalendarCard => {
   ]
 
   // Генерируем случайную дату начала и конца (январь-март 2025)
-  const currentMonth = new Date().getMonth()
   const startMonth = Math.floor(Math.random() * 3) + 1 // 1-3 (январь-март)
   const startDay = Math.floor(Math.random() * 28) + 1 // 1-28
   const duration = Math.floor(Math.random() * 14) + 1 // 1-14 дней
@@ -214,21 +213,11 @@ const mockCards: CalendarCard[] = [
   }
 ]
 
-const TestCalendarPage: React.FC = () => {
+export const TestCalendarPage: React.FC = () => {
   const [cards, setCards] = useState<CalendarCard[]>(mockCards)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [viewMode, setViewMode] = useState<CalendarViewMode>('month')
-  const [newCourseFormData, setNewCourseFormData] = useState({
-    title: '',
-    startDate: new Date(),
-    endDate: new Date(new Date().setDate(new Date().getDate() + 7)),
-    status: 'pending',
-    format: 'online',
-    category: 'hard-skills',
-    type: 'course',
-    employee: '',
-    description: ''
-  })
+  const [selectedCard, setSelectedCard] = useState<CalendarCard | null>(null)
 
   // Функция для добавления нового случайного курса
   const handleAddCard = () => {
@@ -247,6 +236,12 @@ const TestCalendarPage: React.FC = () => {
       title: 'Курс добавлен',
       description: `Курс "${newCard.title}" успешно добавлен в календарь`
     })
+  }
+
+  // Обработчик клика по карточке
+  const handleCardClick = (card: CalendarCard) => {
+    setSelectedCard(card)
+    setIsSidebarOpen(true)
   }
 
   // Генерация нескольких случайных курсов
@@ -277,10 +272,162 @@ const TestCalendarPage: React.FC = () => {
     })
   }
 
-  // Открыть сайдбар с формой для нового курса
-  const handleOpenAddForm = () => {
-    setIsSidebarOpen(true)
+  // Формирование контента сайдбара на основе выбранной карточки или режима добавления
+  const renderSidebarContent = () => {
+    if (selectedCard) {
+      // Сайдбар с информацией о карточке
+      return (
+        <>
+          <div className="mb-6">
+            <Typography variant="b3Semibold" className="mb-2">
+              Период обучения:
+            </Typography>
+            <Typography variant="b3Regular">
+              {selectedCard.startDate.toLocaleDateString()} -{' '}
+              {selectedCard.endDate.toLocaleDateString()}
+            </Typography>
+          </div>
+
+          <div className="mb-6">
+            <Typography variant="b3Semibold" className="mb-2">
+              Описание:
+            </Typography>
+            <Typography variant="b3Regular">{selectedCard.description}</Typography>
+          </div>
+
+          <div className="mb-6">
+            <Typography variant="b3Semibold" className="mb-2">
+              Сотрудник:
+            </Typography>
+            <Typography variant="b3Regular">{selectedCard.employee}</Typography>
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-6">
+            <Tag>
+              {selectedCard.format === 'online'
+                ? 'Дистанционный'
+                : selectedCard.format === 'offline'
+                  ? 'Очный'
+                  : 'Смешанный'}
+            </Tag>
+            <Tag>
+              {selectedCard.category === 'hard-skills'
+                ? 'Hard Skills'
+                : selectedCard.category === 'soft-skills'
+                  ? 'Soft Skills'
+                  : 'Management'}
+            </Tag>
+            <Tag>
+              {selectedCard.type === 'course'
+                ? 'Курс'
+                : selectedCard.type === 'webinar'
+                  ? 'Вебинар'
+                  : selectedCard.type === 'conference'
+                    ? 'Конференция'
+                    : 'Тренинг'}
+            </Tag>
+          </div>
+        </>
+      )
+    } else {
+      // Сайдбар с формой добавления нового курса
+      return (
+        <div className="text-center my-10">
+          <Typography variant="b3Regular" className="mb-4">
+            Эта демо-версия позволяет добавлять только случайно сгенерированные курсы.
+          </Typography>
+
+          <div className="flex flex-wrap gap-4 justify-center mb-6">
+            <Tag>Hard Skills</Tag>
+            <Tag>Soft Skills</Tag>
+            <Tag>Management</Tag>
+          </div>
+
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Tag>Курс</Tag>
+            <Tag>Вебинар</Tag>
+            <Tag>Конференция</Tag>
+            <Tag>Тренинг</Tag>
+          </div>
+        </div>
+      )
+    }
   }
+
+  // Формирование заголовка и футера сайдбара на основе выбранной карточки
+  const getSidebarProps = () => {
+    if (selectedCard) {
+      return {
+        title: selectedCard.title,
+        description: `Статус: ${
+          selectedCard.status === 'approved'
+            ? 'Согласовано'
+            : selectedCard.status === 'pending'
+              ? 'На согласовании'
+              : selectedCard.status === 'rejected'
+                ? 'Отклонено'
+                : 'Пройдено'
+        }`,
+        badge: {
+          text:
+            selectedCard.status === 'approved'
+              ? 'Согласовано'
+              : selectedCard.status === 'pending'
+                ? 'На согласовании'
+                : selectedCard.status === 'rejected'
+                  ? 'Отклонено'
+                  : 'Пройдено',
+          variant:
+            selectedCard.status === 'approved'
+              ? 'success'
+              : selectedCard.status === 'pending'
+                ? 'warning'
+                : selectedCard.status === 'rejected'
+                  ? 'error'
+                  : 'default'
+        },
+        footerActions: [
+          {
+            label: 'Закрыть',
+            onClick: () => {
+              setIsSidebarOpen(false)
+              setSelectedCard(null)
+            },
+            variant: 'third'
+          },
+          {
+            label: 'Редактировать',
+            onClick: () => {
+              notification.info({
+                title: 'Редактирование',
+                description: 'Функция редактирования пока не реализована'
+              })
+            }
+          }
+        ]
+      }
+    } else {
+      return {
+        title: 'Добавление нового курса',
+        description: 'Заполните форму для добавления курса в календарь',
+        badge: { text: 'Новый курс', variant: 'success' },
+        footerActions: [
+          {
+            label: 'Отмена',
+            onClick: () => setIsSidebarOpen(false),
+            variant: 'third'
+          },
+          {
+            label: 'Добавить случайный курс',
+            onClick: handleCreateCourse,
+            variant: 'primary'
+          }
+        ]
+      }
+    }
+  }
+
+  const sidebarProps = getSidebarProps()
 
   return (
     <div className="p-6 bg-mono-50 min-h-screen">
@@ -290,9 +437,8 @@ const TestCalendarPage: React.FC = () => {
 
       <div className="mb-6">
         <Typography variant="b3Regular">
-          Календарь событий обучения с тремя режимами отображения: месяц, неделя и полугодие.
-          Карточки курсов автоматически распределяются по календарю, компактно заполняя
-          пространство.
+          Календарь событий обучения с двумя режимами отображения: месяц и неделя. Карточки курсов
+          автоматически распределяются по календарю, компактно заполняя пространство.
         </Typography>
       </div>
 
@@ -316,6 +462,7 @@ const TestCalendarPage: React.FC = () => {
         <CalendarContainer
           cards={cards}
           onAddCard={handleAddCard}
+          onCardClick={handleCardClick}
           initialViewMode="month"
           initialDate={new Date(2025, 0, 15)} // 15 января 2025
         />
@@ -329,7 +476,7 @@ const TestCalendarPage: React.FC = () => {
 
         <div className="space-y-4 text-b4-regular">
           <p>
-            <strong>Режимы отображения:</strong> Календарь поддерживает два режима - неделя, месяц.
+            <strong>Режимы отображения:</strong> Календарь поддерживает два режима - неделя и месяц.
           </p>
 
           <p>
@@ -354,44 +501,19 @@ const TestCalendarPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Сайдбар для добавления нового курса */}
+      {/* Сайдбар для добавления нового курса или просмотра информации */}
       <Sidebar
         open={isSidebarOpen}
-        onClose={() => setIsSidebarOpen(false)}
-        title="Добавление нового курса"
-        description="Заполните форму для добавления курса в календарь"
-        badge={{ text: 'Новый курс', variant: 'success' }}
-        footerActions={[
-          {
-            label: 'Отмена',
-            onClick: () => setIsSidebarOpen(false),
-            variant: 'third'
-          },
-          {
-            label: 'Добавить случайный курс',
-            onClick: handleCreateCourse,
-            variant: 'primary'
-          }
-        ]}
+        onClose={() => {
+          setIsSidebarOpen(false)
+          setSelectedCard(null)
+        }}
+        title={sidebarProps.title}
+        description={sidebarProps.description}
+        badge={sidebarProps.badge}
+        footerActions={sidebarProps.footerActions}
       >
-        <div className="text-center my-10">
-          <Typography variant="b3Regular" className="mb-4">
-            Эта демо-версия позволяет добавлять только случайно сгенерированные курсы.
-          </Typography>
-
-          <div className="flex flex-wrap gap-4 justify-center mb-6">
-            <Tag>Hard Skills</Tag>
-            <Tag>Soft Skills</Tag>
-            <Tag>Management</Tag>
-          </div>
-
-          <div className="flex flex-wrap gap-4 justify-center">
-            <Tag>Курс</Tag>
-            <Tag>Вебинар</Tag>
-            <Tag>Конференция</Tag>
-            <Tag>Тренинг</Tag>
-          </div>
-        </div>
+        {renderSidebarContent()}
       </Sidebar>
     </div>
   )

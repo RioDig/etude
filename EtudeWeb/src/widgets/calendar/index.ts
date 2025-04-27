@@ -1,3 +1,7 @@
-export { Calendar } from './ui/Calendar';
-export { CalendarContainer } from './ui/CalendarContainer';
-export type { CalendarViewMode, CalendarCard, CardStatus } from './model/types';
+// src/widgets/calendar/index.ts
+export { Calendar } from './ui/Calendar'
+export { CalendarContainer } from './ui/CalendarContainer'
+export { CalendarGrid } from './ui/CalendarGrid'
+export { CalendarHeader } from './ui/CalendarHeader'
+export { CalendarCardItem } from './ui/CalendarCardItem'
+export type { CalendarViewMode, CalendarCard, CardStatus } from './model/types'
