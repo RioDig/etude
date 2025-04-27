@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using EtudeBackend.Features.Auth.Models;
 
 namespace EtudeBackend.Features.Auth.Controllers;
 
@@ -22,6 +23,7 @@ public class AuthController : ControllerBase
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IEmailService _emailService;
+    private readonly IAuthService _authService;
 
     public AuthController(
         IOAuthService oauthService,
@@ -30,7 +32,8 @@ public class AuthController : ControllerBase
         ILogger<AuthController> logger,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
-        IEmailService emailService)
+        IEmailService emailService,
+        IAuthService authService)
     {
         _oauthService = oauthService;
         _userService = userService;
@@ -39,6 +42,7 @@ public class AuthController : ControllerBase
         _userManager = userManager;
         _signInManager = signInManager;
         _emailService = emailService;
+        _authService = authService;
     }
 
     /// <summary>
@@ -182,4 +186,54 @@ private string GenerateRandomPassword(int length = 12)
     {
         return Ok(new { Message = "OAuth integration is working! You can use this endpoint from your React application." });
     }
+    
+    /// <summary>
+    /// Аутентификация пользователя по email и паролю
+    /// </summary>
+    [HttpPost("email-login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+
+        try
+        {
+            var response = await _authService.LoginAsync(request);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Ошибка аутентификации");
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Ошибка аутентификации");
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при попытке аутентификации");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Произошла внутренняя ошибка сервера" });
+        }
+    }
+
+    /// <summary>
+    /// Выход из системы
+    /// </summary>
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> Logout()
+    {
+        await _authService.LogoutAsync();
+        return Ok(new { message = "Вы успешно вышли из системы" });
+    }
+    
 }
+

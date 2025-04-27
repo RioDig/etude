@@ -58,6 +58,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IReportTemplateService, ReportTemplateService>();
         services.AddScoped<IReportService, ReportService>();
         services.AddScoped<IOAuthService, OAuthService>();
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddHttpContextAccessor();
 
         return services;
     }
