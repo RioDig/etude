@@ -26,10 +26,15 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options =>
+builder.Services.AddAuthentication().AddCookie(options =>
 {
     options.LoginPath = "/api/Auth/login";
     
+});
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/api/Auth/login";
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -47,6 +52,16 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.User.RequireUniqueEmail = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
+    options =>
+    {
+        options.LoginPath = new PathString("/api/Auth/login");
+        //options.LogoutPath = "/Account/Logout";
+        //options.AccessDeniedPath = "/Account/AccessDenied"; 
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+
+    });
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();

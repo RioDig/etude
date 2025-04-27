@@ -11,7 +11,6 @@ namespace EtudeBackend.Features.Auth.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class AuthController : ControllerBase
 {
     private readonly IOAuthService _oauthService;

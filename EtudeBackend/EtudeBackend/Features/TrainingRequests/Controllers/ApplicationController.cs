@@ -1,8 +1,10 @@
 ﻿using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Services;
+using EtudeBackend.Shared.Data;
 using EtudeBackend.Shared.Extensions;
 using EtudeBackend.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Distributed;
@@ -40,7 +42,7 @@ public class ApplicationController : ControllerBase
         var applications = await _applicationService.GetApplicationsAsync(page, perPage, sort, order, filters);
         await _cache.SetValue("test", applications, 60, HttpContext.RequestAborted, _logger);
         await _cache.GetValue<PagedResult<ApplicationDto>>("test", HttpContext.RequestAborted, _logger);
-        _logger.LogError("test2");
+        // _logger.LogError("test2");
         return Ok(applications);
     }
     
