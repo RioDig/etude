@@ -39,6 +39,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <button
           onClick={onPrevPeriod}
           className="p-2 hover:bg-mono-100 rounded-full transition-colors"
+          aria-label="Предыдущий период"
         >
           <ChevronLeft />
         </button>
@@ -46,6 +47,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <button
           className="flex items-center gap-1 px-3 py-1 hover:bg-mono-100 rounded-md transition-colors"
           onClick={onOpenDatePicker}
+          aria-label="Выбрать дату"
         >
           <span className="text-b3-semibold">{title}</span>
           <CalendarTodayOutlined fontSize="small" />
@@ -54,6 +56,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
         <button
           onClick={onNextPeriod}
           className="p-2 hover:bg-mono-100 rounded-full transition-colors"
+          aria-label="Следующий период"
         >
           <ChevronRight />
         </button>
@@ -90,3 +93,5 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
     </div>
   )
 }
+
+export default CalendarHeader

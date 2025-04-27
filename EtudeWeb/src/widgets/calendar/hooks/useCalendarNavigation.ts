@@ -2,6 +2,14 @@
 import { useState, useCallback } from 'react'
 import { CalendarViewMode } from '../model/types'
 
+/**
+ * Хук для управления навигацией по календарю
+ * @param initialDate Начальная дата
+ * @param initialViewMode Начальный режим отображения
+ * @param onDateChange Обработчик изменения даты
+ * @param onViewModeChange Обработчик изменения режима отображения
+ * @returns Объект с состоянием и методами навигации
+ */
 export const useCalendarNavigation = (
   initialDate: Date = new Date(),
   initialViewMode: CalendarViewMode = 'month',
@@ -41,6 +49,13 @@ export const useCalendarNavigation = (
     if (onDateChange) onDateChange(date)
   }, [currentDate, viewMode, onDateChange])
 
+  // Функция для перехода к сегодняшнему дню
+  const handleGoToToday = useCallback(() => {
+    const today = new Date()
+    setCurrentDate(today)
+    if (onDateChange) onDateChange(today)
+  }, [onDateChange])
+
   // Функция открытия DatePicker
   const handleOpenDatePicker = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setDatePickerAnchor(event.currentTarget)
@@ -62,9 +77,27 @@ export const useCalendarNavigation = (
     if (viewMode === 'month') {
       return currentDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })
     } else if (viewMode === 'week') {
-      // Расчет начала и конца недели будет происходить в useCalendarData,
-      // поэтому здесь мы просто возвращаем месяц и год
-      return currentDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })
+      const currentDay = new Date(currentDate)
+      const day = currentDay.getDay() // 0 (воскресенье) - 6 (суббота)
+
+      // Найдем понедельник текущей недели
+      const startOfWeek = new Date(currentDay)
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1) // Если воскресенье, отнимаем 6
+      startOfWeek.setDate(diff)
+
+      // Находим последний день недели (воскресенье)
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(startOfWeek.getDate() + 6)
+
+      // Форматируем даты
+      const startDateStr = startOfWeek.toLocaleString('ru-RU', { day: 'numeric', month: 'long' })
+      const endDateStr = endOfWeek.toLocaleString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+
+      return `${startDateStr} - ${endDateStr}`
     } else {
       return `${currentDate.toLocaleString('ru-RU', { month: 'long', year: 'numeric' })} - ${new Date(currentDate.getFullYear(), currentDate.getMonth() + 6, 0).toLocaleString('ru-RU', { month: 'long', year: 'numeric' })}`
     }
@@ -87,10 +120,56 @@ export const useCalendarNavigation = (
     datePickerAnchor,
     handlePrevPeriod,
     handleNextPeriod,
+    handleGoToToday,
     handleOpenDatePicker,
     handleDateSelect,
     formatHeaderTitle,
     handleViewModeChange,
     setIsDatePickerOpen
   }
+}
+
+// src/widgets/calendar/hooks/useFilteredCalendarCards.ts
+import { useMemo } from 'react'
+import { CalendarCard } from '../model/types'
+import { applyFilters } from '../utils/filter-helpers'
+
+/**
+ * Хук для фильтрации карточек календаря
+ * @param cards Массив карточек для фильтрации
+ * @param filters Объект с фильтрами
+ * @param dateRange Диапазон дат для фильтрации [startDate, endDate]
+ * @returns Отфильтрованные карточки
+ */
+export const useFilteredCalendarCards = (
+  cards: CalendarCard[],
+  filters: Record<string, any> | null | undefined,
+  dateRange?: [Date, Date]
+) => {
+  return useMemo(() => {
+    // Сначала применяем основные фильтры (статус, тип и т.д.)
+    let filtered = applyFilters(cards, filters)
+
+    // Если задан диапазон дат, фильтруем по нему
+    if (dateRange) {
+      const [startDate, endDate] = dateRange
+
+      filtered = filtered.filter((card) => {
+        const cardStart = new Date(card.startDate)
+        const cardEnd = new Date(card.endDate)
+
+        // Карточка видима, если:
+        // 1. Начало карточки находится в диапазоне
+        // 2. Конец карточки находится в диапазоне
+        // 3. Карточка охватывает весь диапазон
+        return (
+          (cardStart >= startDate && cardStart <= endDate) ||
+          (cardEnd >= startDate && cardEnd <= endDate) ||
+          (cardStart <= startDate && cardEnd >= endDate)
+        )
+      })
+    }
+
+    return filtered
+  }, [cards, filters, dateRange])
 }

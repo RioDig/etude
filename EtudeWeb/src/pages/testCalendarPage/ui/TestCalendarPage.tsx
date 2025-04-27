@@ -216,12 +216,12 @@ const mockCards: CalendarCard[] = [
 export const TestCalendarPage: React.FC = () => {
   const [cards, setCards] = useState<CalendarCard[]>(mockCards)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<CalendarViewMode>('month')
   const [selectedCard, setSelectedCard] = useState<CalendarCard | null>(null)
 
   // Функция для добавления нового случайного курса
   const handleAddCard = () => {
     setIsSidebarOpen(true)
+    setSelectedCard(null)
   }
 
   // Функция для создания нового курса
@@ -269,6 +269,16 @@ export const TestCalendarPage: React.FC = () => {
     notification.info({
       title: 'Сброс календаря',
       description: 'Календарь сброшен к исходным данным'
+    })
+  }
+
+  // Удаление всех курсов для демонстрации пустого состояния
+  const handleRemoveAllCards = () => {
+    setCards([])
+
+    notification.info({
+      title: 'Курсы удалены',
+      description: 'Все курсы удалены для демонстрации пустого состояния'
     })
   }
 
@@ -432,13 +442,14 @@ export const TestCalendarPage: React.FC = () => {
   return (
     <div className="p-6 bg-mono-50 min-h-screen">
       <Typography variant="h1" className="mb-6">
-        Демонстрация компонента Calendar
+        Демонстрация компонента Calendar с фильтрами
       </Typography>
 
       <div className="mb-6">
         <Typography variant="b3Regular">
-          Календарь событий обучения с двумя режимами отображения: месяц и неделя. Карточки курсов
-          автоматически распределяются по календарю, компактно заполняя пространство.
+          Календарь событий обучения с фильтрами и двумя режимами отображения: месяц и неделя. Вы
+          можете фильтровать курсы по статусу, формату, категории и типу, а также переключаться
+          между представлениями.
         </Typography>
       </div>
 
@@ -455,6 +466,10 @@ export const TestCalendarPage: React.FC = () => {
         <Button variant="third" onClick={handleResetCards}>
           Сбросить к исходным данным
         </Button>
+
+        <Button variant="third" onClick={handleRemoveAllCards}>
+          Удалить все курсы
+        </Button>
       </div>
 
       {/* Контейнер с календарем */}
@@ -465,38 +480,40 @@ export const TestCalendarPage: React.FC = () => {
           onCardClick={handleCardClick}
           initialViewMode="month"
           initialDate={new Date(2025, 0, 15)} // 15 января 2025
+          pageId="test-calendar"
         />
       </div>
 
       {/* Информация о компоненте */}
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <Typography variant="h2" className="mb-4">
-          Особенности реализации
+          Особенности реализации с фильтрами
         </Typography>
 
         <div className="space-y-4 text-b4-regular">
           <p>
-            <strong>Режимы отображения:</strong> Календарь поддерживает два режима - неделя и месяц.
+            <strong>Фильтрация данных:</strong> Компонент поддерживает фильтрацию по различным
+            параметрам: статус, формат, категория и тип обучения.
           </p>
 
           <p>
-            <strong>Распределение карточек:</strong> Алгоритм оптимально распределяет карточки,
-            помещая более длинные события на верхние строки.
+            <strong>EmptyMessage:</strong> Когда нет данных для отображения в выбранном периоде или
+            при применении фильтров, отображается сообщение о пустом состоянии.
           </p>
 
           <p>
-            <strong>Адаптивность содержимого:</strong> В зависимости от ширины карточки скрываются
-            или отображаются дополнительные элементы (статус, даты).
+            <strong>Режимы отображения:</strong> Фильтры не влияют на выбор между представлениями
+            неделя/месяц, которые можно переключать независимо.
           </p>
 
           <p>
-            <strong>Информация о событии:</strong> При наведении на карточку появляется всплывающая
-            подсказка с полной информацией о курсе.
+            <strong>Сохранение состояния фильтров:</strong> Состояние фильтров сохраняется между
+            навигациями по календарю для удобства использования.
           </p>
 
           <p>
-            <strong>Навигация:</strong> Реализовано переключение между периодами и выбор даты через
-            DatePicker.
+            <strong>Адаптивный дизайн:</strong> Фильтры и элементы управления адаптируются к разным
+            размерам экрана, сохраняя доступность на мобильных устройствах.
           </p>
         </div>
       </div>

@@ -44,4 +44,5 @@ export interface CalendarProps {
   onCardClick?: (card: CalendarCard) => void
   onDateChange?: (date: Date) => void
   onViewModeChange?: (mode: CalendarViewMode) => void
+  pageId?: string
 }

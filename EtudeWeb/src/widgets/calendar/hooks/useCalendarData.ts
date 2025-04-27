@@ -15,7 +15,8 @@ export const useCalendarData = (
   cards: CalendarCard[],
   viewMode: CalendarViewMode,
   currentDate: Date,
-  cardRowMapRef: React.MutableRefObject<Record<string, number>>
+  cardRowMapRef: React.MutableRefObject<Record<string, number>>,
+  filters?: Record<string, any> // Добавлен опциональный параметр для фильтров
 ) => {
   // Количество дней для отображения
   const daysToShow = useMemo(() => {
@@ -54,6 +55,29 @@ export const useCalendarData = (
     return generateCalendarDays(startDay, daysToShow)
   }, [startDay, daysToShow])
 
+  // Функция фильтрации карточек на основе переданных фильтров
+  const filterCards = (cards: CalendarCard[]) => {
+    if (!filters) return cards
+
+    return cards.filter((card) => {
+      // Проверяем каждый фильтр
+      for (const [key, value] of Object.entries(filters)) {
+        // Если значение фильтра пустое или равно дефолтному, пропускаем его
+        if (!value || value === '' || value === 'Все') continue
+
+        // Для разных свойств применяем разные проверки
+        if (key in card) {
+          // Простое сравнение для строковых фильтров
+          if (card[key as keyof CalendarCard] !== value) {
+            return false
+          }
+        }
+      }
+
+      return true
+    })
+  }
+
   // Распределение карточек по отображаемым дням
   const visibleCards = useMemo(() => {
     // Получаем начало и конец видимого периода
@@ -63,8 +87,11 @@ export const useCalendarData = (
     const viewEnd = new Date(calendarDays[calendarDays.length - 1])
     viewEnd.setHours(23, 59, 59, 999)
 
+    // Сначала применяем пользовательские фильтры
+    const filteredCards = filters ? filterCards(cards) : cards
+
     // Отфильтровываем карточки, попадающие в видимый период
-    return cards.filter((card) => {
+    return filteredCards.filter((card) => {
       const cardStart = new Date(card.startDate)
       const cardEnd = new Date(card.endDate)
 
@@ -78,7 +105,7 @@ export const useCalendarData = (
         (cardStart <= viewStart && cardEnd >= viewEnd)
       )
     })
-  }, [cards, calendarDays])
+  }, [cards, calendarDays, filters])
 
   // Алгоритм распределения карточек по строкам
   const { distributedCards, maxRows } = useMemo(() => {
