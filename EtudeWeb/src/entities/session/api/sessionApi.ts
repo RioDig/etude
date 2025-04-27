@@ -1,42 +1,37 @@
-// entities/session/api/sessionApi.ts
 import axios from 'axios'
 import { User } from '@/entities/user'
-import { LoginCredentials } from '../model/types'
-import { MOCK_USERS, delay } from './mockData'
+import { LoginCredentials, RegisterData } from '../model/types'
+import { API_URL } from '@/shared/config'
 
 // Создаем инстанс axios для работы с бэкендом
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-  withCredentials: true
+  baseURL: API_URL,
+  withCredentials: true // Важно для работы с HTTP-only cookies
 })
 
-// Функция для определения режима работы (мок или реальный API)
-const isMockMode = () => {
-  return import.meta.env.VITE_MOCK_API === 'true'
-}
-
 export const sessionApi = {
+  // Авторизация пользователя
   login: async (credentials: LoginCredentials): Promise<User> => {
-    if (isMockMode()) {
-      // Имитируем задержку для более реалистичного поведения
-      await delay(10)
+    await api.post('/auth/login', credentials)
+    // Запрашиваем данные о пользователе, так как логин не возвращает информацию
+    return sessionApi.getCurrentUser()
+  },
 
-      const user = MOCK_USERS.find((u) => u.email === credentials.email)
+  // Регистрация пользователя
+  register: async (data: RegisterData): Promise<User> => {
+    await api.post('/auth/register', data)
+    // Запрашиваем данные о пользователе после регистрации
+    return sessionApi.getCurrentUser()
+  },
 
-      if (!user) {
-        throw new Error('Неверный email или пароль')
-      }
+  // Получение данных текущего пользователя
+  getCurrentUser: async (): Promise<User> => {
+    const { data } = await api.get<User>('/auth/me')
+    return data
+  },
 
-      // Сохраняем в localStorage для имитации сохранения токена
-      localStorage.setItem('mockUser', JSON.stringify(user))
-
-      return user
-    } else {
-      // Реальный API запрос
-      const { data } = await api.post<User>('/auth/login', credentials)
-      return data
-    }
+  // Выход из системы
+  logout: async (): Promise<void> => {
+    await api.post('/auth/logout')
   }
-
-  // Остальные методы API...
 }

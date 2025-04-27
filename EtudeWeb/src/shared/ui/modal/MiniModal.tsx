@@ -47,7 +47,7 @@ export interface MiniModalProps {
 
 export const MiniModal: React.FC<MiniModalProps> = ({
   isOpen,
-  onClose,
+  // onClose,
   icon = <DeleteOutline />,
   title,
   description,

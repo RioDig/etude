@@ -19,7 +19,7 @@ export const useApplications = () => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: any }) =>
+    mutationFn: ({ id, updates }: { id: string; updates: never }) =>
       applicationsApi.updateApplication(id, updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['applications'] });

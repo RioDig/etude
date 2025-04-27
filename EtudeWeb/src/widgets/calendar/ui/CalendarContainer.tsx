@@ -8,8 +8,7 @@ import { Filter, FilterOption } from '@/shared/ui/filter'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Switch } from '@/shared/ui/switch'
 import { DatePicker } from '@/shared/ui/datepicker'
-import { CalendarCard, CalendarViewMode, CardStatus } from '../model/types'
-import { getStatusText, getStatusColor } from '../utils/calendar-helpers'
+import { CalendarCard, CalendarViewMode } from '../model/types'
 import { applyFilters, hasActiveFilters } from '../utils/filter-helpers'
 import { useCalendarNavigation } from '../hooks/useCalendarNavigation'
 import { usePageFilters } from '@/entities/filter'
@@ -73,7 +72,7 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
   filterOptions
 }) => {
   // Состояние для отображения легенды статусов
-  const [showLegend, setShowLegend] = useState(true)
+  // const [showLegend, setShowLegend] = useState(true)
 
   // Получение состояния фильтров из хранилища
   const { filters, resetFilters } = usePageFilters(pageId)

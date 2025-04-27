@@ -1,19 +1,18 @@
-import React, { useState } from 'react';
-import { Control } from '@/shared/ui/controls';
-import { Person, Email, Phone, Lock } from '@mui/icons-material';
-
+import React, { useState } from 'react'
+import { Control } from '@/shared/ui/controls'
+import { Person, Email, Phone, Lock } from '@mui/icons-material'
 
 export const TestControlPage: React.FC = () => {
   // Состояния для всех контролов
-  const [inputValue, setInputValue] = useState<string>('');
-  const [emailValue, setEmailValue] = useState<string>('');
-  const [passwordValue, setPasswordValue] = useState<string>('');
-  const [numberValue, setNumberValue] = useState<number>(0);
-  const [textareaValue, setTextareaValue] = useState<string>('');
-  const [selectValue, setSelectValue] = useState<string>('');
-  const [multiSelectValue, setMultiSelectValue] = useState<string[]>([]);
-  const [dateValue, setDateValue] = useState<Date | null>(null);
-  const [phoneValue, setPhoneValue] = useState<string>('');
+  const [inputValue, setInputValue] = useState<string>('')
+  const [emailValue, setEmailValue] = useState<string>('')
+  const [passwordValue, setPasswordValue] = useState<string>('')
+  const [numberValue, setNumberValue] = useState<number>(0)
+  const [textareaValue, setTextareaValue] = useState<string>('')
+  const [selectValue, setSelectValue] = useState<string>('')
+  const [multiSelectValue, setMultiSelectValue] = useState<string[]>([])
+  const [dateValue, setDateValue] = useState<Date | null>(null)
+  const [phoneValue, setPhoneValue] = useState<string>('')
 
   // Варианты для выпадающих списков
   const selectOptions = [
@@ -21,8 +20,8 @@ export const TestControlPage: React.FC = () => {
     { value: 'option2', label: 'Опция 2', description: 'Описание опции 2' },
     { value: 'option3', label: 'Опция 3', description: 'Описание опции 3' },
     { value: 'option4', label: 'Опция 4', description: 'Описание опции 4' },
-    { value: 'option5', label: 'Опция 5', description: 'Описание опции 5' },
-  ];
+    { value: 'option5', label: 'Опция 5', description: 'Описание опции 5' }
+  ]
 
   // Города для выбора
   const cityOptions = [
@@ -33,8 +32,8 @@ export const TestControlPage: React.FC = () => {
     { value: 'kazan', label: 'Казань' },
     { value: 'chelyabinsk', label: 'Челябинск' },
     { value: 'omsk', label: 'Омск' },
-    { value: 'rostov', label: 'Ростов-на-Дону' },
-  ];
+    { value: 'rostov', label: 'Ростов-на-Дону' }
+  ]
 
   // Навыки для мультиселекта
   const skillOptions = [
@@ -45,8 +44,8 @@ export const TestControlPage: React.FC = () => {
     { value: 'ts', label: 'TypeScript' },
     { value: 'node', label: 'Node.js' },
     { value: 'python', label: 'Python' },
-    { value: 'java', label: 'Java' },
-  ];
+    { value: 'java', label: 'Java' }
+  ]
 
   // Подсказка для поля Email
   const emailHint = (
@@ -54,20 +53,20 @@ export const TestControlPage: React.FC = () => {
       <p>Формат: username@example.com</p>
       <p>Используйте действующий адрес электронной почты</p>
     </div>
-  );
+  )
 
   // Очистка всех полей
   const handleClearAll = () => {
-    setInputValue('');
-    setEmailValue('');
-    setPasswordValue('');
-    setNumberValue(0);
-    setTextareaValue('');
-    setSelectValue('');
-    setMultiSelectValue([]);
-    setDateValue(null);
-    setPhoneValue('');
-  };
+    setInputValue('')
+    setEmailValue('')
+    setPasswordValue('')
+    setNumberValue(0)
+    setTextareaValue('')
+    setSelectValue('')
+    setMultiSelectValue([])
+    setDateValue(null)
+    setPhoneValue('')
+  }
 
   return (
     <div className="p-8 bg-mono-50 min-h-screen">
@@ -97,7 +96,9 @@ export const TestControlPage: React.FC = () => {
             onChange={(e) => setEmailValue(e.target.value)}
             leftIcon={<Email />}
             hint={emailHint}
-            error={emailValue && !emailValue.includes('@') ? 'Некорректный формат email' : undefined}
+            error={
+              emailValue && !emailValue.includes('@') ? 'Некорректный формат email' : undefined
+            }
           />
 
           {/* Телефон */}
@@ -120,7 +121,11 @@ export const TestControlPage: React.FC = () => {
             onChange={(e) => setPasswordValue(e.target.value)}
             leftIcon={<Lock />}
             hint="Минимум 8 символов, должен содержать цифры и буквы"
-            error={passwordValue && passwordValue.length < 8 ? 'Пароль должен содержать не менее 8 символов' : undefined}
+            error={
+              passwordValue && passwordValue.length < 8
+                ? 'Пароль должен содержать не менее 8 символов'
+                : undefined
+            }
           />
 
           {/* Возраст */}
@@ -129,7 +134,7 @@ export const TestControlPage: React.FC = () => {
             placeholder="Введите ваш возраст"
             min={18}
             max={100}
-            value={numberValue}
+            value={numberValue.toString()}
             onChange={(e) => setNumberValue(Number(e.target.value))}
             hint="Вам должно быть не менее 18 лет"
           />
@@ -200,20 +205,13 @@ export const TestControlPage: React.FC = () => {
           {/* Стандартное состояние */}
           <div>
             <h3 className="text-h2-regular mb-4">Стандартное</h3>
-            <Control.Input
-              label="Стандартное поле"
-              placeholder="Введите текст"
-            />
+            <Control.Input label="Стандартное поле" placeholder="Введите текст" />
           </div>
 
           {/* Заполненное состояние */}
           <div>
             <h3 className="text-h2-regular mb-4">Заполненное</h3>
-            <Control.Input
-              label="Заполненное поле"
-              value="Пример текста"
-              onChange={() => {}}
-            />
+            <Control.Input label="Заполненное поле" value="Пример текста" onChange={() => {}} />
           </div>
 
           {/* Состояние ошибки */}
@@ -241,11 +239,7 @@ export const TestControlPage: React.FC = () => {
           {/* Обязательное поле */}
           <div>
             <h3 className="text-h2-regular mb-4">Обязательное поле</h3>
-            <Control.Input
-              label="Обязательное поле"
-              placeholder="Введите текст"
-              required
-            />
+            <Control.Input label="Обязательное поле" placeholder="Введите текст" required />
           </div>
 
           {/* Обязательное заполненное */}
@@ -268,39 +262,17 @@ export const TestControlPage: React.FC = () => {
           <h2 className="text-h2 mb-6">Типы полей ввода</h2>
 
           <div className="flex flex-col gap-6">
-            <Control.Input
-              label="Текстовое поле"
-              placeholder="Введите текст"
-            />
+            <Control.Input label="Текстовое поле" placeholder="Введите текст" />
 
-            <Control.InputNumber
-              label="Числовое поле"
-              placeholder="Введите число"
-            />
+            <Control.InputNumber label="Числовое поле" placeholder="Введите число" />
 
-            <Control.Input
-              label="Поле пароля"
-              placeholder="Введите пароль"
-              type="password"
-            />
+            <Control.Input label="Поле пароля" placeholder="Введите пароль" type="password" />
 
-            <Control.Input
-              label="Email"
-              placeholder="example@mail.com"
-              type="email"
-            />
+            <Control.Input label="Email" placeholder="example@mail.com" type="email" />
 
-            <Control.Input
-              label="Телефон"
-              placeholder="+7 (999) 123-45-67"
-              type="tel"
-            />
+            <Control.Input label="Телефон" placeholder="+7 (999) 123-45-67" type="tel" />
 
-            <Control.Textarea
-              label="Многострочное поле"
-              placeholder="Введите текст"
-              rows={3}
-            />
+            <Control.Textarea label="Многострочное поле" placeholder="Введите текст" rows={3} />
           </div>
         </div>
 
@@ -335,7 +307,7 @@ export const TestControlPage: React.FC = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TestControlPage;
+export default TestControlPage

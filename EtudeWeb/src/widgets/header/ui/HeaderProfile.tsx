@@ -1,34 +1,27 @@
-import React, { useState, useRef } from 'react';
-import { Button } from '@/shared/ui/button';
-import { DropdownMenu } from '@/shared/ui/dropdownmenu';
-import { KeyboardArrowDown, Person } from '@mui/icons-material';
-import { useAuth } from '@/entities/session';
-import { useProfileMenuActions } from "@/features/profile/model/useProfileMenuActions.tsx";
+import React, { useState, useRef } from 'react'
+import { Button } from '@/shared/ui/button'
+import { DropdownMenu } from '@/shared/ui/dropdownmenu'
+import { KeyboardArrowDown, Person } from '@mui/icons-material'
+import { useAuth } from '@/entities/session'
+import { useProfileMenuActions } from '@/features/profile/model/useProfileMenuActions'
 
 export const HeaderProfile: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   // Используем хук для получения данных о пользователе
-  const { user, isAuthenticated, logout } = useAuth();
-  const { defaultItems, warningItems } = useProfileMenuActions();
+  const { user, isAuthenticated } = useAuth()
+  const { defaultItems, warningItems } = useProfileMenuActions()
 
-  const fullName = isAuthenticated && user
-    ? `${user.firstName} ${user.lastName}`
-    : 'Гость';
+  const fullName = isAuthenticated && user ? `${user.firstName} ${user.lastName}` : 'Гость'
 
   const handleToggle = () => {
-    setIsOpen((prevIsOpen) => !prevIsOpen);
-  };
+    setIsOpen((prevIsOpen) => !prevIsOpen)
+  }
 
   const handleClose = () => {
-    setIsOpen(false);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setIsOpen(false);
-  };
+    setIsOpen(false)
+  }
 
   return (
     <div>
@@ -52,5 +45,5 @@ export const HeaderProfile: React.FC = () => {
         warningItems={warningItems}
       />
     </div>
-  );
-};
+  )
+}

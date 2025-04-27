@@ -3,10 +3,11 @@ import { Hint } from "@/shared/ui/hint";
 import { Button } from "@/shared/ui/button";
 import { Typography } from "@/shared/ui/typography";
 import { useState } from "react";
+import { HintPosition } from '@/shared/ui/hint/Hint'
 
 
 const TestHintPage = () => {
-  const [activePosition, setActivePosition] = useState<string>('default');
+  const [activePosition, setActivePosition] = useState<HintPosition>('default');
 
   const positions = [
     { id: 'default', label: 'По умолчанию' },
@@ -45,7 +46,7 @@ const TestHintPage = () => {
                   ? 'bg-blue-500 text-white'
                   : 'bg-white text-mono-800 hover:bg-mono-100'
               }`}
-              onClick={() => setActivePosition(pos.id)}
+              onClick={() => setActivePosition(pos.id as HintPosition)}
             >
               {pos.label}
             </button>

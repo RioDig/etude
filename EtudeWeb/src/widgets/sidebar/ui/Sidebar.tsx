@@ -222,6 +222,8 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
         {/* Кнопка "Еще", если есть скрытые действия */}
         {hiddenActions.length > 0 && (
           <Button
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            // @ts-ignore
             ref={setMoreButtonRef}
             variant="secondary"
             onClick={toggleDropdown}

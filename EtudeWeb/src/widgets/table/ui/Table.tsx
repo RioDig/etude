@@ -3,7 +3,7 @@ import React, {
   useMemo,
   createContext,
   useContext,
-  forwardRef,
+  // forwardRef,
   useRef,
   useCallback,
   useEffect
@@ -44,7 +44,7 @@ const TableContext = createContext<TableContextType>({
 })
 
 // Пропсы для таблицы
-export interface TableProps<T = any> {
+export interface TableProps<T> {
   /**
    * Данные для отображения (для API на основе пропсов)
    */
@@ -189,7 +189,7 @@ const LoadingIndicator = () => (
 /**
  * Компонент таблицы с поддержкой декларативного подхода, API на основе пропсов и бесконечного скролла
  */
-export function Table<T = any>({
+export function Table<T>({
   data = [],
   columns = [],
   onSort,
@@ -281,9 +281,9 @@ export function Table<T = any>({
   }
 
   // Проверяем, есть ли колонки с процентной шириной
-  const hasPercentageWidths = useMemo(() => {
-    return !scrollable && columns.some((column) => column.width && column.width.endsWith('%'))
-  }, [scrollable, columns])
+  // const hasPercentageWidths = useMemo(() => {
+  //   return !scrollable && columns.some((column) => column.width && column.width.endsWith('%'))
+  // }, [scrollable, columns])
 
   // Сортировка данных, если используется локальная сортировка и нет декларативных дочерних элементов
   const sortedData = useMemo(() => {
@@ -363,7 +363,12 @@ export function Table<T = any>({
 
     return (
       <div className={tableContainerClass} ref={containerRef}>
-        <table className={tableClass} style={tableStyles}>
+        <table
+          className={tableClass}
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          // @ts-ignore
+          style={tableStyles}
+        >
           {/* Для фиксированных ширин используем colgroup */}
           {scrollable && (
             <colgroup>
@@ -628,20 +633,21 @@ export const TableTextCell: React.FC<TableTextCellProps> = ({
 }
 
 // Декларативный компонент Table с подкомпонентами
-const DeclarativeTable: React.FC<TableProps> & {
-  Header: React.FC<TableHeaderProps>
-  HeaderCell: React.FC<TableHeaderCellProps>
-  Body: React.FC<TableBodyProps>
-  Row: React.FC<TableRowProps>
-  Cell: React.FC<TableCellProps>
-  TextCell: React.FC<TableTextCellProps>
-} = Object.assign(Table, {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const DeclarativeTable = Object.assign(Table, {
   Header: TableHeader,
   HeaderCell: TableHeaderCell,
   Body: TableBody,
   Row: TableRow,
   Cell: TableCell,
   TextCell: TableTextCell
-})
+}) as typeof Table & {
+  Header: React.FC<TableHeaderProps>
+  HeaderCell: React.FC<TableHeaderCellProps>
+  Body: React.FC<TableBodyProps>
+  Row: React.FC<TableRowProps>
+  Cell: React.FC<TableCellProps>
+  TextCell: React.FC<TableTextCellProps>
+}
 
 export default DeclarativeTable

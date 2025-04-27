@@ -146,6 +146,8 @@ export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonPr
 
     const handleButtonClick = (e: React.MouseEvent<HTMLButtonElement>) => {
       if (restProps.onClick) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
         restProps.onClick(e)
       }
 

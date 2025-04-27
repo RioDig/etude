@@ -1,32 +1,32 @@
-import { useRef, useState } from "react";
+import { useRef, useState } from 'react'
 import {
   AddCircleOutline,
-  Block,
   Delete,
-  DisabledByDefault,
-  Edit,
   Logout,
   MoreVert,
-  Person, PersonAddDisabled,
+  Person,
+  PersonAddDisabled,
   Settings
-} from "@mui/icons-material";
-import { Button } from "@/shared/ui/button";
-import { DropdownMenu } from "@/shared/ui/dropdownmenu";
+} from '@mui/icons-material'
+import { Button } from '@/shared/ui/button'
+import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 
 const TestDropdownMenuPage = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [isOpen, setIsOpen] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
 
   const defaultItems = [
     {
       label: 'Личный кабинет',
       icon: <Person />,
       onClick: () => console.log('Редактировать')
-    },{
+    },
+    {
       label: 'Личный кабинет',
       icon: <Person />,
       onClick: () => console.log('Редактировать')
-    },{
+    },
+    {
       label: 'Личный кабинет',
       icon: <Person />,
       onClick: () => console.log('Редактировать')
@@ -47,7 +47,7 @@ const TestDropdownMenuPage = () => {
       icon: <PersonAddDisabled />,
       onClick: () => console.log('Этот обработчик не будет вызван')
     }
-  ];
+  ]
 
   const warningItems = [
     {
@@ -60,26 +60,22 @@ const TestDropdownMenuPage = () => {
       icon: <Delete />,
       onClick: () => console.log('Удалить')
     }
-  ];
+  ]
 
   const handleToggleMenu = () => {
-    setIsOpen(prevState => !prevState);
-  };
+    setIsOpen((prevState) => !prevState)
+  }
 
   const handleCloseMenu = () => {
-    setIsOpen(false);
-  };
+    setIsOpen(false)
+  }
 
   return (
     <div className="p-8">
       <h2 className="text-h2 mb-4">Пример использования DropdownMenu</h2>
 
       <div className="flex items-center gap-4">
-        <Button
-          ref={buttonRef}
-          onClick={handleToggleMenu}
-          rightIcon={<MoreVert />}
-        >
+        <Button ref={buttonRef} onClick={handleToggleMenu} rightIcon={<MoreVert />}>
           {isOpen ? 'Закрыть меню' : 'Открыть меню'}
         </Button>
 
@@ -102,7 +98,7 @@ const TestDropdownMenuPage = () => {
         </pre>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TestDropdownMenuPage;
+export default TestDropdownMenuPage

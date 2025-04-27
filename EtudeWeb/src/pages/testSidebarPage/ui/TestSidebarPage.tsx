@@ -351,7 +351,7 @@ const TestSidebarPage: React.FC = () => {
           <Control.Select
             label="Выберите курс"
             placeholder="Выберите курс из списка"
-            name="course"
+            // name="course"
             value={formState.course}
             onChange={(value) => setFormState((prev) => ({ ...prev, course: value }))}
             options={[

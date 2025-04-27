@@ -21,13 +21,31 @@ import { TestTablePage } from '@/pages/testTablePage'
 import { TestSidebarPage } from '@/pages/testSidebarPage'
 import { TestEventCardPage } from '@/pages/testEventCardPage'
 import { TestMainPage } from '@/pages/testMainPage'
+import { ProtectedRoute } from '@/shared/routes/ProtectedRoute'
+import { LoginPage } from '@/pages/auth/LoginPage';
+import { RegisterPage } from '@/pages/auth/RegisterPage';
+import { ForbiddenPage } from '@/pages/errors/ForbiddenPage';
+import { NotFoundPage } from '@/pages/errors/NotFoundPage';
 
 const router = createBrowserRouter([
+  // Публичные маршруты
+  {
+    path: '/login',
+    element: <LoginPage />
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />
+  },
+  {
+    path: '/forbidden',
+    element: <ForbiddenPage />
+  },
   {
     element: <BaseLayout />,
-    errorElement: <div>Error404</div>,
+    errorElement: <NotFoundPage />,
     children: [
-      { path: '/', element: <TestMainPage /> },
+      { path: '/', element: <ProtectedRoute><TestMainPage /></ProtectedRoute> },
       { path: '/test-button', element: <TestButtonPage /> },
       { path: '/test-hint', element: <TestHintPage /> },
       { path: '/test-typography', element: <TestTypographyPage /> },

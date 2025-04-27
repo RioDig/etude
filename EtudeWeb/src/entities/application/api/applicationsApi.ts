@@ -7,7 +7,7 @@ const api = axios.create({
 });
 
 export const applicationsApi = {
-  getApplications: async (filters?: never): Promise<Application[]> => {
+  getApplications: async (filters?: unknown): Promise<Application[]> => {
     const { data } = await api.get('/applications', { params: filters });
     return data;
   },

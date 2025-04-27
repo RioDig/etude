@@ -3,13 +3,16 @@ import { devtools, persist } from 'zustand/middleware';
 import { User } from '@/entities/user';
 import { SessionState } from './types';
 
-export const useSessionStore = create<SessionState & {
-  setUser: (user: User | null) => void;
-  setLoading: (isLoading: boolean) => void;
-  setError: (error: string | null) => void;
-  setInitialized: (initialized: boolean) => void;
-  logout: () => void;
-}>()(
+
+export const useSessionStore = create<
+  SessionState & {
+    setUser: (user: User | null) => void
+    setLoading: (isLoading: boolean) => void
+    setError: (error: string | null) => void
+    setInitialized: (initialized: boolean) => void
+    logout: () => void
+  }
+>()(
   devtools(
     persist(
       (set) => ({
@@ -19,11 +22,12 @@ export const useSessionStore = create<SessionState & {
         error: null,
         initialized: false,
 
-        setUser: (user) => set({
-          user,
-          isAuthenticated: !!user,
-          error: null
-        }),
+        setUser: (user) =>
+          set({
+            user,
+            isAuthenticated: !!user,
+            error: null
+          }),
 
         setLoading: (isLoading) => set({ isLoading }),
 
@@ -31,21 +35,29 @@ export const useSessionStore = create<SessionState & {
 
         setInitialized: (initialized) => set({ initialized }),
 
-        logout: () => set({
-          user: null,
-          isAuthenticated: false,
-          error: null
-        }),
+        logout: () =>
+          set({
+            user: null,
+            isAuthenticated: false,
+            error: null
+          })
       }),
       {
         name: 'session-storage',
-        // Указываем, какие поля сохранять в localStorage
+        // Храним только неконфиденциальные данные пользователя для UI
         partialize: (state) => ({
-          user: state.user,
-          isAuthenticated: state.isAuthenticated,
-        }),
+          user: state.user
+            ? {
+                id: state.user.id,
+                firstName: state.user.firstName,
+                lastName: state.user.lastName,
+                role: state.user.role,
+                avatar: state.user.avatar
+              }
+            : null,
+          isAuthenticated: state.isAuthenticated
+        })
       }
-    ),
-    { name: 'session-store' }
+    )
   )
-);
+)

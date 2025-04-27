@@ -7,7 +7,7 @@ interface HeaderNotificationsProps {
   onClick?: () => void
 }
 
-export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ count, onClick }) => {
+export const HeaderNotifications: React.FC<HeaderNotificationsProps> = ({ onClick }) => {
   return (
     <Button variant="third" onClick={onClick} className="">
       <Notifications />

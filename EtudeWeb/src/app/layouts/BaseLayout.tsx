@@ -1,8 +1,7 @@
 import "../styles/App.css";
 import { Outlet } from "react-router-dom";
 import { NotificationContainer } from "@/shared/ui/notification";
-import { Header } from "@/widgets/header";
-import React from "react";
+import { Header } from '@/widgets/header'
 
 
 function BaseLayout() {

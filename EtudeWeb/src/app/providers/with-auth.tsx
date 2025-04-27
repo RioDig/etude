@@ -1,17 +1,27 @@
-import React, { ReactNode } from 'react';
-import { useAuth } from '@/entities/session';
+import React, { ReactNode, useEffect } from 'react'
+import { useAuth } from '@/entities/session'
+import { Spinner } from '@/shared/ui/spinner'
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const { initialized, isLoading } = useAuth();
+  const { initialized, initAuth } = useAuth()
 
-  // Можно добавить загрузочный экран, пока проверяем аутентификацию
-  if (!initialized && isLoading) {
-    return <div className="flex items-center justify-center h-screen">Загрузка...</div>;
+  // Инициализация аутентификации при загрузке
+  useEffect(() => {
+    void initAuth()
+  }, [initAuth])
+
+  // Показываем индикатор загрузки, пока проверяем аутентификацию
+  if (!initialized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Spinner size="large" label="Загрузка приложения..." />
+      </div>
+    )
   }
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}
 
 export const withAuth = (component: () => ReactNode) => () => {
-  return <AuthProvider>{component()}</AuthProvider>;
-};
+  return <AuthProvider>{component()}</AuthProvider>
+}
