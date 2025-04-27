@@ -52,12 +52,18 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
   // Состояние для отображения легенды статусов
   const [showLegend, setShowLegend] = useState(true)
 
-  // Состояние для текущего режима отображения
+  // Состояние для текущего режима отображения и текущей даты
   const [currentViewMode, setCurrentViewMode] = useState<CalendarViewMode>(initialViewMode)
+  const [currentDate, setCurrentDate] = useState<Date>(initialDate)
 
   // Обработчик изменения режима отображения
   const handleViewModeChange = (mode: CalendarViewMode) => {
     setCurrentViewMode(mode)
+  }
+
+  // Обработчик изменения даты
+  const handleDateChange = (date: Date) => {
+    setCurrentDate(date)
   }
 
   return (
@@ -101,8 +107,9 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
       <Calendar
         cards={cards}
         initialViewMode={currentViewMode}
-        initialDate={initialDate}
+        initialDate={currentDate}
         onViewModeChange={handleViewModeChange}
+        onDateChange={handleDateChange}
         onCardClick={onCardClick}
       />
     </div>

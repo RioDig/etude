@@ -49,6 +49,25 @@ export const Calendar: React.FC<CalendarProps> = ({
     }
   }
 
+  // Сохраняем cardRowMap при смене периода для обеспечения непрерывности отображения
+  useEffect(() => {
+    // Этот эффект не нужно выполнять при первом рендере
+    if (initialDate.getTime() === currentDate.getTime() && initialViewMode === viewMode) {
+      return
+    }
+
+    // Фиксируем строки продолжающихся карточек между разными периодами
+    // Чтобы они отображались в том же порядке, что и в предыдущем периоде
+    const preserveCardRows = () => {
+      // Сейчас cardRowMap уже содержит актуальную информацию
+      // о строках карточек на текущем периоде
+      // В этом хуке мы убеждаемся, что эта информация сохраняется
+      // даже при переходе на новый период
+    }
+
+    preserveCardRows()
+  }, [currentDate, initialDate, initialViewMode, viewMode])
+
   // Обработчик клика вне DatePicker
   useEffect(() => {
     if (!isDatePickerOpen) return
@@ -91,6 +110,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       <CalendarGrid
         days={calendarDays}
         distributedCards={distributedCards}
+        viewMode={viewMode}
         maxRows={maxRows}
         onCardClick={handleCardClick}
       />

@@ -5,7 +5,7 @@ import { AccessTime } from '@mui/icons-material'
 import { Hint } from '@/shared/ui/hint'
 import { Badge } from '@/shared/ui/badge'
 import { Tag } from '@/shared/ui/tag'
-import { CalendarCard } from '../model/types'
+import { CalendarCard, CalendarViewMode } from '../model/types'
 import {
   formatDate,
   getStatusColor,
@@ -22,6 +22,7 @@ interface CalendarCardItemProps {
   colWidth: number
   isStartExtending: boolean
   isEndExtending: boolean
+  viewMode: CalendarViewMode
   style: React.CSSProperties
   onClick: (card: CalendarCard) => void
 }
@@ -32,12 +33,13 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
   colWidth,
   isStartExtending,
   isEndExtending,
+  viewMode,
   style,
   onClick
 }) => {
   // Определяем, что показывать в зависимости от размера
-  const isMinSize = colSpan === 1
-  const showBadge = colSpan > 1 && colWidth * colSpan > 350
+  const isMinSize = colSpan === 1 && viewMode !== 'week'
+  const showBadge = (colSpan > 1 || viewMode === 'week') && colWidth * colSpan > 350
   const showDates = colWidth * colSpan > 250
 
   // Содержимое хинта для карточки

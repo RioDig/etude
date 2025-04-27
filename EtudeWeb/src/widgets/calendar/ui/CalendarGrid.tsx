@@ -2,13 +2,14 @@
 import React, { useCallback, useState } from 'react'
 import clsx from 'clsx'
 import { CalendarCardItem } from './CalendarCardItem'
-import { CalendarCard } from '../model/types'
+import { CalendarCard, CalendarViewMode } from '../model/types'
 import { useElementSize } from '@/shared/hooks/useElementSize'
 import { DistributedCard } from '../hooks/useCalendarData'
 
 interface CalendarGridProps {
   days: Date[]
   distributedCards: Array<DistributedCard[]>
+  viewMode: CalendarViewMode
   maxRows: number
   onCardClick: (card: CalendarCard) => void
 }
@@ -16,6 +17,7 @@ interface CalendarGridProps {
 export const CalendarGrid: React.FC<CalendarGridProps> = ({
   days,
   distributedCards,
+  viewMode,
   maxRows,
   onCardClick
 }) => {
@@ -90,6 +92,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                   card={card}
                   colSpan={colSpan}
                   colWidth={colWidth}
+                  viewMode={viewMode}
                   isStartExtending={isStartExtending}
                   isEndExtending={isEndExtending}
                   style={{

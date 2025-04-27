@@ -82,8 +82,22 @@ export const useCalendarData = (
 
   // Алгоритм распределения карточек по строкам
   const { distributedCards, maxRows } = useMemo(() => {
-    // Сортируем карточки сначала по времени начала, затем по длительности (от самых длинных к коротким)
-    const sortedCards = [...visibleCards].sort((a, b) => {
+    // Сортировка карточек для разных стратегий размещения
+    const sortedCards = [...visibleCards]
+
+    // Разделяем карточки на новые (начинающиеся в текущем периоде)
+    // и продолжающиеся (начались раньше)
+    const continuingCards = sortedCards.filter((card) => {
+      // Карточка начинается до первого дня текущего периода
+      const firstDayStart = new Date(calendarDays[0])
+      firstDayStart.setHours(0, 0, 0, 0)
+      return card.startDate.getTime() < firstDayStart.getTime()
+    })
+
+    const newCards = sortedCards.filter((card) => !continuingCards.includes(card))
+
+    // Сортируем новые карточки по времени начала и длительности
+    newCards.sort((a, b) => {
       // Сначала сортируем по времени начала
       const startTimeA = a.startDate.getTime()
       const startTimeB = b.startDate.getTime()
@@ -96,6 +110,15 @@ export const useCalendarData = (
       const durationA = a.endDate.getTime() - a.startDate.getTime()
       const durationB = b.endDate.getTime() - b.startDate.getTime()
       return durationB - durationA // Длинные события выше
+    })
+
+    // Сортируем продолжающиеся карточки по их существующим строкам
+    continuingCards.sort((a, b) => {
+      const rowA =
+        cardRowMapRef.current[a.id] !== undefined ? cardRowMapRef.current[a.id] : Infinity
+      const rowB =
+        cardRowMapRef.current[b.id] !== undefined ? cardRowMapRef.current[b.id] : Infinity
+      return rowA - rowB // Сохраняем порядок строк
     })
 
     // Используем сохраненную информацию о строках из ref
@@ -143,8 +166,9 @@ export const useCalendarData = (
       }
     }
 
-    // Проходим по каждой карточке и определяем её позицию
-    sortedCards.forEach((card) => {
+    // Обрабатываем сначала продолжающиеся карточки, чтобы они сохраняли свой порядок
+    // при переходе на новый период
+    continuingCards.forEach((card) => {
       let startCol = getDayIndex(card.startDate)
       let endCol = getDayIndex(card.endDate)
 
@@ -233,11 +257,74 @@ export const useCalendarData = (
       cardRowMap[card.id] = rowIndex
     })
 
+    // Затем обрабатываем новые карточки
+    newCards.forEach((card) => {
+      let startCol = getDayIndex(card.startDate)
+      let endCol = getDayIndex(card.endDate)
+
+      // Обработка случая, когда начало карточки до первого дня календаря
+      if (startCol === -1) startCol = 0
+
+      // Обработка случая, когда конец карточки после последнего дня календаря
+      if (endCol >= calendarDays.length) endCol = calendarDays.length - 1
+
+      // Проверка на корректность индексов
+      if (startCol > endCol) {
+        console.error('Ошибка с индексами карточки:', { card, startCol, endCol })
+        // Если карточка имеет неправильные индексы, пропускаем её
+        return
+      }
+
+      // Определяем, выходит ли карточка за пределы видимой области
+      const isStartExtending = isCardExtendingOutside(card, 'start')
+      const isEndExtending = isCardExtendingOutside(card, 'end')
+
+      // Сохраняем эту информацию вместе с карточкой
+      const cardData: DistributedCard = {
+        card,
+        startCol,
+        endCol,
+        isStartExtending,
+        isEndExtending
+      }
+
+      // Ищем подходящую строку, начиная с верхней
+      let rowIndex = -1
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i]
+        let canFit = true
+
+        for (const existingCard of row) {
+          // Проверяем пересечение с существующими карточками
+          if (startCol <= existingCard.endCol && endCol >= existingCard.startCol) {
+            canFit = false
+            break
+          }
+        }
+
+        if (canFit) {
+          rowIndex = i
+          break
+        }
+      }
+
+      // Если не нашли подходящую строку, создаем новую
+      if (rowIndex === -1) {
+        rowIndex = rows.length
+        rows.push([cardData])
+      } else {
+        rows[rowIndex].push(cardData)
+      }
+
+      // Сохраняем индекс строки для этой карточки
+      cardRowMap[card.id] = rowIndex
+    })
+
     return {
       distributedCards: rows,
       maxRows: Math.max(1, rows.length)
     }
-  }, [visibleCards, calendarDays])
+  }, [visibleCards, cardRowMapRef, calendarDays])
 
   return {
     daysToShow,
