@@ -32,6 +32,8 @@ public static class ServiceCollectionExtensions
 
         // Добавление HttpClient для OAuth сервиса
         services.AddHttpClient<IOAuthService, OAuthService>();
+        
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }

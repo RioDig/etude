@@ -1,4 +1,6 @@
-﻿using EtudeBackend.Features.Auth.Models;
+﻿using System.Net;
+using System.Net.Mail;
+using EtudeBackend.Features.Auth.Models;
 using EtudeBackend.Features.Auth.Services;
 using EtudeBackend.Features.Users.Services;
 using EtudeBackend.Shared.Data;
@@ -19,6 +21,7 @@ public class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IEmailService _emailService;
 
     public AuthController(
         IOAuthService oauthService,
@@ -26,7 +29,8 @@ public class AuthController : ControllerBase
         IConfiguration configuration,
         ILogger<AuthController> logger,
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        IEmailService emailService)
     {
         _oauthService = oauthService;
         _userService = userService;
@@ -34,6 +38,7 @@ public class AuthController : ControllerBase
         _logger = logger;
         _userManager = userManager;
         _signInManager = signInManager;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -114,9 +119,10 @@ public class AuthController : ControllerBase
                     string.Join(", ", result.Errors.Select(e => e.Description)));
                 return BadRequest("Не удалось создать пользователя");
             }
-
+            
             // Здесь можно отправить email с временным паролем или инструкциями по его смене
-            _logger.LogInformation("Создан новый пользователь: {Email}", userInfo.OrgEmail);
+            await _emailService.SendEmailAsync(userInfo.OrgEmail, temporaryPassword);
+            _logger.LogInformation("Создан новый пользователь: {Email} c паролем {Password}", userInfo.OrgEmail, temporaryPassword);
         }
 
         // Находим пользователя для аутентификации
@@ -172,7 +178,7 @@ private string GenerateRandomPassword(int length = 12)
     /// </summary>
     [HttpGet("test")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public IActionResult TestEndpoint()
+    public async Task<IActionResult> TestEndpoint()
     {
         return Ok(new { Message = "OAuth integration is working! You can use this endpoint from your React application." });
     }

@@ -36,4 +36,10 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="email_template.html">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
