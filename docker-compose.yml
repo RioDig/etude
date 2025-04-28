@@ -1,6 +1,7 @@
 networks:
-  app-network:
-  backend-db-network:
+  etude:
+  solo:
+  solo-etude:
 
 services:
   web:
@@ -25,7 +26,7 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=postgres
     networks:
-      - backend-db-network
+      - etude
 
   redis:
     image: docker.io/redis/redis-stack:latest
@@ -33,7 +34,7 @@ services:
       REDIS_ARGS: --requirepass secret
     restart: always
     networks:
-      - backend-db-network
+      - etude
 
   backend:
     container_name: "backend"
@@ -44,7 +45,40 @@ services:
       - db
       - redis
     networks:
-      - app-network
-      - backend-db-network
+      - etude
+      - solo-etude
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+  
+  auth:
+    container_name: "auth"
+    build:
+      context: ./EtudeAuth
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - authdb
+    environment:
+      - DB_HOST=authdb
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASS=postgres
+    restart: always
+    networks:
+      - solo
+      - solo-etude
+
+  authdb:
+    container_name: "authdb"
+    image: postgres:alpine3.18
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    ports:
+      - "6432:5432"
+    networks:
+      - solo
