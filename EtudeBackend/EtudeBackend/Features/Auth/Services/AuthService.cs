@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Security.Cryptography;
 using EtudeBackend.Features.Auth.Models;
 using EtudeBackend.Shared.Data;
 using Microsoft.AspNetCore.Authentication;
@@ -12,17 +13,20 @@ public class AuthService : IAuthService
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly ILogger<AuthService> _logger;
+    private readonly ITokenStorageService _tokenStorageService;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IHttpContextAccessor httpContextAccessor,
-        ILogger<AuthService> logger)
+        ILogger<AuthService> logger,
+        ITokenStorageService tokenStorageService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _httpContextAccessor = httpContextAccessor;
         _logger = logger;
+        _tokenStorageService = tokenStorageService;
     }
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
@@ -52,10 +56,31 @@ public class AuthService : IAuthService
 
         _logger.LogInformation("Пользователь {Email} успешно авторизован", request.Email);
 
+        // Генерируем уникальный идентификатор для токена
+        var identityToken = GenerateSecureToken();
+        
         // Находим срок действия куки аутентификации
         var httpContext = _httpContextAccessor.HttpContext;
         var authProperties = await httpContext.AuthenticateAsync();
-        var expiresAt = authProperties?.Properties?.ExpiresUtc;
+        var expiresAt = authProperties?.Properties?.ExpiresUtc ?? DateTimeOffset.UtcNow.AddDays(30);
+
+        // Сохраняем информацию о токене в Redis
+        await _tokenStorageService.StoreTokensAsync(
+            user.Id,
+            identityToken,
+            null, // Нет OAuth токенов
+            new UserInfo
+            {
+                Id = user.Id,
+                Email = user.OrgEmail,
+                Name = user.Name,
+                Surname = user.Surname,
+                Patronymic = user.Patronymic,
+                Position = user.Position,
+                SoloUserId = user.SoloUserId,
+                RoleId = user.RoleId
+            },
+            expiresAt);
 
         // Возвращаем информацию о пользователе
         return new LoginResponse
@@ -74,7 +99,31 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync()
     {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!string.IsNullOrEmpty(userId))
+            {
+                // Отзываем все токены пользователя из Redis
+                await _tokenStorageService.RevokeAllUserTokensAsync(userId);
+            }
+        }
+        
         await _signInManager.SignOutAsync();
         _logger.LogInformation("Пользователь вышел из системы");
+    }
+    
+    /// <summary>
+    /// Генерирует случайный защищенный токен
+    /// </summary>
+    private static string GenerateSecureToken()
+    {
+        var randomBytes = new byte[32]; // 256 бит
+        using (var rng = RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(randomBytes);
+        }
+        return Convert.ToBase64String(randomBytes);
     }
 }
