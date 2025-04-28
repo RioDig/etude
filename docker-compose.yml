@@ -1,14 +1,9 @@
-networks:
-  etude:
-  solo:
-  solo-etude:
-
 services:
   web:
     container_name: "web"
     image: etude-front:latest
     ports:
-      - "80:80"
+      - "3000:80"
     environment:
       - NODE_ENV=development
     restart: always
@@ -16,6 +11,35 @@ services:
       - backend
     networks:
       - app-network
+
+  auth:
+    container_name: "auth"
+    image: etude-auth:latest
+    ports:
+      - "0.0.0.0:8000:8000"
+    depends_on:
+      - authdb
+    environment:
+      - DB_HOST=authdb
+      - DB_PORT=5432
+      - DB_NAME=postgres
+      - DB_USER=postgres
+      - DB_PASS=postgres
+    restart: always
+    networks:
+      - solo
+      - solo-etude
+
+  authdb:
+    container_name: "authdb"
+    image: postgres:alpine3.18
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+    networks:
+      - solo
 
   db:
     container_name: "db"
@@ -49,36 +73,8 @@ services:
       - solo-etude
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-  
-  auth:
-    container_name: "auth"
-    build:
-      context: ./EtudeAuth
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    depends_on:
-      - authdb
-    environment:
-      - DB_HOST=authdb
-      - DB_PORT=5432
-      - DB_NAME=postgres
-      - DB_USER=postgres
-      - DB_PASS=postgres
-    restart: always
-    networks:
-      - solo
-      - solo-etude
 
-  authdb:
-    container_name: "authdb"
-    image: postgres:alpine3.18
-    restart: always
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
-    ports:
-      - "6432:5432"
-    networks:
-      - solo
+networks:
+  etude:
+  solo:
+  solo-etude:

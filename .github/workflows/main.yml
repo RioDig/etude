@@ -34,15 +34,28 @@ jobs:
           tags: |
             etude-backend:latest
 
-      # Шаг 4. Образы в архивы
+      # Шаг 4. Билд OAuth образа (сборка выполняется внутри Dockerfile)
+      - name: Oauth Image Build
+        uses: docker/build-push-action@v5
+        with:
+          context: ./EtudeAuth
+          file: ./EtudeAuth/Dockerfile
+          push: false
+          tags: |
+            etude-auth:latest
+
+      # Шаг 5. Образы в архивы
       - name: Images Packing
         run: |
           docker image save -o etude-front.tar etude-front:latest
           docker image save -o etude-backend.tar etude-backend:latest
+          docker image save -o etude-auth.tar etude-auth:latest
           gzip etude-front.tar
           gzip etude-backend.tar
+          gzip etude-auth.tar
           chmod 777 etude-front.tar.gz
           chmod 777 etude-backend.tar.gz
+          chmod 777 etude-auth.tar.gz
 
 
       # Шаг 6. Перенос образов и docker-compose на сервер
@@ -53,7 +66,7 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "./docker-compose.yml, etude-front.tar.gz, etude-backend.tar.gz"
+          source: "./docker-compose.yml, etude-front.tar.gz, etude-backend.tar.gz, etude-auth.tar.gz"
           target: "/home/detouche-admin/Deployment/"
 
       # Шаг 7. Запуск контейнеров на сервере
@@ -69,8 +82,10 @@ jobs:
             docker compose down
             gunzip -f etude-front.tar.gz
             gunzip -f etude-backend.tar.gz
+            gunzip -f etude-auth.tar.gz
             docker load -i etude-front.tar
             docker load -i etude-backend.tar
+            docker load -i etude-auth.tar
             docker compose up -d
             docker ps
             rm -rf etude*.tar
