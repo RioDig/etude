@@ -22,20 +22,29 @@ import { TestSidebarPage } from '@/pages/testSidebarPage'
 import { TestEventCardPage } from '@/pages/testEventCardPage'
 import { TestMainPage } from '@/pages/testMainPage'
 import { ProtectedRoute } from '@/shared/routes/ProtectedRoute'
-import { LoginPage } from '@/pages/auth/LoginPage';
-import { RegisterPage } from '@/pages/auth/RegisterPage';
-import { ForbiddenPage } from '@/pages/errors/ForbiddenPage';
-import { NotFoundPage } from '@/pages/errors/NotFoundPage';
+import { LoginPage } from '@/pages/auth/LoginPage'
+import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
+import { NotFoundPage } from '@/pages/errors/NotFoundPage'
+import { PublicRoute } from '@/shared/routes/PublicRoute'
 
 const router = createBrowserRouter([
   // Публичные маршруты
   {
     path: '/login',
-    element: <LoginPage />
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    )
   },
   {
     path: '/register',
-    element: <RegisterPage />
+    element: (
+      <PublicRoute>
+        <RegisterPage />
+      </PublicRoute>
+    )
   },
   {
     path: '/forbidden',
@@ -45,7 +54,14 @@ const router = createBrowserRouter([
     element: <BaseLayout />,
     errorElement: <NotFoundPage />,
     children: [
-      { path: '/', element: <ProtectedRoute><TestMainPage /></ProtectedRoute> },
+      {
+        path: '/',
+        element: (
+          <ProtectedRoute>
+            <TestMainPage />
+          </ProtectedRoute>
+        )
+      },
       { path: '/test-button', element: <TestButtonPage /> },
       { path: '/test-hint', element: <TestHintPage /> },
       { path: '/test-typography', element: <TestTypographyPage /> },

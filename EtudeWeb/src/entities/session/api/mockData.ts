@@ -3,25 +3,25 @@ import { User, USER_ROLES } from '@/entities/user';
 export const MOCK_USERS: User[] = [
   {
     id: '1',
-    email: 'admin@example.com',
-    firstName: 'Админ',
-    lastName: 'Админович',
+    orgEmail: 'admin@example.com',
+    name: 'Админ',
+    surname: 'Админович',
     role: USER_ROLES.admin,
     avatar: 'https://i.pravatar.cc/150?u=admin'
   },
   {
     id: '2',
-    email: 'tutor@example.com',
-    firstName: 'Иван',
-    lastName: 'Преподавателев',
+    orgEmail: 'tutor@example.com',
+    name: 'Иван',
+    surname: 'Преподавателев',
     role: USER_ROLES.tutor,
     avatar: 'https://i.pravatar.cc/150?u=tutor'
   },
   {
     id: '3',
-    email: 'student@example.com',
-    firstName: 'Студент',
-    lastName: 'Студентов',
+    orgEmail: 'student@example.com',
+    name: 'Студент',
+    surname: 'Студентов',
     role: USER_ROLES.student,
     avatar: 'https://i.pravatar.cc/150?u=student'
   }

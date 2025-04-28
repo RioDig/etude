@@ -1,3 +1,4 @@
+// src/entities/session/hooks/useAuth.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { sessionApi } from '../api/sessionApi'
@@ -93,8 +94,29 @@ export const useAuth = () => {
     error,
     initialized,
     initAuth,
-    login: (credentials: LoginCredentials) => loginMutation.mutate(credentials),
-    register: (data: RegisterData) => registerMutation.mutate(data),
-    logout: () => logoutMutation.mutate()
+    login: (credentials: LoginCredentials) => {
+      return new Promise((resolve, reject) => {
+        loginMutation.mutate(credentials, {
+          onSuccess: (data) => resolve(data),
+          onError: (error) => reject(error)
+        })
+      })
+    },
+    register: (data: RegisterData) => {
+      return new Promise((resolve, reject) => {
+        registerMutation.mutate(data, {
+          onSuccess: (data) => resolve(data),
+          onError: (error) => reject(error)
+        })
+      })
+    },
+    logout: () => {
+      return new Promise((resolve, reject) => {
+        logoutMutation.mutate(undefined, {
+          onSuccess: () => resolve(undefined),
+          onError: (error) => reject(error)
+        })
+      })
+    }
   }
 }

@@ -12,7 +12,7 @@ const api = axios.create({
 export const sessionApi = {
   // Авторизация пользователя
   login: async (credentials: LoginCredentials): Promise<User> => {
-    await api.post('/auth/login', credentials)
+    await api.post('/auth/email-login', credentials)
     // Запрашиваем данные о пользователе, так как логин не возвращает информацию
     return sessionApi.getCurrentUser()
   },
@@ -26,7 +26,7 @@ export const sessionApi = {
 
   // Получение данных текущего пользователя
   getCurrentUser: async (): Promise<User> => {
-    const { data } = await api.get<User>('/auth/me')
+    const { data } = await api.get<User>('/user/me')
     return data
   },
 

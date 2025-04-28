@@ -2,9 +2,9 @@ export type UserRole = 'admin' | 'tutor' | 'student' | 'guest';
 
 export interface User {
   id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
+  orgEmail: string;
+  name: string;
+  surname: string;
   role: UserRole;
   avatar?: string;
 }

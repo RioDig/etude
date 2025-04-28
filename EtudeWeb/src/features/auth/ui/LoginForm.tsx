@@ -1,3 +1,4 @@
+// src/features/auth/ui/LoginForm.tsx
 import React, { useState } from 'react'
 import { useAuth } from '@/entities/session'
 import { useNavigate, useLocation } from 'react-router-dom'
@@ -27,10 +28,22 @@ export const LoginForm: React.FC = () => {
       return
     }
 
-    login({ email, password })
+    try {
+      // Используем await для ожидания завершения логина
+      await login({ email, password })
 
-    // После успешной авторизации редиректим на страницу, с которой пришли
-    navigate(from, { replace: true })
+      // Показываем уведомление об успешной авторизации
+      notification.success({
+        title: 'Успешно',
+        description: 'Вы успешно вошли в систему'
+      })
+
+      // После успешной авторизации редиректим на страницу, с которой пришли
+      navigate(from, { replace: true })
+    } catch (error) {
+      // Ошибки уже обрабатываются в хуке useAuth, но можем добавить дополнительную логику
+      console.error('Ошибка при авторизации:', error)
+    }
   }
 
   return (
@@ -57,8 +70,8 @@ export const LoginForm: React.FC = () => {
       <Button type="submit" variant="primary" fullWidth disabled={isLoading}>
         {isLoading ? (
           <>
-            <Spinner size="small" variant="white" className='mr-2' />
-            <span className='leading-none'>Вход...</span>
+            <Spinner size="small" variant="white" className="mr-2" />
+            <span className="leading-none">Вход...</span>
           </>
         ) : (
           'Войти'

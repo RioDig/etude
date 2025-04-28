@@ -12,8 +12,8 @@ export const HeaderProfile: React.FC = () => {
   // Используем хук для получения данных о пользователе
   const { user, isAuthenticated } = useAuth()
   const { defaultItems, warningItems } = useProfileMenuActions()
-
-  const fullName = isAuthenticated && user ? `${user.firstName} ${user.lastName}` : 'Гость'
+  console.log(user)
+  const fullName = isAuthenticated && user ? `${user.surname} ${user.name}` : 'Гость'
 
   const handleToggle = () => {
     setIsOpen((prevIsOpen) => !prevIsOpen)

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Control } from '@/shared/ui/controls'
 import { Button } from '@/shared/ui/button'
 import { notification } from '@/shared/lib/notification'
+import { Spinner } from '@/shared/ui/spinner'
 
 export const RegisterForm: React.FC = () => {
   const [firstName, setFirstName] = useState('')
@@ -47,9 +48,10 @@ export const RegisterForm: React.FC = () => {
         description: 'Вы успешно зарегистрированы и авторизованы'
       })
 
-      navigate('/')
+      // Перенаправляем на главную страницу
+      navigate('/', { replace: true })
     } catch (err) {
-      console.error(err)
+      console.error('Ошибка при регистрации:', err)
     }
   }
 
@@ -100,7 +102,14 @@ export const RegisterForm: React.FC = () => {
       />
 
       <Button type="submit" variant="primary" fullWidth disabled={isLoading}>
-        {isLoading ? 'Регистрация...' : 'Зарегистрироваться'}
+        {isLoading ? (
+          <>
+            <Spinner size="small" variant="white" className="mr-2" />
+            <span className="leading-none">Регистрация...</span>
+          </>
+        ) : (
+          'Зарегистрироваться'
+        )}
       </Button>
     </form>
   )
