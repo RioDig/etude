@@ -1,15 +1,14 @@
 // src/entities/session/hooks/useAuth.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-
 import { sessionApi } from '../api/sessionApi'
-
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { User } from '@/entities/user'
-import { LoginCredentials, RegisterData } from '@/entities/session'
+import { LoginCredentials, RegisterData } from '../model/types'
 import { useSessionStore } from '@/entities/session/model/store.ts'
 
 export const useAuth = () => {
   const queryClient = useQueryClient()
+  // const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   const {
     user,
@@ -22,39 +21,93 @@ export const useAuth = () => {
     setInitialized
   } = useSessionStore()
 
-  // Обновленный хук с правильной структурой опций
+  // Используем состояние для отслеживания, когда запрос находится в процессе
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  // Обновленный хук с вынесенной функцией запроса
+  const fetchUserProfile = useCallback(async () => {
+    try {
+      // Предотвращаем повторные запросы во время выполнения
+      if (isRefreshing) return null
+
+      setIsRefreshing(true)
+      const userData = await sessionApi.getCurrentUser()
+      setUser(userData)
+      return userData
+    } catch (error) {
+      console.error('Error fetching user profile:', error)
+      clearSession()
+      return null
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [clearSession, setUser, isRefreshing])
+
+  // Используем React Query с кастомной функцией запроса
   const { isLoading: isUserLoading, refetch } = useQuery({
     queryKey: ['auth', 'me'],
-    queryFn: sessionApi.getCurrentUser,
-    enabled: false, // Не запускать автоматически
-    // React Query 5 разделяет обработчики результатов
-    // и ошибок на отдельные методы, а не в опциях
-    // Удаляем onSuccess и onError из опций
-    retry: false,
-    staleTime: 1000 * 60 * 5 // 5 минут
+    queryFn: fetchUserProfile,
+    enabled: isAuthenticated, // Запускаем только если пользователь авторизован
+    staleTime: 1000 * 60 * 5, // 5 секунд для тестирования
+    gcTime: 1000 * 60 * 10, // 10 минут до удаления из кэша
+    retry: false
   })
 
-  // Функция инициализации с обработкой успеха и ошибки
+  // Функция обновления профиля, которая принудительно запрашивает данные с сервера
+  const refreshSession = useCallback(async () => {
+    try {
+      // Очищаем кэш перед запросом, чтобы гарантировать свежие данные
+      queryClient.invalidateQueries({ queryKey: ['auth', 'me'] })
+      const result = await refetch()
+      return result.data
+    } catch (error) {
+      console.error('Error refreshing session:', error)
+      clearSession()
+      return null
+    }
+  }, [refetch, queryClient, clearSession])
+
+  // Функция инициализации
   const initAuth = useCallback(async () => {
     if (!initialized) {
       try {
-        const result = await refetch()
-        if (result.data) {
-          setUser(result.data)
-        }
+        await refreshSession()
         setInitialized(true)
       } catch (error) {
         clearSession()
         setInitialized(true)
       }
     }
-  }, [initialized, refetch, setUser, clearSession, setInitialized])
+  }, [initialized, refreshSession, clearSession, setInitialized])
 
-  // Мутация для авторизации с правильной обработкой результатов
+  // // Устанавливаем интервал обновления сессии
+  // useEffect(() => {
+  //   // Очищаем предыдущий интервал, если он был установлен
+  //   if (refreshIntervalRef.current) {
+  //     clearInterval(refreshIntervalRef.current)
+  //     refreshIntervalRef.current = null
+  //   }
+  //
+  //   if (isAuthenticated) {
+  //     // Устанавливаем новый интервал
+  //     refreshIntervalRef.current = setInterval(() => {
+  //       refreshSession().catch(console.error)
+  //     }, 1000 * 5) // Каждые 30 секунд
+  //   }
+  //
+  //   // Очистка интервала при размонтировании компонента
+  //   return () => {
+  //     if (refreshIntervalRef.current) {
+  //       clearInterval(refreshIntervalRef.current)
+  //       refreshIntervalRef.current = null
+  //     }
+  //   }
+  // }, [isAuthenticated, refreshSession])
+
+  // Остальные мутации логина, регистрации и выхода
   const loginMutation = useMutation({
     mutationFn: sessionApi.login,
     onSuccess: (userData: User) => {
-      // Явный тип для userData
       setUser(userData)
       queryClient.setQueryData(['auth', 'me'], userData)
     },
@@ -63,11 +116,9 @@ export const useAuth = () => {
     }
   })
 
-  // Мутация для регистрации
   const registerMutation = useMutation({
     mutationFn: sessionApi.register,
     onSuccess: (userData: User) => {
-      // Явный тип для userData
       setUser(userData)
       queryClient.setQueryData(['auth', 'me'], userData)
     },
@@ -76,13 +127,11 @@ export const useAuth = () => {
     }
   })
 
-  // Мутация для выхода
   const logoutMutation = useMutation({
     mutationFn: sessionApi.logout,
     onSuccess: () => {
       clearSession()
-      // Используем await для решения проблемы с игнорированием Promise
-      void queryClient.invalidateQueries({ queryKey: ['auth'] })
+      queryClient.invalidateQueries({ queryKey: ['auth'] })
     }
   })
 
@@ -94,6 +143,7 @@ export const useAuth = () => {
     error,
     initialized,
     initAuth,
+    refreshSession,
     login: (credentials: LoginCredentials) => {
       return new Promise((resolve, reject) => {
         loginMutation.mutate(credentials, {

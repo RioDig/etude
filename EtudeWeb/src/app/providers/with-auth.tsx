@@ -1,16 +1,16 @@
 import React, { ReactNode, useEffect } from 'react'
 import { useAuth } from '@/entities/session'
 import { Spinner } from '@/shared/ui/spinner'
+import { useSessionCheck } from '@/entities/session/hooks/useSessionCheck'
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { initialized, initAuth } = useAuth()
+  useSessionCheck() // Используем хук вместо компонента
 
-  // Инициализация аутентификации при загрузке
   useEffect(() => {
     void initAuth()
   }, [initAuth])
 
-  // Показываем индикатор загрузки, пока проверяем аутентификацию
   if (!initialized) {
     return (
       <div className="flex items-center justify-center h-screen">
