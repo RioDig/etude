@@ -3,6 +3,10 @@ networks:
   solo:
   solo-etude:
 
+volumes:
+  db_data:        # том для основной БД
+  authdb_data:    # том для БД авторизации
+
 services:
   web:
     container_name: "web"
@@ -47,6 +51,8 @@ services:
       - POSTGRES_DB=postgres
     networks:
       - solo
+    volumes:
+      - authdb_data:/var/lib/postgresql/data
 
   db:
     container_name: "db"
@@ -60,6 +66,8 @@ services:
       - POSTGRES_DB=postgres
     networks:
       - etude
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
   redis:
     image: docker.io/redis/redis-stack:latest
