@@ -9,6 +9,7 @@ using EtudeBackend.Features.Users.Services;
 using EtudeBackend.Shared.Data;
 using EtudeBackend.Shared.Data.Repositories;
 using Microsoft.EntityFrameworkCore;
+using StackExchange.Redis;
 
 namespace EtudeBackend.Shared.Extensions;
 
@@ -23,7 +24,7 @@ public static class ServiceCollectionExtensions
         // Регистрация общих репозиториев
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         
-        // Кэширование
+        // Настройка Redis
         services.AddStackExchangeRedisCache(opts =>
         {
             opts.Configuration = configuration.GetConnectionString("Redis");
@@ -33,6 +34,10 @@ public static class ServiceCollectionExtensions
         // Добавление HttpClient для OAuth сервиса
         services.AddHttpClient<IOAuthService, OAuthService>();
         
+        // Регистрация сервисов для работы с токенами
+        services.AddSingleton<ITokenStorageService, TokenStorageService>();
+        
+        // Email сервис
         services.AddScoped<IEmailService, EmailService>();
 
         return services;

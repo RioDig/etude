@@ -33,9 +33,6 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Временное хранилище кодов авторизации (в продакшене использовать Redis)
-# auth_codes = {}
-
 async def get_user(email: str, db: AsyncSession):
     stmt = select(User).where(User.email == email)
     result = await db.execute(stmt)
@@ -127,6 +124,9 @@ async def authorize(
         state: Optional[str] = None,
         db: AsyncSession = Depends(get_async_session)
 ):
+    # Логирование для отладки
+    print(f"OAuth authorize request: client_id={client_id}, redirect_uri={redirect_uri}, scope={scope}, state={state}")
+    
     # Проверка необходимых параметров
     if not response_type:
         return templates.TemplateResponse(
@@ -243,7 +243,7 @@ async def authorize(
             }
         )
 
-    # Отображаем страницу авторизации
+    # Отображаем страницу авторизации с явной передачей state
     return templates.TemplateResponse(
         "login.html",
         {
@@ -259,7 +259,7 @@ async def authorize(
     )
 
 
-# Исправленная функция login с правильным запросом к базе данных
+# Обработка формы входа с сохранением state
 @app.post("/oauth/login")
 async def login(
         request: Request,
@@ -271,6 +271,9 @@ async def login(
         state: Optional[str] = Form(None),
         db: AsyncSession = Depends(get_async_session)
 ):
+    # Логирование для отладки
+    print(f"OAuth login form submitted: client_id={client_id}, redirect_uri={redirect_uri}, scope={scope}, state={state}")
+    
     # Проверка наличия обязательных полей
     if not email or not password:
         return templates.TemplateResponse(
@@ -383,21 +386,15 @@ async def login(
         db.add(auth_code)
         await db.commit()
 
-        # auth_codes[code] = {
-        #     "email": email,
-        #     "client_id": client_id,
-        #     "scopes": scope.split(),
-        #     "redirect_uri": redirect_uri,
-        #     "expires_at": datetime.utcnow() + timedelta(minutes=10)  # код действителен 10 минут
-        # }
-
         # Создаем параметры для редиректа
         params = {"code": code}
         if state:
             params["state"] = state
+            print(f"Including state in redirect params: {state}")
 
         # Формируем URL для редиректа
         redirect_url = f"{redirect_uri}?{urlencode(params)}"
+        print(f"Redirecting to: {redirect_url}")
 
         # Перенаправляем на redirect_uri с кодом авторизации
         return RedirectResponse(url=redirect_url, status_code=303)
@@ -449,12 +446,11 @@ async def token(
         result = await db.execute(stmt)
         res_code = result.scalars().first()
 
-        if code != res_code.code:
+        if not res_code or code != res_code.code:
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Invalid authorization code"},
                 status_code=400
             )
-
 
         stmt = select(AuthToken).where(AuthToken.code == code)
         result = await db.execute(stmt)
@@ -462,7 +458,6 @@ async def token(
 
         # Проверяем время жизни кода
         if datetime.utcnow() > code_data.expires_at:
-            #del auth_codes[code]  # Удаляем просроченный код
             return JSONResponse(
                 content={"error": "invalid_grant", "error_description": "Authorization code expired"},
                 status_code=400
@@ -501,9 +496,6 @@ async def token(
         )
         db.add(db_refresh_token)
         await db.commit()
-
-        # Удаляем использованный код авторизации
-        #del auth_codes[code]
 
         # Возвращаем токены
         return {
@@ -620,7 +612,7 @@ async def revoke_token_endpoint(
         return JSONResponse(content={"success": False}, status_code=400)
 
 
-# Исправленный код для получения информации о пользователе
+# Получение информации о пользователе
 @app.get("/api/user/me")
 async def get_user_info(
         request: Request,
@@ -639,7 +631,6 @@ async def get_user_info(
 
 
 # API для получения списка документов
-# API для получения списка документов - исправленный код
 @app.get("/api/documents")
 async def get_documents(
         request: Request,
@@ -821,17 +812,6 @@ async def create_document(
         "type": "document",
         "owner_id": user.id
     }
-
-    # Здесь в реальном приложении вы сохранили бы документ в БД
-    # document = Document(
-    #     title=title,
-    #     content=content,
-    #     type="document",
-    #     owner_id=user.id
-    # )
-    # db.add(document)
-    # await db.commit()
-    # await db.refresh(document)
 
     return new_document
 

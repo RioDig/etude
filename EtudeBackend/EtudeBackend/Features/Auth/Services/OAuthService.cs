@@ -12,12 +12,18 @@ public class OAuthService : IOAuthService
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<OAuthService> _logger;
+    private readonly ITokenStorageService _tokenStorageService;
 
-    public OAuthService(HttpClient httpClient, IConfiguration configuration, ILogger<OAuthService> logger)
+    public OAuthService(
+        HttpClient httpClient, 
+        IConfiguration configuration, 
+        ILogger<OAuthService> logger,
+        ITokenStorageService tokenStorageService)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
+        _tokenStorageService = tokenStorageService;
     }
 
     public string GetAuthorizationUrl(string redirectUri, string state = null)
@@ -25,7 +31,10 @@ public class OAuthService : IOAuthService
         var clientId = _configuration["OAuth:ClientId"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
 
-        var authUrl = $"{baseUrl}/oauth/authorize?";
+        // Формируем базовый URL авторизации
+        var authUrl = $"{baseUrl}/oauth/authorize";
+        
+        // Создаем словарь с параметрами запроса
         var queryParams = new Dictionary<string, string>
         {
             ["response_type"] = "code",
@@ -34,12 +43,20 @@ public class OAuthService : IOAuthService
             ["scope"] = "profile documents"
         };
 
+        // Добавляем state, если он предоставлен
         if (!string.IsNullOrEmpty(state))
         {
             queryParams["state"] = state;
+            _logger.LogInformation("Добавлен state параметр: {State}", state);
         }
 
-        return authUrl + string.Join("&", queryParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+        // Формируем строку запроса с корректным кодированием параметров
+        var queryString = string.Join("&", queryParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+        var fullUrl = $"{authUrl}?{queryString}";
+        
+        _logger.LogInformation("Сформирован URL авторизации: {Url}", fullUrl);
+        
+        return fullUrl;
     }
 
     public async Task<TokenResponse> ExchangeCodeForTokenAsync(string code, string redirectUri)
@@ -61,6 +78,9 @@ public class OAuthService : IOAuthService
 
         try
         {
+            _logger.LogInformation("Обмен кода авторизации на токены. Code: {Code}, RedirectUri: {RedirectUri}", 
+                code, redirectUri);
+                
             var response = await _httpClient.PostAsync(tokenUrl, formContent);
 
             if (!response.IsSuccessStatusCode)
@@ -73,6 +93,8 @@ public class OAuthService : IOAuthService
             }
 
             var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Получен ответ от сервера OAuth: {Response}", content);
+            
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -89,6 +111,39 @@ public class OAuthService : IOAuthService
 
     public async Task<bool> ValidateTokenAsync(string token, string[] requiredScopes = null)
     {
+        // Проверяем наличие токена в Redis
+        var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(token);
+        if (tokenInfo != null)
+        {
+            // Проверяем срок действия токена
+            if (tokenInfo.ExpiresAt > DateTimeOffset.UtcNow)
+            {
+                // Если токен валиден, проверяем scopes
+                if (requiredScopes != null && requiredScopes.Length > 0 && tokenInfo.OAuthTokens != null)
+                {
+                    // Проверяем, включает ли scope токена все необходимые scopes
+                    var tokenScopes = tokenInfo.OAuthTokens.Scope.Split(' ');
+                    if (requiredScopes.All(scope => tokenScopes.Contains(scope)))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Токен не содержит необходимых scopes");
+                        return false;
+                    }
+                }
+                
+                return true;
+            }
+            else
+            {
+                _logger.LogWarning("Токен истек");
+                return false;
+            }
+        }
+
+        // Если токен не найден в Redis, проверяем его на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
@@ -133,6 +188,23 @@ public class OAuthService : IOAuthService
 
     public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
     {
+        // Проверяем, есть ли информация о токене в Redis
+        var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(accessToken);
+        if (tokenInfo != null && tokenInfo.UserInfo != null)
+        {
+            // Возвращаем кэшированную информацию о пользователе
+            return new UserInfoResponse
+            {
+                UserId = tokenInfo.UserInfo.SoloUserId ?? 0,
+                Name = tokenInfo.UserInfo.Name,
+                Surname = tokenInfo.UserInfo.Surname,
+                Patronymic = tokenInfo.UserInfo.Patronymic,
+                OrgEmail = tokenInfo.UserInfo.Email,
+                Position = tokenInfo.UserInfo.Position
+            };
+        }
+
+        // Если информации нет в Redis, запрашиваем с сервера OAuth
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
         var userInfoUrl = $"{baseUrl}/api/user/me";
 
@@ -174,6 +246,14 @@ public class OAuthService : IOAuthService
 
     public async Task<bool> RevokeTokenAsync(string token)
     {
+        // Сначала отзываем токен из Redis
+        var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(token);
+        if (tokenInfo != null)
+        {
+            await _tokenStorageService.RevokeTokenAsync(tokenInfo.IdentityToken);
+        }
+        
+        // Затем отзываем токен на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
@@ -194,8 +274,9 @@ public class OAuthService : IOAuthService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception occurred while revoking token");
-            return false;
+            _logger.LogError(ex, "Exception occurred while revoking token on OAuth server");
+            // Возвращаем true, если токен был успешно отозван из Redis, даже если запрос к OAuth серверу не удался
+            return tokenInfo != null;
         }
     }
 }

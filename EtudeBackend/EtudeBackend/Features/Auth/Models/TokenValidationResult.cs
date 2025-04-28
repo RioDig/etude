@@ -9,7 +9,7 @@ public class TokenValidationResult
     public long? ExpiresAt { get; set; }
 }
 
-public class UserInfo
+public partial class UserInfo
 {
     public string Email { get; set; }
     public string FullName { get; set; }
