@@ -1,3 +1,8 @@
+networks:
+  etude:
+  solo:
+  solo-etude:
+
 services:
   web:
     container_name: "web"
@@ -73,8 +78,3 @@ services:
       - solo-etude
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-
-networks:
-  etude:
-  solo:
-  solo-etude:

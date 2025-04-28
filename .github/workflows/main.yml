@@ -89,3 +89,4 @@ jobs:
             docker compose up -d
             docker ps
             rm -rf etude*.tar
+            docker image prune -f
