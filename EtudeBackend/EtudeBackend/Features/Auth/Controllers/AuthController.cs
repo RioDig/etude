@@ -60,18 +60,40 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status302Found)]
     public IActionResult Login([FromQuery] string? redirectAfterLogin)
     {
-        // Сохраняем URL для возврата после авторизации
-        var state = !string.IsNullOrEmpty(redirectAfterLogin)
-            ? Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(redirectAfterLogin))
-            : null;
+        try
+        {
+            // Сохраняем URL для возврата после авторизации
+            // ВАЖНО: Всегда устанавливаем state, даже если redirectAfterLogin не указан
+            string state;
+            if (!string.IsNullOrEmpty(redirectAfterLogin))
+            {
+                state = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(redirectAfterLogin));
+            }
+            else
+            {
+                // Используем "/" как значение по умолчанию для редиректа
+                state = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("/"));
+            }
 
-        // Формируем URL для callback
-        var baseUrl = _configuration["Application:BaseUrl"];
-        var callbackUrl = $"{baseUrl}/api/auth/callback";
+            _logger.LogInformation("OAuth авторизация. RedirectAfterLogin: {Redirect}, Encoded state: {State}", 
+                redirectAfterLogin ?? "/", state);
 
-        // Получаем URL авторизации и перенаправляем пользователя
-        var authUrl = _oauthService.GetAuthorizationUrl(callbackUrl, state);
-        return Redirect(authUrl);
+            // Формируем URL для callback
+            var baseUrl = _configuration["Application:BaseUrl"];
+            var callbackUrl = $"{baseUrl}/api/auth/callback";
+
+            // Получаем URL авторизации и перенаправляем пользователя
+            var authUrl = _oauthService.GetAuthorizationUrl(callbackUrl, state);
+        
+            _logger.LogInformation("Перенаправление на OAuth авторизацию: {Url}", authUrl);
+        
+            return Redirect(authUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при формировании URL для OAuth авторизации");
+            return BadRequest("Ошибка при перенаправлении на страницу авторизации");
+        }
     }
 
     /// <summary>
@@ -80,12 +102,15 @@ public class AuthController : ControllerBase
     [HttpGet("callback")]
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string state)
+    public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string? state = null)
     {
         if (string.IsNullOrEmpty(code))
         {
+            _logger.LogWarning("OAuth callback без кода авторизации");
             return BadRequest("Authorization code is missing");
         }
+
+        _logger.LogInformation("OAuth callback получен. Code: {Code}, State: {State}", code, state ?? "null");
 
         try
         {
@@ -196,21 +221,24 @@ public class AuthController : ControllerBase
                 try
                 {
                     redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+                    _logger.LogInformation("Расшифрованный state параметр: {RedirectUrl}", redirectUrl);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    _logger.LogWarning("Invalid state parameter: {State}", state);
+                    _logger.LogWarning(ex, "Невозможно расшифровать state параметр: {State}", state);
                 }
             }
 
+            _logger.LogInformation("Перенаправление пользователя после успешной авторизации: {RedirectUrl}", redirectUrl);
             return Redirect(redirectUrl);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during OAuth callback processing");
+            _logger.LogError(ex, "Ошибка при обработке OAuth callback");
             return BadRequest("Authentication failed");
         }
     }
+
 
     /// <summary>
     /// Тестовый эндпоинт для проверки авторизации через OAuth

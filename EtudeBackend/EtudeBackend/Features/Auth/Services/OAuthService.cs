@@ -31,7 +31,10 @@ public class OAuthService : IOAuthService
         var clientId = _configuration["OAuth:ClientId"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
 
-        var authUrl = $"{baseUrl}/oauth/authorize?";
+        // Формируем базовый URL авторизации
+        var authUrl = $"{baseUrl}/oauth/authorize";
+        
+        // Создаем словарь с параметрами запроса
         var queryParams = new Dictionary<string, string>
         {
             ["response_type"] = "code",
@@ -40,12 +43,20 @@ public class OAuthService : IOAuthService
             ["scope"] = "profile documents"
         };
 
+        // Добавляем state, если он предоставлен
         if (!string.IsNullOrEmpty(state))
         {
             queryParams["state"] = state;
+            _logger.LogInformation("Добавлен state параметр: {State}", state);
         }
 
-        return authUrl + string.Join("&", queryParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+        // Формируем строку запроса с корректным кодированием параметров
+        var queryString = string.Join("&", queryParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
+        var fullUrl = $"{authUrl}?{queryString}";
+        
+        _logger.LogInformation("Сформирован URL авторизации: {Url}", fullUrl);
+        
+        return fullUrl;
     }
 
     public async Task<TokenResponse> ExchangeCodeForTokenAsync(string code, string redirectUri)
@@ -67,6 +78,9 @@ public class OAuthService : IOAuthService
 
         try
         {
+            _logger.LogInformation("Обмен кода авторизации на токены. Code: {Code}, RedirectUri: {RedirectUri}", 
+                code, redirectUri);
+                
             var response = await _httpClient.PostAsync(tokenUrl, formContent);
 
             if (!response.IsSuccessStatusCode)
@@ -79,6 +93,8 @@ public class OAuthService : IOAuthService
             }
 
             var content = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation("Получен ответ от сервера OAuth: {Response}", content);
+            
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
