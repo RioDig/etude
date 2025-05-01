@@ -1,4 +1,5 @@
-// src/entities/session/hooks/useAuth.ts
+// Обновить в src/entities/session/hooks/useAuth.ts
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sessionApi } from '../api/sessionApi'
 import { useCallback, useEffect } from 'react'
@@ -124,6 +125,7 @@ export const useAuth = () => {
     isPending: loginMutation.isPending,
     error,
     setError,
+    setUser, // Экспортируем, чтобы можно было устанавливать пользователя извне
     initialized,
     initAuth,
     refreshSession,

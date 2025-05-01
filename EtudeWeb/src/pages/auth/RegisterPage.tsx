@@ -1,14 +1,26 @@
-import React from 'react'
+// src/pages/auth/RegisterPage.tsx
+import React, { useState } from 'react'
 import { Typography } from '@/shared/ui/typography'
-import { RegisterForm } from '@/features/auth/ui/RegisterForm'
 import { Link } from 'react-router-dom'
+import { Button } from '@/shared/ui/button'
 import NamedLogo from '@/shared/assets/images/logo/logo-with-name.svg'
+import { Spinner } from '@/shared/ui/spinner'
+import { API_URL } from '@/shared/config'
 
 export const RegisterPage: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSoloRedirect = () => {
+    setIsLoading(true)
+    // Просто переходим на эндпоинт авторизации
+    // Сервер сам выполнит все необходимые действия и перенаправит пользователя
+    window.location.href = `${API_URL}/auth/login`
+  }
+
   return (
     <div className="flex min-h-screen bg-blue-700">
       <div className="m-auto w-full max-w-md p-12 bg-white rounded-lg shadow-md">
-        <img src={NamedLogo} alt={'Логотип'} className="justify-self-center mb-8" />
+        <img src={NamedLogo} alt="Логотип" className="mb-8 mx-auto" />
 
         <div className="text-center mb-10">
           <Typography variant="h1" className="mb-2">
@@ -20,7 +32,24 @@ export const RegisterPage: React.FC = () => {
           </Typography>
         </div>
 
-        <RegisterForm />
+        <div className="flex flex-col items-center justify-center">
+          <Button
+            variant="primary"
+            size="medium"
+            fullWidth
+            onClick={handleSoloRedirect}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Spinner size="small" variant="white" className="mr-2" />
+                <span>Переход в Соло...</span>
+              </>
+            ) : (
+              'Перейти в Соло'
+            )}
+          </Button>
+        </div>
 
         <div className="mt-6 text-center">
           <Typography variant="b4Regular" className="text-mono-600">

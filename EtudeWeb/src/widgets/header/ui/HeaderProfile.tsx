@@ -12,7 +12,7 @@ export const HeaderProfile: React.FC = () => {
   // Используем хук для получения данных о пользователе
   const { user, isAuthenticated } = useAuth()
   const { defaultItems, warningItems } = useProfileMenuActions()
-  console.log(user)
+
   const fullName = isAuthenticated && user ? `${user.surname} ${user.name}` : 'Гость'
 
   const handleToggle = () => {
