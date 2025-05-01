@@ -29,6 +29,6 @@ public class EmailService : IEmailService
             IsBodyHtml = true
         };
         msg.To.Add(new MailAddress(emailTo));
-        await _smtpClient.SendMailAsync(msg);
+//        await _smtpClient.SendMailAsync(msg);
     }
 }

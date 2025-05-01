@@ -63,7 +63,7 @@ public class OAuthService : IOAuthService
     {
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
-        var baseUrl = _configuration["OAuth:AuthServerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
 
         var tokenUrl = $"{baseUrl}/oauth/token";
 
@@ -146,7 +146,7 @@ public class OAuthService : IOAuthService
         // Если токен не найден в Redis, проверяем его на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
-        var baseUrl = _configuration["OAuth:AuthServerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
 
         var validateUrl = $"{baseUrl}/api/token/validate";
 
@@ -205,7 +205,7 @@ public class OAuthService : IOAuthService
         }
 
         // Если информации нет в Redis, запрашиваем с сервера OAuth
-        var baseUrl = _configuration["OAuth:AuthServerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
         var userInfoUrl = $"{baseUrl}/api/user/me";
 
         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
@@ -256,7 +256,7 @@ public class OAuthService : IOAuthService
         // Затем отзываем токен на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
-        var baseUrl = _configuration["OAuth:AuthServerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
 
         var revokeUrl = $"{baseUrl}/oauth/revoke";
 
