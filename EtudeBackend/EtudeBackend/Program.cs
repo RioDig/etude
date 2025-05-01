@@ -26,12 +26,6 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddAuthentication().AddCookie(options =>
-{
-    options.LoginPath = "/api/Auth/login";
-    
-});
-
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/api/Auth/login";
@@ -52,16 +46,34 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
         options.User.RequireUniqueEmail = false;
     })
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme,
-    options =>
-    {
-        options.LoginPath = new PathString("/api/Auth/login");
-        //options.LogoutPath = "/Account/Logout";
-        //options.AccessDeniedPath = "/Account/AccessDenied"; 
-        options.SlidingExpiration = true;
-        options.ExpireTimeSpan = TimeSpan.FromDays(30);
 
-    });
+builder.Services.AddAuthentication(options =>
+{
+    // Установка схемы аутентификации по умолчанию
+    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
+    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
+}).AddCookie();
+
+builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options =>
+{
+    // Отключаем редирект при неавторизованном доступе
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = context =>
+        {
+            // Вместо редиректа возвращаем 401 ошибку
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        },
+        OnRedirectToAccessDenied = context =>
+        {
+            // Возвращаем 403 ошибку вместо редиректа при доступе к запрещенному ресурсу
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+    };
+});
 
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -72,7 +84,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "*")
+        policy.WithOrigins("http://localhost:5173", "https://localhost:5173", "*", "http://localhost:8000")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
