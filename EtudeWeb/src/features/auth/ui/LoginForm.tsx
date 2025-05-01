@@ -1,5 +1,5 @@
 // src/features/auth/ui/LoginForm.tsx
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useAuth } from '@/entities/session'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Control } from '@/shared/ui/controls'
@@ -11,7 +11,7 @@ import { Typography } from '@/shared/ui/typography'
 export const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login, isLoading, error } = useAuth()
+  const { login, isLoading } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [isError, setIsError] = useState(false)

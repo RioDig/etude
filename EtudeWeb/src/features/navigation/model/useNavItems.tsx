@@ -1,6 +1,6 @@
 import { NavItem } from '@/widgets/header';
 import { USER_ROLES } from "@/entities/user";
-import { AdminPanelSettings, School, Add } from "@mui/icons-material";
+import { AdminPanelSettings, School, Add, Folder } from '@mui/icons-material'
 import { useAuth } from "@/entities/session";
 import { useCallback } from "react";
 
@@ -26,7 +26,7 @@ export const useNavItems = (): NavItem[] => {
     items.push({
       id: 'courses',
       label: 'Обучения',
-      icon: <School />,
+      icon: <Folder />,
       to: '/courses',
       variant: 'third'
     });

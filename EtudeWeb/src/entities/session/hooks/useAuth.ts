@@ -39,8 +39,8 @@ export const useAuth = () => {
     staleTime: 1000 * 60 * 15, // Данные считаются свежими 15 минут
     gcTime: 1000 * 60 * 30, // Данные хранятся в кеше 30 минут
     refetchInterval: 1000 * 60 * 15, // Автоматическое обновление каждые 15 минут
-    refetchIntervalInBackground: false, // Не обновлять, когда вкладка не активна
-    refetchOnWindowFocus: false, // Не обновлять при фокусе окна
+    refetchIntervalInBackground: true, // Не обновлять, когда вкладка не активна
+    refetchOnWindowFocus: true, // Не обновлять при фокусе окна
     refetchOnMount: true, // Обновлять при монтировании, если данные устарели
     retry: 1 // Одна повторная попытка при ошибке
   })

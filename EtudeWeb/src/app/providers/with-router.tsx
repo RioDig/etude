@@ -20,7 +20,8 @@ import { TestModalPage } from '@/pages/testModalPage'
 import { TestTablePage } from '@/pages/testTablePage'
 import { TestSidebarPage } from '@/pages/testSidebarPage'
 import { TestEventCardPage } from '@/pages/testEventCardPage'
-import { TestMainPage } from '@/pages/testMainPage'
+import { MainPage } from '@/pages/main'
+import { ProfilePage } from '@/pages/profile'
 import { AdminRoute, ProtectedRoute } from '@/shared/routes/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
@@ -31,25 +32,33 @@ import { PublicRoute } from '@/shared/routes/PublicRoute'
 const router = createBrowserRouter([
   // Публичные маршруты
   {
-    path: '/login',
-    element: (
-      <PublicRoute>
-        <LoginPage />
-      </PublicRoute>
-    )
+    element: <BaseLayout isAuthPage={true} />,
+    errorElement: <NotFoundPage />,
+    children: [
+      {
+        path: '/login',
+        element: (
+          <PublicRoute>
+            <LoginPage />
+          </PublicRoute>
+        )
+      },
+      {
+        path: '/register',
+        element: (
+          <PublicRoute>
+            <RegisterPage />
+          </PublicRoute>
+        )
+      },
+      {
+        path: '/forbidden',
+        element: <ForbiddenPage />
+      }
+    ]
   },
-  {
-    path: '/register',
-    element: (
-      <PublicRoute>
-        <RegisterPage />
-      </PublicRoute>
-    )
-  },
-  {
-    path: '/forbidden',
-    element: <ForbiddenPage />
-  },
+
+  // Защищенные маршруты
   {
     element: <BaseLayout />,
     errorElement: <NotFoundPage />,
@@ -58,11 +67,26 @@ const router = createBrowserRouter([
         path: '/',
         element: (
           <ProtectedRoute>
-            <TestMainPage />
+            <MainPage />
           </ProtectedRoute>
         )
       },
-      { path: '/test-button', element: <ProtectedRoute><TestButtonPage /></ProtectedRoute> },
+      {
+        path: '/profile',
+        element: (
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: '/test-button',
+        element: (
+          <ProtectedRoute>
+            <TestButtonPage />
+          </ProtectedRoute>
+        )
+      },
       { path: '/test-hint', element: <TestHintPage /> },
       { path: '/test-typography', element: <TestTypographyPage /> },
       { path: '/test-badge', element: <TestBadgePage /> },
