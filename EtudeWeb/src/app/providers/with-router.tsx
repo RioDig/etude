@@ -21,7 +21,7 @@ import { TestTablePage } from '@/pages/testTablePage'
 import { TestSidebarPage } from '@/pages/testSidebarPage'
 import { TestEventCardPage } from '@/pages/testEventCardPage'
 import { TestMainPage } from '@/pages/testMainPage'
-import { ProtectedRoute } from '@/shared/routes/ProtectedRoute'
+import { AdminRoute, ProtectedRoute } from '@/shared/routes/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
@@ -62,7 +62,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         )
       },
-      { path: '/test-button', element: <ProtectedRoute><TestButtonPage /></ProtectedRoute> },
+      { path: '/test-button', element: <AdminRoute><TestButtonPage /></AdminRoute> },
       { path: '/test-hint', element: <TestHintPage /> },
       { path: '/test-typography', element: <TestTypographyPage /> },
       { path: '/test-badge', element: <TestBadgePage /> },

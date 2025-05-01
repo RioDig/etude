@@ -1,16 +1,29 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '@/entities/session'
 import { USER_ROLES, UserRole } from '@/entities/user'
-
+import { useQueryClient } from '@tanstack/react-query'
 interface ProtectedRouteProps {
   children: React.ReactNode
   requiredRoles?: UserRole[]
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requiredRoles = [] }) => {
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, refreshSession } = useAuth()
   const location = useLocation()
+  const hasCheckedSessionRef = useRef(false)
+  const queryClient = useQueryClient()
+
+  useEffect(() => {
+    if (isAuthenticated && !hasCheckedSessionRef.current) {
+      hasCheckedSessionRef.current = true
+      refreshSession().catch(console.error)
+    }
+
+    return () => {
+      hasCheckedSessionRef.current = false
+    }
+  }, [isAuthenticated, queryClient, location.pathname])
 
   // Если пользователь не авторизован, перенаправляем на страницу логина
   if (!isAuthenticated) {

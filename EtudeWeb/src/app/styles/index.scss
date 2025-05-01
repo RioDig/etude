@@ -5,9 +5,10 @@
 @tailwind utilities;
 
 @layer base {
-
+  html {
+    color-scheme: light !important;
+  }
 }
-
 
 /* Применяем стили скроллбара ко всем элементам, а не только к body */
 body, div, ul, ol, li, section, main, article, aside, nav, header, footer, pre, code {
@@ -50,7 +51,7 @@ body, div, ul, ol, li, section, main, article, aside, nav, header, footer, pre, 
   font-weight: 500;
   font-style: normal;
 
-  color-scheme: light dark;
+  color-scheme: only light !important;
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -103,7 +104,11 @@ h1 {
     color: #213547;
     background-color: #ffffff;
   }
-  /*button {*/
-  /*  background-color: #f9f9f9;*/
-  /*}*/
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
 }
