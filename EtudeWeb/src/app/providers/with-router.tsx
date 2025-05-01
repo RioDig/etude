@@ -62,7 +62,7 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         )
       },
-      { path: '/test-button', element: <AdminRoute><TestButtonPage /></AdminRoute> },
+      { path: '/test-button', element: <ProtectedRoute><TestButtonPage /></ProtectedRoute> },
       { path: '/test-hint', element: <TestHintPage /> },
       { path: '/test-typography', element: <TestTypographyPage /> },
       { path: '/test-badge', element: <TestBadgePage /> },

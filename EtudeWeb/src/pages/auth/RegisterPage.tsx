@@ -12,9 +12,14 @@ export const RegisterPage: React.FC = () => {
 
   const handleSoloRedirect = () => {
     setIsLoading(true)
-    // Просто переходим на эндпоинт авторизации
-    // Сервер сам выполнит все необходимые действия и перенаправит пользователя
-    window.location.href = `${API_URL}/auth/login`
+
+    // Формируем URL с параметром redirectAfterLogin
+    // Указываем, куда должен вернуться пользователь после авторизации в Соло
+    const redirectUrl = encodeURIComponent(`${window.location.origin}/`)
+    const authUrl = `${API_URL}/auth/login?redirectAfterLogin=${redirectUrl}`
+
+    // Выполняем редирект
+    window.location.href = authUrl
   }
 
   return (
