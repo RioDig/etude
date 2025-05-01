@@ -107,8 +107,18 @@
             </div>
 
             <div class="form-group">
-                <label for="full_name">Полное имя:</label>
-                <input type="text" id="full_name" name="full_name" value="{{ full_name or '' }}" required>
+                <label for="name">Имя:</label>
+                <input type="text" id="name" name="name" value="{{ name or '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="Surname">Фамилия:</label>
+                <input type="text" id="surname" name="surname" value="{{ surname or '' }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="Patronymic">Отчество:</label>
+                <input type="text" id="patronymic" name="patronymic" value="{{ patronymic or '' }}" required>
             </div>
 
             <div class="form-group">

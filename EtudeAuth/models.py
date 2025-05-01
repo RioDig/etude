@@ -1,14 +1,90 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
 
-class User(BaseModel):
-    email: str
-    full_name: Optional[str] = None
-    disabled: Optional[bool] = False
 
-class UserInDB(User):
-    hashed_password: str
+class UserBase(BaseModel):
+    org_email: str
+    name: str
+    surname: str
+    patronymic: Optional[str] = None
+    position: str
+
+
+class UserCreate(UserBase):
+    password: str
+    department_id: Optional[int] = None
+    EtudeID: Optional[int] = None
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    surname: Optional[str] = None
+    patronymic: Optional[str] = None
+    position: Optional[str] = None
+    department_id: Optional[int] = None
+    EtudeID: Optional[int] = None
+
+
+class UserInDB(UserBase):
+    id: int
+    EtudeID: Optional[int] = None
+    department_id: Optional[int] = None
+
+    class Config:
+        orm_mode = True
+
+
+class UserResponse(UserInDB):
+    department_name: Optional[str] = None
+
+
+class CompanyBase(BaseModel):
+    name: str
+
+
+class CompanyCreate(CompanyBase):
+    pass
+
+
+class CompanyUpdate(BaseModel):
+    name: Optional[str] = None
+
+
+class CompanyInDB(CompanyBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class CompanyWithDepartments(CompanyInDB):
+    departments: List["DepartmentInDB"] = []
+
+
+class DepartmentBase(BaseModel):
+    name: str
+    company_id: int
+
+class DepartmentCreate(DepartmentBase):
+    pass
+
+
+class DepartmentUpdate(BaseModel):
+    name: Optional[str] = None
+    company_id: Optional[int] = None
+
+
+class DepartmentInDB(DepartmentBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+
+class DepartmentWithEmployees(DepartmentInDB):
+    employees: List[UserInDB] = []
+    company: CompanyInDB
 
 class OAuthClientInfo(BaseModel):
     client_id: str
@@ -28,7 +104,10 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     expires_in: int
     refresh_token: Optional[str] = None
-    scope: str
+
+class EmailLoginRequest(BaseModel):
+    email: str
+    password: str
 
 class TokenRequest(BaseModel):
     grant_type: str
@@ -38,12 +117,35 @@ class TokenRequest(BaseModel):
     redirect_uri: Optional[str] = None
     refresh_token: Optional[str] = None
 
-class Document(BaseModel):
+
+class DocumentBase(BaseModel):
+    EtudeDocID: str
+    coordinating: dict  # Словарь с ID пользователей для согласования {EtudeAuthID: EtudeBackendID}
+    DocInfo: dict  # Вся информация о документе в JSON формате
+
+
+class DocumentCreate(DocumentBase):
+    owner_id: int
+
+
+class DocumentUpdate(BaseModel):
+    coordinating: Optional[dict] = None
+    DocInfo: Optional[dict] = None
+    isApproval: Optional[bool] = None
+
+
+class DocumentInDB(DocumentBase):
     id: int
-    title: str
-    content: Optional[str] = None
+    isApproval: bool
     created_at: datetime
-    type: str
+    owner_id: int
+
+    class Config:
+        orm_mode = True
+
+
+class DocumentResponse(DocumentInDB):
+    owner: UserInDB
 
 class AuthToken(BaseModel):
     code: str

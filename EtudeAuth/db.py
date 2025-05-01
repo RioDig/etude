@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, ARRAY
+import uuid
+
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, ARRAY, JSON
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy.sql import func
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from config import settings
 
@@ -31,13 +33,17 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
-    full_name = Column(String)
+    org_email = Column(String, unique=True, index=True)
+    name = Column(String)
+    surname = Column(String)
+    patronymic = Column(String, nullable=True)
+    position = Column(String)
     hashed_password = Column(String)
-    disabled = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    EtudeID = Column(Integer, nullable=True)
+    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
 
     # Отношения
+    department = relationship("Department", back_populates="employees")
     tokens = relationship("RefreshToken", back_populates="user")
     documents = relationship("Document", back_populates="owner")
 
@@ -99,12 +105,12 @@ class Document(Base):
     __tablename__ = "documents"
 
     id = Column(Integer, primary_key=True, index=True)
-    title = Column(String)
-    content = Column(Text)
-    type = Column(String)
+    EtudeDocID = Column(String, unique=True, index=True)  # UUID из EtudeBackend
+    coordinating = Column(JSON)  # Словарь с ID пользователей для согласования {EtudeAuthID: EtudeBackendID}
+    isApproval = Column(Boolean, default=False)  # Статус согласования
+    DocInfo = Column(JSON)  # Вся информация о документе в JSON
+    created_at = Column(DateTime, default=func.now())  # Дата и время создания документа
     owner_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
 
     # Отношения
     owner = relationship("User", back_populates="documents")
@@ -120,6 +126,29 @@ class AuthToken(Base):
     redirect_uri = Column(String)
     expires_at = Column(DateTime)
 
+
+# модели для структуры организации
+
+class Company(Base):
+    __tablename__ = "companies"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, unique=True, index=True)
+
+    # Отношения
+    departments = relationship("Department", back_populates="company")
+
+
+class Department(Base):
+    __tablename__ = "departments"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id"))
+
+    # Отношения
+    company = relationship("Company", back_populates="departments")
+    employees = relationship("User", back_populates="department")
 
 # Функция для инициализации базы данных
 async def init_db():
