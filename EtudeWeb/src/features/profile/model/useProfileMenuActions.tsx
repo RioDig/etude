@@ -16,17 +16,17 @@ export const useProfileMenuActions = () => {
         onClick: () => navigate('/profile'),
         icon: <Person />
       },
-      {
-        label: 'Настройки',
-        onClick: () => navigate('/settings'),
-        icon: <Settings />
-      }
+      // {
+      //   label: 'Настройки',
+      //   onClick: () => navigate('/settings'),
+      //   icon: <Settings />
+      // }
     ]
 
     // Если пользователь админ, добавляем ссылку на админ-панель
     if (user?.role === USER_ROLES.admin) {
       actions.push({
-        label: 'Админ-панель',
+        label: 'Администрирование',
         onClick: () => navigate('/admin'),
         icon: <Dashboard />
       })

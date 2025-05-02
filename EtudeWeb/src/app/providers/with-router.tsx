@@ -25,6 +25,8 @@ import { ProfilePage } from '@/pages/profile'
 import { AdminRoute, ProtectedRoute } from '@/shared/routes/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import { ApplicationCreatePage } from '@/pages/application/ApplicationCreatePage'
+
 import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { PublicRoute } from '@/shared/routes/PublicRoute'
@@ -76,6 +78,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: '/applications/new',
+        element: (
+          <ProtectedRoute>
+            <ApplicationCreatePage />
           </ProtectedRoute>
         )
       },
