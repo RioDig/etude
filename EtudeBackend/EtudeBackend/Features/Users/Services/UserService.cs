@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using EtudeBackend.Features.Users.DTOs;
-using EtudeBackend.Features.Users.Repositories;
 using EtudeBackend.Shared.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +10,6 @@ public class UserService : IUserService
 {
     private readonly IMapper _mapper;
     private readonly UserManager<ApplicationUser> _userManager;
-
 
     public UserService(IMapper mapper, UserManager<ApplicationUser> userManager) 
     {

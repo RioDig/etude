@@ -20,7 +20,7 @@ public class UserStatisticsController : ControllerBase
     /// <summary>
     /// Получает статистику обучения для указанного пользователя
     /// </summary>
-    [HttpGet("{userId:int}")]
+    [HttpGet("{userId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUserStatistics(int userId)
     {

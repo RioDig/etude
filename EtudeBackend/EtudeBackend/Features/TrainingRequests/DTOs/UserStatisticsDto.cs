@@ -4,23 +4,22 @@ namespace EtudeBackend.Features.TrainingRequests.DTOs
 {
     public class UserStatisticsDto
     {
-        public Guid Id { get; set; }  // Изменено с int на Guid
-        public Guid CourseId { get; set; }  // Изменено с int на Guid
-        public int UserId { get; set; }
+        public Guid Id { get; set; }
+        public Guid CourseId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public DateOnly? EnrollmentDate { get; set; }
         public DateOnly? CompletionDate { get; set; }
         public decimal? AttendanceRate { get; set; }
         public bool CertificateIssued { get; set; }
         
-        // Дополнительные поля для отображения связанных данных
         public string? CourseName { get; set; }
-        public string? UserFullName { get; set; }  // Изменено с UserName на UserFullName
+        public string? UserFullName { get; set; }
     }
 
     public class CreateUserStatisticsDto
     {
-        public Guid CourseId { get; set; }  // Изменено с int на Guid
-        public int UserId { get; set; }
+        public Guid CourseId { get; set; }
+        public string UserId { get; set; } = string.Empty;
         public DateOnly? EnrollmentDate { get; set; }
         public DateOnly? CompletionDate { get; set; }
         public decimal? AttendanceRate { get; set; }

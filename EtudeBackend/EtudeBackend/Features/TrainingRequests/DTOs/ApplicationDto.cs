@@ -22,7 +22,7 @@ public class ApplicationDetailDto
 
 public class UserBasicDto
 {
-    public int Id { get; set; }
+    public string Id { get; set; } = string.Empty; // Изменяем тип на string
     public string Name { get; set; } = string.Empty;
     public string Surname { get; set; } = string.Empty;
     public string? Patronymic { get; set; }
@@ -57,7 +57,6 @@ public class CreateApplicationDto
     public string Track { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;
     public string TrainingCenter { get; set; } = string.Empty;
-    public int AuthorId { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public decimal Price { get; set; }

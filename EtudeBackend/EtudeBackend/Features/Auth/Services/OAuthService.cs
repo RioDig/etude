@@ -1,31 +1,37 @@
 using System.Text;
 using System.Text.Json;
 using EtudeBackend.Features.Auth.Models;
+using EtudeBackend.Shared.Data;
 using EtudeBackend.Shared.Exceptions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace EtudeBackend.Features.Auth.Services;
 
-[Authorize]
+
 public class OAuthService : IOAuthService
 {
     private readonly HttpClient _httpClient;
     private readonly IConfiguration _configuration;
     private readonly ILogger<OAuthService> _logger;
     private readonly ITokenStorageService _tokenStorageService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public OAuthService(
         HttpClient httpClient, 
         IConfiguration configuration, 
         ILogger<OAuthService> logger,
-        ITokenStorageService tokenStorageService)
+        ITokenStorageService tokenStorageService,
+        UserManager<ApplicationUser> userManager)
     {
         _httpClient = httpClient;
         _configuration = configuration;
         _logger = logger;
         _tokenStorageService = tokenStorageService;
+        _userManager = userManager;
     }
 
+    // Реализация GetAuthorizationUrl
     public string GetAuthorizationUrl(string redirectUri, string state = null)
     {
         var clientId = _configuration["OAuth:ClientId"];
@@ -59,11 +65,12 @@ public class OAuthService : IOAuthService
         return fullUrl;
     }
 
+    // Реализация ExchangeCodeForTokenAsync
     public async Task<TokenResponse> ExchangeCodeForTokenAsync(string code, string redirectUri)
     {
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
-        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerUrl"];
 
         var tokenUrl = $"{baseUrl}/oauth/token";
 
@@ -109,6 +116,7 @@ public class OAuthService : IOAuthService
         }
     }
 
+    // Реализация ValidateTokenAsync
     public async Task<bool> ValidateTokenAsync(string token, string[] requiredScopes = null)
     {
         // Проверяем наличие токена в Redis
@@ -146,7 +154,7 @@ public class OAuthService : IOAuthService
         // Если токен не найден в Redis, проверяем его на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
-        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerUrl"];
 
         var validateUrl = $"{baseUrl}/api/token/validate";
 
@@ -186,6 +194,7 @@ public class OAuthService : IOAuthService
         }
     }
 
+    // Реализация GetUserInfoAsync - уже была приведена в вашем предыдущем коде
     public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
     {
         // Проверяем, есть ли информация о токене в Redis
@@ -205,7 +214,7 @@ public class OAuthService : IOAuthService
         }
 
         // Если информации нет в Redis, запрашиваем с сервера OAuth
-        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerUrl"];
         var userInfoUrl = $"{baseUrl}/api/user/me";
 
         _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", accessToken);
@@ -244,6 +253,7 @@ public class OAuthService : IOAuthService
         }
     }
 
+    // Реализация RevokeTokenAsync
     public async Task<bool> RevokeTokenAsync(string token)
     {
         // Сначала отзываем токен из Redis
@@ -256,7 +266,7 @@ public class OAuthService : IOAuthService
         // Затем отзываем токен на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
-        var baseUrl = _configuration["OAuth:AuthServerDockerUrl"];
+        var baseUrl = _configuration["OAuth:AuthServerUrl"];
 
         var revokeUrl = $"{baseUrl}/oauth/revoke";
 

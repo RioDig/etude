@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.Users.Entities;
 
@@ -6,9 +7,9 @@ public class Token
 {
     public int Id { get; set; }
     
-    public int UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
     
-    public string Elude_Token { get; set; } = string.Empty;
+    public string Etude_Token { get; set; } = string.Empty;
     
     public string Solo_Token { get; set; } = string.Empty;
     
@@ -21,5 +22,5 @@ public class Token
     public bool IsActive { get; set; } = true;
     
     // Навигационное свойство
-    public virtual User User { get; set; }
+    public virtual ApplicationUser User { get; set; } = null!;
 }

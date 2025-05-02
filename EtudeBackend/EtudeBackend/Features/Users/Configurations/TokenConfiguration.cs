@@ -13,7 +13,7 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
         builder.Property(t => t.UserId)
             .IsRequired();
             
-        builder.Property(t => t.Elude_Token)
+        builder.Property(t => t.Etude_Token)
             .IsRequired()
             .HasMaxLength(255);
             
@@ -34,7 +34,7 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
             .HasDefaultValue(true);
             
         // Уникальные индексы для токенов
-        builder.HasIndex(t => t.Elude_Token)
+        builder.HasIndex(t => t.Etude_Token)
             .IsUnique();
             
         builder.HasIndex(t => t.Solo_Token)
@@ -43,6 +43,7 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
         // Связь с пользователем
         builder.HasOne(t => t.User)
             .WithMany(u => u.Tokens)
-            .HasForeignKey(t => t.UserId);
+            .HasForeignKey(t => t.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

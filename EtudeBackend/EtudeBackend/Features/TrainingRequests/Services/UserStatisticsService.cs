@@ -30,21 +30,22 @@ public class UserStatisticsService : IUserStatisticsService
 
     public async Task<List<UserStatisticsDto>> GetStatisticsByCourseIdAsync(int courseId)
     {
-        // Преобразуем int в Guid для совместимости с репозиторием
         var statistics = await _repository.GetByCourseIdAsync(Guid.Parse(courseId.ToString()));
         return _mapper.Map<List<UserStatisticsDto>>(statistics);
     }
 
     public async Task<List<UserStatisticsDto>> GetStatisticsByUserIdAsync(int userId)
     {
-        var statistics = await _repository.GetByUserIdAsync(userId);
+        var statistics = await _repository.GetByUserIdAsync(userId.ToString());
         return _mapper.Map<List<UserStatisticsDto>>(statistics);
     }
 
     public async Task<UserStatisticsDto?> GetStatisticsByUserAndCourseAsync(int userId, int courseId)
     {
-        // Исправлено название метода и преобразован тип courseId
-        var statistics = await _repository.GetByUserAndCourseIdAsync(userId, Guid.Parse(courseId.ToString()));
+        var statistics = await _repository.GetByUserAndCourseIdAsync(
+            userId.ToString(), 
+            Guid.Parse(courseId.ToString()));
+            
         return statistics != null ? _mapper.Map<UserStatisticsDto>(statistics) : null;
     }
 

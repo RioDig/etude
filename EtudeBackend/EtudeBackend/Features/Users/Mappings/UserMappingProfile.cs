@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using EtudeBackend.Features.Users.DTOs;
-using EtudeBackend.Features.Users.Entities;
 using EtudeBackend.Shared.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace EtudeBackend.Features.Users.Mappings;
 
@@ -9,9 +9,9 @@ public class UserMappingProfile : Profile
 {
     public UserMappingProfile()
     {
-        // User -> UserDto
+        // ApplicationUser -> UserDto
         CreateMap<ApplicationUser, UserDto>()
             .ForMember(dest => dest.RoleName, opt => 
-                opt.MapFrom(src => src.RoleId));
+                opt.MapFrom(src => src.RoleId.ToString()));
     }
 }

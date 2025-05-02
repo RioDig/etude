@@ -10,10 +10,8 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
     {
         builder.HasKey(a => a.Id);
         
-        // Удаляем UseIdentityColumn для Guid и используем значение по умолчанию
         builder.Property(a => a.Id)
-            .HasDefaultValueSql("gen_random_uuid()"); // Для PostgreSQL
-            // Альтернатива для SQL Server: .HasDefaultValueSql("NEWID()")
+            .HasDefaultValueSql("gen_random_uuid()");
         
         builder.Property(a => a.SoloDocId)
             .IsRequired();
@@ -43,10 +41,12 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
             .WithMany(c => c.Applications)
             .HasForeignKey(a => a.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
+            
         builder.HasOne(a => a.Status)
             .WithMany(s => s.Applications)
             .HasForeignKey(a => a.StatusId)
             .OnDelete(DeleteBehavior.Restrict);
+            
         builder.HasOne(a => a.Author)
             .WithMany(u => u.Applications)
             .HasForeignKey(a => a.AuthorId)

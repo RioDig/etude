@@ -54,11 +54,13 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetCurrentUser()
     {
-        // Здесь должна быть логика получения текущего пользователя из токена
-        // Но пока просто используем временную реализацию для демонстрации
-        //int currentUserId = 1; // Заглушка
+        // Получаем ID текущего пользователя из токена
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         
-        var user = await _userService.GetUserByIdAsync(HttpContext.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+            
+        var user = await _userService.GetUserByIdAsync(userId);
             
         if (user == null)
             return Unauthorized();

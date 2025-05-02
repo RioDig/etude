@@ -1,15 +1,15 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using EtudeBackend.Features.Users.Entities;
+using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.TrainingRequests.Entities;
 
 public class UserStatistics
 {
-    public Guid Id { get; set; } = Guid.NewGuid();  // Изменено с int на Guid
+    public Guid Id { get; set; } = Guid.NewGuid();
     
-    public Guid CourseId { get; set; }  // Изменено с int на Guid
+    public Guid CourseId { get; set; }
     
-    public int UserId { get; set; }  // Оставляем int, так как в User используется int
+    public string UserId { get; set; } = string.Empty;
     
     public DateOnly? EnrollmentDate { get; set; }
     
@@ -21,6 +21,6 @@ public class UserStatistics
     public bool CertificateIssued { get; set; } = false;
     
     // Навигационные свойства
-    public virtual Course Course { get; set; }
-    public virtual User User { get; set; }
+    public virtual Course Course { get; set; } = null!;
+    public virtual ApplicationUser User { get; set; } = null!;
 }

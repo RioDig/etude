@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿// EtudeBackend/EtudeBackend/Features/Logging/Entities/Log.cs
+using System.ComponentModel.DataAnnotations.Schema;
+using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.Logging.Entities;
 
@@ -6,7 +8,7 @@ public class Log
 {
     public int Id { get; set; }
     
-    public int UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
     
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset EventTimestamp { get; set; } = DateTimeOffset.UtcNow;
@@ -22,6 +24,6 @@ public class Log
     public string ObjectType { get; set; } = string.Empty;
     
     // Навигационные свойства
-    public virtual EventType EventType { get; set; }
-    public virtual EtudeBackend.Features.Users.Entities.User User { get; set; }
+    public virtual EventType EventType { get; set; } = null!;
+    public virtual ApplicationUser User { get; set; } = null!;
 }

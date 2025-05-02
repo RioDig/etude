@@ -21,39 +21,16 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromSeconds(10);
+    options.IdleTimeout = TimeSpan.FromSeconds(3600);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/api/Auth/login";
 });
-
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-    {
-        // Отключаем требование не буквенно-цифровых символов
-        options.Password.RequireNonAlphanumeric = false;
-
-        // Также можно смягчить другие требования
-        options.Password.RequireDigit = false; // Не требовать цифр
-        options.Password.RequireLowercase = false; // Не требовать строчных букв
-        options.Password.RequireUppercase = false; // Не требовать заглавных букв
-        options.Password.RequiredLength = 4; // Минимальная длина 6 символов
-
-        // Уникальность email
-        options.User.RequireUniqueEmail = false;
-    })
-    .AddEntityFrameworkStores<ApplicationDbContext>();
-
-builder.Services.AddAuthentication(options =>
-{
-    // Установка схемы аутентификации по умолчанию
-    options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-    options.DefaultSignInScheme = IdentityConstants.ExternalScheme;
-}).AddCookie();
 
 builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options =>
 {

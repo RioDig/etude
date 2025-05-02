@@ -4,16 +4,18 @@ namespace EtudeBackend.Shared.Data;
 
 public class ApplicationUser : IdentityUser
 {
-    // Убираем Id, так как он уже определен в базовом классе IdentityUser
-    // public Guid Id { get; set; } = Guid.NewGuid(); 
-    
-    public string Name { get; set; }
-    public string Surname { get; set; }
-    public string? Patronymic { get; set; } // Nullable для необязательного поля
-    public string OrgEmail { get; set; }
-    public string Position { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Surname { get; set; } = string.Empty;
+    public string? Patronymic { get; set; }
+    public string OrgEmail { get; set; } = string.Empty;
+    public string Position { get; set; } = string.Empty;
     public int RoleId { get; set; }
-    public int? SoloUserId { get; set; } // Nullable для возможного отсутствия значения
+    public int? SoloUserId { get; set; }
     public bool IsActive { get; set; } = true;
-    public DateTime CreatedOn { get; set; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    
+    // Навигационные свойства
+    public virtual ICollection<Features.TrainingRequests.Entities.Application> Applications { get; set; } = new List<Features.TrainingRequests.Entities.Application>();
+    public virtual ICollection<Features.TrainingRequests.Entities.UserStatistics> Statistics { get; set; } = new List<Features.TrainingRequests.Entities.UserStatistics>();
+    public virtual ICollection<Features.Users.Entities.Token> Tokens { get; set; } = new List<Features.Users.Entities.Token>();
 }

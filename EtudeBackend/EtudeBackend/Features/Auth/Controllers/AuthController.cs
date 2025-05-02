@@ -103,141 +103,138 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string? state = null)
+{
+    if (string.IsNullOrEmpty(code))
     {
-        if (string.IsNullOrEmpty(code))
+        _logger.LogWarning("OAuth callback без кода авторизации");
+        return BadRequest("Authorization code is missing");
+    }
+
+    _logger.LogInformation("OAuth callback получен. Code: {Code}, State: {State}", code, state ?? "null");
+
+    try
+    {
+        // Получаем URL для callback
+        var baseUrl = _configuration["Application:BaseUrl"];
+        var callbackUrl = $"{baseUrl}/api/auth/callback";
+
+        // Обмениваем код на токены
+        var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
+
+        // Получаем информацию о пользователе
+        var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
+
+        // Проверяем, существует ли пользователь в нашей системе
+        var existingUser = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
+
+        if (existingUser == null)
         {
-            _logger.LogWarning("OAuth callback без кода авторизации");
-            return BadRequest("Authorization code is missing");
+            // Создаем нового пользователя
+            var appUser = new ApplicationUser
+            {
+                UserName = userInfo.OrgEmail, // Обязательное поле для IdentityUser
+                Email = userInfo.OrgEmail,    // Обязательное поле для IdentityUser
+                EmailConfirmed = true,        // Подтверждаем email сразу
+                Name = userInfo.Name,
+                Surname = userInfo.Surname,
+                Patronymic = userInfo.Patronymic,
+                OrgEmail = userInfo.OrgEmail,
+                Position = userInfo.Position,
+                SoloUserId = userInfo.UserId,
+                IsActive = true,
+                RoleId = 1 // Роль по умолчанию
+            };
+
+            // Генерируем случайный пароль для нового пользователя
+            string temporaryPassword = GenerateRandomPassword();
+
+            // Создаем пользователя и обрабатываем результат
+            var result = await _userManager.CreateAsync(appUser, temporaryPassword);
+
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Ошибка при создании пользователя: {Errors}", 
+                    string.Join(", ", result.Errors.Select(e => e.Description)));
+                return BadRequest("Не удалось создать пользователя");
+            }
+            
+            // Отправляем email с временным паролем
+            await _emailService.SendEmailAsync(userInfo.OrgEmail, temporaryPassword);
+            _logger.LogInformation("Создан новый пользователь: {Email} c паролем {Password}", 
+                userInfo.OrgEmail, temporaryPassword);
+                
+            existingUser = appUser; // Используем созданного пользователя
         }
 
-        _logger.LogInformation("OAuth callback получен. Code: {Code}, State: {State}", code, state ?? "null");
-
-        try
-        {
-            // Получаем URL для callback
-            var baseUrl = _configuration["Application:BaseUrl"];
-            var callbackUrl = $"{baseUrl}/api/auth/callback";
-
-            // Обмениваем код на токены
-            var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
-
-            // Получаем информацию о пользователе
-            var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
-
-            // Проверяем, существует ли пользователь в нашей системе
-            var user = await _userService.GetUserByEmailAsync(userInfo.OrgEmail);
-
-            if (user == null)
+        // Выполняем вход пользователя
+        await _signInManager.SignInAsync(existingUser,
+            new AuthenticationProperties
             {
-                // Создаем нового пользователя
-                var appUser = new ApplicationUser
-                {
-                    UserName = userInfo.OrgEmail, // Обязательное поле для IdentityUser
-                    Email = userInfo.OrgEmail,    // Обязательное поле для IdentityUser
-                    EmailConfirmed = true,        // Подтверждаем email сразу
-                    Name = userInfo.Name,
-                    Surname = userInfo.Surname,
-                    Patronymic = userInfo.Patronymic,
-                    OrgEmail = userInfo.OrgEmail,
-                    Position = userInfo.Position,
-                    SoloUserId = userInfo.UserId,
-                    IsActive = true
-                };
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+            });
 
-                // Генерируем случайный пароль для нового пользователя
-                string temporaryPassword = GenerateRandomPassword();
-
-                // Создаем пользователя и обрабатываем результат
-                var result = await _userManager.CreateAsync(appUser, temporaryPassword);
-
-                if (!result.Succeeded)
-                {
-                    _logger.LogError("Ошибка при создании пользователя: {Errors}", 
-                        string.Join(", ", result.Errors.Select(e => e.Description)));
-                    return BadRequest("Не удалось создать пользователя");
-                }
-                
-                // Отправляем email с временным паролем
-                await _emailService.SendEmailAsync(userInfo.OrgEmail, temporaryPassword);
-                _logger.LogInformation("Создан новый пользователь: {Email} c паролем {Password}", userInfo.OrgEmail, temporaryPassword);
-            }
-
-            // Находим пользователя для аутентификации
-            var userToLogin = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
-            if (userToLogin == null)
-            {
-                _logger.LogError("Пользователь не найден после регистрации: {Email}", userInfo.OrgEmail);
-                return BadRequest("Ошибка авторизации");
-            }
-
-            // Выполняем вход пользователя
-            await _signInManager.SignInAsync(userToLogin,
-                new AuthenticationProperties
-                {
-                    IsPersistent = true,
-                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
-                });
-
-            // Генерируем уникальный идентификатор для токена
-            var identityToken = GenerateSecureToken();
-            
-            // Срок действия токена - 30 дней или на основе ExpiresIn из OAuth токена
-            var expiresAt = DateTimeOffset.UtcNow.AddSeconds(tokenResponse.ExpiresIn > 0 
+        // Генерируем уникальный идентификатор для токена
+        var identityToken = GenerateSecureToken();
+        
+        // Срок действия токена - 30 дней или на основе ExpiresIn из OAuth токена
+        var expiresAt = DateTimeOffset.UtcNow.AddSeconds(
+            tokenResponse.ExpiresIn > 0 
                 ? tokenResponse.ExpiresIn 
                 : 30 * 24 * 60 * 60); // 30 дней по умолчанию
 
-            // Преобразуем токен OAuth в модель для хранения
-            var oauthTokenInfo = new OAuthTokenInfo
-            {
-                AccessToken = tokenResponse.AccessToken,
-                RefreshToken = tokenResponse.RefreshToken,
-                TokenType = tokenResponse.TokenType,
-                ExpiresIn = tokenResponse.ExpiresIn,
-                Scope = tokenResponse.Scope
-            };
-
-            // Сохраняем токены в Redis
-            await _tokenStorageService.StoreTokensAsync(
-                userToLogin.Id, 
-                identityToken, 
-                oauthTokenInfo,
-                new UserInfo
-                {
-                    Id = userToLogin.Id,
-                    Email = userToLogin.OrgEmail,
-                    Name = userToLogin.Name,
-                    Surname = userToLogin.Surname,
-                    Patronymic = userToLogin.Patronymic,
-                    Position = userToLogin.Position,
-                    SoloUserId = userToLogin.SoloUserId,
-                    RoleId = userToLogin.RoleId
-                }, 
-                expiresAt);
-
-            // Перенаправляем пользователя на исходную страницу, если она была указана
-            string redirectUrl = "/";
-            if (!string.IsNullOrEmpty(state))
-            {
-                try
-                {
-                    redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
-                    _logger.LogInformation("Расшифрованный state параметр: {RedirectUrl}", redirectUrl);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Невозможно расшифровать state параметр: {State}", state);
-                }
-            }
-
-            _logger.LogInformation("Перенаправление пользователя после успешной авторизации: {RedirectUrl}", redirectUrl);
-            return Redirect(redirectUrl);
-        }
-        catch (Exception ex)
+        // Преобразуем токен OAuth в модель для хранения
+        var oauthTokenInfo = new OAuthTokenInfo
         {
-            _logger.LogError(ex, "Ошибка при обработке OAuth callback");
-            return BadRequest("Authentication failed");
+            AccessToken = tokenResponse.AccessToken,
+            RefreshToken = tokenResponse.RefreshToken,
+            TokenType = tokenResponse.TokenType,
+            ExpiresIn = tokenResponse.ExpiresIn,
+            Scope = tokenResponse.Scope
+        };
+
+        // Сохраняем токены в Redis
+        await _tokenStorageService.StoreTokensAsync(
+            existingUser.Id, 
+            identityToken, 
+            oauthTokenInfo,
+            new UserInfo
+            {
+                Id = existingUser.Id,
+                Email = existingUser.OrgEmail,
+                Name = existingUser.Name,
+                Surname = existingUser.Surname,
+                Patronymic = existingUser.Patronymic,
+                Position = existingUser.Position,
+                SoloUserId = existingUser.SoloUserId,
+                RoleId = existingUser.RoleId
+            }, 
+            expiresAt);
+
+        // Перенаправляем пользователя на исходную страницу, если она была указана
+        string redirectUrl = "/";
+        if (!string.IsNullOrEmpty(state))
+        {
+            try
+            {
+                redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+                _logger.LogInformation("Расшифрованный state параметр: {RedirectUrl}", redirectUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Невозможно расшифровать state параметр: {State}", state);
+            }
         }
+
+        _logger.LogInformation("Перенаправление пользователя после успешной авторизации: {RedirectUrl}", redirectUrl);
+        return Redirect(redirectUrl);
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Ошибка при обработке OAuth callback");
+        return BadRequest("Authentication failed");
+    }
+}
 
 
     /// <summary>

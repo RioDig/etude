@@ -1,4 +1,5 @@
-﻿using System;
+﻿// EtudeBackend/EtudeBackend/Features/TrainingRequests/Repositories/IUserStatisticsRepository.cs
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using EtudeBackend.Features.TrainingRequests.Entities;
@@ -8,8 +9,8 @@ namespace EtudeBackend.Features.TrainingRequests.Repositories
 {
     public interface IUserStatisticsRepository : IRepository<UserStatistics>
     {
-        Task<List<UserStatistics>> GetByCourseIdAsync(Guid courseId);  // Изменено с int на Guid
-    Task<List<UserStatistics>> GetByUserIdAsync(int userId);
-        Task<UserStatistics?> GetByUserAndCourseIdAsync(int userId, Guid courseId);  // Изменено с int на Guid
-}
+        Task<List<UserStatistics>> GetByCourseIdAsync(Guid courseId);
+        Task<List<UserStatistics>> GetByUserIdAsync(string userId); // Изменяем тип на string
+        Task<UserStatistics?> GetByUserAndCourseIdAsync(string userId, Guid courseId); // Изменяем тип на string
+    }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Entities;
+using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.TrainingRequests.Mappings;
 
@@ -33,8 +34,8 @@ public class ApplicationMappingProfile : Profile
             .ForMember(dest => dest.Format, opt => opt.MapFrom(src => src.Format.ToString()))
             .ForMember(dest => dest.Learner, opt => opt.MapFrom(src => src.Employees));
             
-        // User -> UserBasicDto
-        CreateMap<Features.Users.Entities.User, UserBasicDto>();
+        //// ApplicationUser -> UserBasicDto
+        CreateMap<ApplicationUser, UserBasicDto>();
         
         // CreateApplicationDto -> Application и Course маппинг будет происходить вручную в сервисе
     }

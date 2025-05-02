@@ -10,9 +10,8 @@ public class UserStatisticsConfiguration : IEntityTypeConfiguration<UserStatisti
     {
         builder.HasKey(us => us.Id);
         
-        // Настройка GUID как первичного ключа
         builder.Property(us => us.Id)
-            .HasDefaultValueSql("gen_random_uuid()");  // Для PostgreSQL
+            .HasDefaultValueSql("gen_random_uuid()");
         
         builder.Property(us => us.CourseId)
             .IsRequired();
@@ -34,16 +33,16 @@ public class UserStatisticsConfiguration : IEntityTypeConfiguration<UserStatisti
         builder.HasOne(us => us.Course)
             .WithMany(c => c.Statistics)
             .HasForeignKey(us => us.CourseId)
-            .OnDelete(DeleteBehavior.Restrict); // Запрещаем каскадное удаление
+            .OnDelete(DeleteBehavior.Restrict);
         
         // Связь с пользователем
         builder.HasOne(us => us.User)
             .WithMany(u => u.Statistics)
             .HasForeignKey(us => us.UserId)
-            .OnDelete(DeleteBehavior.Restrict); // Запрещаем каскадное удаление
+            .OnDelete(DeleteBehavior.Restrict);
         
-        // Создаем составной индекс для ускорения поиска статистики по пользователю и курсу
+        // Составной индекс
         builder.HasIndex(us => new { us.UserId, us.CourseId })
-            .IsUnique(); // Один пользователь может иметь только одну запись статистики для одного курса
+            .IsUnique();
     }
 }

@@ -3,6 +3,7 @@ using System;
 using EtudeBackend.Shared.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EtudeBackend.Shared.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250502122920_change application")]
+    partial class changeapplication
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,9 +75,8 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -192,9 +194,8 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("AuthorId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("CourseId")
                         .HasColumnType("uuid");
@@ -204,7 +205,7 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<Guid>("SoloDocId")
+                    b.Property<Guid?>("SoloDocId")
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("StatusId")
@@ -366,9 +367,8 @@ namespace EtudeBackend.Shared.Data.Migrations
                     b.Property<DateOnly?>("EnrollmentDate")
                         .HasColumnType("date");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -378,6 +378,35 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("UserStatistics");
+                });
+
+            modelBuilder.Entity("EtudeBackend.Features.Users.Entities.Role", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Permissions")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("Roles");
                 });
 
             modelBuilder.Entity("EtudeBackend.Features.Users.Entities.Token", b =>
@@ -393,7 +422,7 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("now()");
 
-                    b.Property<string>("Etude_Token")
+                    b.Property<string>("Elude_Token")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -411,13 +440,12 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
 
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Etude_Token")
+                    b.HasIndex("Elude_Token")
                         .IsUnique();
 
                     b.HasIndex("Solo_Token")
@@ -426,6 +454,64 @@ namespace EtudeBackend.Shared.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Tokens");
+                });
+
+            modelBuilder.Entity("EtudeBackend.Features.Users.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("now()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("OrgEmail")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<string>("Patronymic")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Position")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("SoloUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Surname")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrgEmail")
+                        .IsUnique();
+
+                    b.HasIndex("RoleId");
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("EtudeBackend.Shared.Data.ApplicationUser", b =>
@@ -440,7 +526,7 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedOn")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -663,7 +749,7 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EtudeBackend.Shared.Data.ApplicationUser", "User")
+                    b.HasOne("EtudeBackend.Features.Users.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -676,7 +762,7 @@ namespace EtudeBackend.Shared.Data.Migrations
 
             modelBuilder.Entity("EtudeBackend.Features.TrainingRequests.Entities.Application", b =>
                 {
-                    b.HasOne("EtudeBackend.Shared.Data.ApplicationUser", "Author")
+                    b.HasOne("EtudeBackend.Features.Users.Entities.User", "Author")
                         .WithMany("Applications")
                         .HasForeignKey("AuthorId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -709,7 +795,7 @@ namespace EtudeBackend.Shared.Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EtudeBackend.Shared.Data.ApplicationUser", "User")
+                    b.HasOne("EtudeBackend.Features.Users.Entities.User", "User")
                         .WithMany("Statistics")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -722,13 +808,24 @@ namespace EtudeBackend.Shared.Data.Migrations
 
             modelBuilder.Entity("EtudeBackend.Features.Users.Entities.Token", b =>
                 {
-                    b.HasOne("EtudeBackend.Shared.Data.ApplicationUser", "User")
+                    b.HasOne("EtudeBackend.Features.Users.Entities.User", "User")
                         .WithMany("Tokens")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EtudeBackend.Features.Users.Entities.User", b =>
+                {
+                    b.HasOne("EtudeBackend.Features.Users.Entities.Role", "Role")
+                        .WithMany("Users")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -799,7 +896,12 @@ namespace EtudeBackend.Shared.Data.Migrations
                     b.Navigation("Applications");
                 });
 
-            modelBuilder.Entity("EtudeBackend.Shared.Data.ApplicationUser", b =>
+            modelBuilder.Entity("EtudeBackend.Features.Users.Entities.Role", b =>
+                {
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("EtudeBackend.Features.Users.Entities.User", b =>
                 {
                     b.Navigation("Applications");
 

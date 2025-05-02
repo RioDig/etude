@@ -20,9 +20,8 @@ namespace EtudeBackend.Shared.Data
         public DbSet<Status> Statuses { get; set; } = null!;
         public DbSet<UserStatistics> UserStatistics { get; set; } = null!;
         
-        // Сущности Users
-        public DbSet<User> Users { get; set; } = null!;
-        public DbSet<Role> Roles { get; set; } = null!;
+        // Сущности Users - удаляем DbSet<User>
+        // Оставляем только токены
         public DbSet<Token> Tokens { get; set; } = null!;
         
         // Сущности Logging
@@ -39,11 +38,6 @@ namespace EtudeBackend.Shared.Data
             
             // Затем применяем конфигурации сущностей из всех feature слайсов
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
-            
-            // При необходимости можно настроить таблицы Identity
-            // modelBuilder.Entity<ApplicationUser>().ToTable("AppUsers");
-            // modelBuilder.Entity<IdentityRole>().ToTable("AppRoles");
-            // и т.д.
         }
     }
 }

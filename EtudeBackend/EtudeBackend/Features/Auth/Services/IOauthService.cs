@@ -1,4 +1,6 @@
 using EtudeBackend.Features.Auth.Models;
+using EtudeBackend.Shared.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace EtudeBackend.Features.Auth.Services;
 

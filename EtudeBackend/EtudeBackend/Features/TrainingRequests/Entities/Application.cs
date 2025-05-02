@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using EtudeBackend.Features.Users.Entities;
+using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.TrainingRequests.Entities;
 
@@ -11,23 +11,21 @@ public class Application
     
     public Guid CourseId { get; set; }
     
-    public int AuthorId { get; set; }  // Изменено на int для соответствия типу в User
+    public string AuthorId { get; set; } = string.Empty;
     
     public Guid StatusId { get; set; }
     
-    // Изменено имя поля для соответствия схеме
     [Column(TypeName = "text")]
     public string ApprovalHistory { get; set; } = string.Empty;
     
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     
-    // Добавлено поле согласно схеме
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset? UpdatedAt { get; set; }
     
     // Навигационные свойства для связей
-    public virtual Course Course { get; set; }
-    public virtual Status Status { get; set; }
-    public virtual User Author { get; set; }  // Добавлено навигационное свойство для автора
+    public virtual Course Course { get; set; } = null!;
+    public virtual Status Status { get; set; } = null!;
+    public virtual ApplicationUser Author { get; set; } = null!; // Изменяем тип на ApplicationUser
 }
