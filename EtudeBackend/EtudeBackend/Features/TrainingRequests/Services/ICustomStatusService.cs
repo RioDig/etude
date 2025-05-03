@@ -9,5 +9,5 @@ public interface ICustomStatusService
     Task<StatusDto?> GetStatusByNameAsync(string name);
     Task<StatusDto> CreateStatusAsync(CreateStatusDto statusDto);
     Task<StatusDto?> UpdateStatusAsync(Guid id, UpdateStatusDto statusDto);
-    Task<bool> DeleteStatusAsync(Guid id);
+    Task<(bool success, string? errorMessage)> DeleteStatusAsync(Guid id);
 }

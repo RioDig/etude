@@ -139,24 +139,22 @@ public class CustomStatusService : ICustomStatusService
         return result;
     }
 
-    public async Task<bool> DeleteStatusAsync(Guid id)
+    public async Task<(bool success, string? errorMessage)> DeleteStatusAsync(Guid id)
     {
         var status = await _statusRepository.GetByIdAsync(id);
         if (status == null)
-            return false;
-            
-        // Проверяем, защищен ли статус от удаления
+            return (false, null);
+        
         if (status.IsProtected)
-            throw new ApiException("Защищенный статус нельзя удалить", 400);
-            
-        // Проверяем, есть ли заявки с этим статусом
+            return (false, "Защищенный статус нельзя удалить");
+        
         var hasApplications = await _applicationRepository.GetAllQuery()
             .AnyAsync(a => a.StatusId == id);
-            
+        
         if (hasApplications)
-            throw new ApiException("Нельзя удалить статус, который используется в заявках", 400);
-            
+            return (false, "Нельзя удалить статус, который используется в заявках");
+        
         await _statusRepository.RemoveAsync(status);
-        return true;
+        return (true, null);
     }
 }

@@ -92,11 +92,16 @@ public class CustomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteStatus(Guid id)
     {
-        var result = await _statusService.DeleteStatusAsync(id);
+        var (success, errorMessage) = await _statusService.DeleteStatusAsync(id);
+    
+        if (!success)
+        {
+            if (errorMessage == null)
+                return NotFound();
             
-        if (!result)
-            return NotFound();
-            
+            return BadRequest(new { message = errorMessage });
+        }
+        
         return NoContent();
     }
 }
