@@ -11,7 +11,7 @@ public interface IApplicationRepository : IRepository<Application>
 {
     IQueryable<Application> GetAllQuery();
     Task<List<Application>> GetByCourseIdAsync(Guid courseId);
-    Task<List<Application>> GetByAuthorIdAsync(int authorId);
+    Task<List<Application>> GetByAuthorIdAsync(string authorId);
     Task<List<Application>> GetByStatusIdAsync(Guid statusId);
     Task<List<Application>> GetBySoloDocIdAsync(Guid soloDocId);
     Task<Application?> GetApplicationWithDetailsAsync(Guid id);

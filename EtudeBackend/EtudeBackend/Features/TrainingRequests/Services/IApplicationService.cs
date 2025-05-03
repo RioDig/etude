@@ -14,7 +14,7 @@ public interface IApplicationService
     
     Task<ApplicationDetailDto?> GetApplicationByIdAsync(Guid id);
     
-    Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto);
+    Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto, string authorId);
     
     Task<ApplicationDetailDto?> UpdateApplicationAsync(Guid id, UpdateApplicationDto applicationDto);
     

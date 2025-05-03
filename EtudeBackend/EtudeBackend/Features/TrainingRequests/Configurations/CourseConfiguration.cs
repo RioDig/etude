@@ -22,9 +22,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         builder.Property(c => c.TrainingCenter)
             .HasMaxLength(100);
-            
-        builder.Property(c => c.Employees)
-            .HasMaxLength(255);
+        
 
         builder.Property(c => c.EducationGoal)
             .HasColumnType("text");
@@ -35,13 +33,13 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         // Конфигурация для перечислений
         builder.Property(c => c.Type)
             .IsRequired()
-            .HasConversion<string>();  // Преобразование enum в строку для хранения в БД
+            .HasConversion<string>();  
         builder.Property(c => c.Track)
             .IsRequired()
-            .HasConversion<string>();  // Преобразование enum в строку для хранения в БД
+            .HasConversion<string>();
         builder.Property(c => c.Format)
             .IsRequired()
-            .HasConversion<string>();  // Преобразование enum в строку для хранения в БД
+            .HasConversion<string>();
         // Настройки для timestamp полей
         builder.Property(c => c.CreatedAt)
             .IsRequired()

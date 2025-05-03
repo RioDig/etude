@@ -19,9 +19,8 @@ public class Course
     
     public string TrainingCenter { get; set; } = string.Empty;
     
-    public string Employees { get; set; } = string.Empty;
 
-    public Guid EmployeeId { get; set; }  // Изменено с int на Guid
+    public Guid EmployeeId { get; set; }
     
     public DateOnly StartDate { get; set; }
     

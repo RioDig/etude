@@ -18,6 +18,9 @@ public class Application
     [Column(TypeName = "text")]
     public string ApprovalHistory { get; set; } = string.Empty;
     
+    [Column(TypeName = "text")]
+    public string Approvers { get; set; } = string.Empty;
+    
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     
@@ -27,5 +30,5 @@ public class Application
     // Навигационные свойства для связей
     public virtual Course Course { get; set; } = null!;
     public virtual Status Status { get; set; } = null!;
-    public virtual ApplicationUser Author { get; set; } = null!; // Изменяем тип на ApplicationUser
+    public virtual ApplicationUser Author { get; set; } = null!;
 }

@@ -52,9 +52,9 @@ public class ApplicationRepository : Repository<Application>, IApplicationReposi
             .ToListAsync();
     }
 
-    public Task<Application?> GetApplicationWithDetailsAsync(Guid id)
+    public async Task<Application?> GetApplicationWithDetailsAsync(Guid id)
     {
-        return _dbSet
+        return await _dbSet
             .Include(a => a.Course)
             .Include(a => a.Status)
             .Include(a => a.Author)

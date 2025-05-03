@@ -11,7 +11,6 @@ public class CourseDto
     public CourseTrack Track { get; set; }
     public CourseFormat Format { get; set; }
     public string TrainingCenter { get; set; } = string.Empty;
-    public string Employees { get; set; } = string.Empty;
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public decimal Price { get; set; }

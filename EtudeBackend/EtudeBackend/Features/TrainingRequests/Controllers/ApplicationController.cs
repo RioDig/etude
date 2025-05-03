@@ -1,6 +1,9 @@
-﻿using EtudeBackend.Features.TrainingRequests.DTOs;
+﻿using System.Security.Claims;
+using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Services;
+using EtudeBackend.Features.Users.Repositories;
 using EtudeBackend.Shared.Data;
+using EtudeBackend.Shared.Exceptions;
 using EtudeBackend.Shared.Extensions;
 using EtudeBackend.Shared.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -19,12 +22,15 @@ public class ApplicationController : ControllerBase
     private readonly IApplicationService _applicationService;
     private readonly IDistributedCache _cache;
     private readonly ILogger<ApplicationController> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public ApplicationController(IApplicationService applicationService, IDistributedCache cache, ILogger<ApplicationController> logger)
+    public ApplicationController(IApplicationService applicationService, IDistributedCache cache, 
+        ILogger<ApplicationController> logger, UserManager<ApplicationUser> userManager)
     {
         _applicationService = applicationService;
         _cache = cache;
         _logger = logger;
+        _userManager = userManager;
     }
     
     /// <summary>
@@ -73,12 +79,26 @@ public class ApplicationController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var createdApplication = await _applicationService.CreateApplicationAsync(applicationDto);
-            
-        return CreatedAtAction(
-            nameof(GetApplicationById), 
-            new { id = createdApplication.Id }, 
-            createdApplication);
+        // Получаем ID текущего пользователя из токена
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+            return Unauthorized(new { message = "Невозможно идентифицировать текущего пользователя" });
+
+        try
+        {
+            // Передаем ID пользователя без преобразований
+            var createdApplication = await _applicationService.CreateApplicationAsync(applicationDto, userIdClaim);
+        
+            return CreatedAtAction(
+                nameof(GetApplicationById), 
+                new { id = createdApplication.Id }, 
+                createdApplication);
+        }
+        catch (ApiException ex)
+        {
+            // Возвращаем информацию об ошибке
+            return StatusCode(ex.StatusCode, new { message = ex.Message });
+        }
     }
     
     /// <summary>
@@ -87,7 +107,6 @@ public class ApplicationController : ControllerBase
     [HttpPatch("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    // TODO: марк выебывался, подправить мб?????? точно нет, для вида
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateApplication(Guid id, [FromBody] UpdateApplicationDto applicationDto)
     {

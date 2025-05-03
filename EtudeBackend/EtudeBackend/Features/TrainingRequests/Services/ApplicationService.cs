@@ -7,6 +7,9 @@ using EtudeBackend.Shared.Exceptions;
 using EtudeBackend.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Transactions;
+using EtudeBackend.Shared.Data;
+using Microsoft.AspNetCore.Identity;
 
 namespace EtudeBackend.Features.TrainingRequests.Services;
 
@@ -15,21 +18,24 @@ public class ApplicationService : IApplicationService
     private readonly IApplicationRepository _applicationRepository;
     private readonly ICourseRepository _courseRepository;
     private readonly IStatusRepository _statusRepository;
-    private readonly IUserRepository _userRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
+    private readonly ILogger<ApplicationService> _logger;
 
     public ApplicationService(
         IApplicationRepository applicationRepository,
         ICourseRepository courseRepository,
         IStatusRepository statusRepository,
-        IUserRepository userRepository,
-        IMapper mapper)
+        UserManager<ApplicationUser> userManager,
+        IMapper mapper,
+        ILogger<ApplicationService> logger)
     {
         _applicationRepository = applicationRepository;
         _courseRepository = courseRepository;
         _statusRepository = statusRepository;
-        _userRepository = userRepository;
+        _userManager = userManager;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<PagedResult<ApplicationDto>> GetApplicationsAsync(
@@ -81,7 +87,12 @@ public class ApplicationService : IApplicationService
         return _mapper.Map<ApplicationDetailDto>(application);
     }
 
-    public async Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto)
+    public async Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto, string userId)
+{
+    // Используем TransactionScope для обеспечения атомарности операции
+    using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+    
+    try 
     {
         // Создаем новый курс
         var course = new Course
@@ -108,17 +119,23 @@ public class ApplicationService : IApplicationService
         var newStatus = await _statusRepository.GetByNameAsync("Новая") 
             ?? throw new ApiException("Статус 'Новая' не найден", 500);
         
-        // Конвертируем список согласующих в строку JSON
-        string approversJson = System.Text.Json.JsonSerializer.Serialize(applicationDto.ApproverIds);
+        // Преобразуем идентификаторы согласующих в строку JSON
+        // Проверяем, что ApproverIds - это список строк, если нет - конвертируем в строковый формат
+        var approverIdStrings = applicationDto.ApproverIds
+            .Select(id => id.ToString())
+            .ToList();
+            
+        string approversJson = System.Text.Json.JsonSerializer.Serialize(approverIdStrings);
         
-        // Создаем новую заявку
+        // Создаем новую заявку с полем Approvers
         var application = new Application
         {
             Id = Guid.NewGuid(),
             CourseId = course.Id,
-            AuthorId = applicationDto.AuthorId,
+            AuthorId = userId,
             StatusId = newStatus.Id,
             ApprovalHistory = string.Empty,
+            Approvers = approversJson, // Добавляем список согласующих в JSON формате
             CreatedAt = DateTimeOffset.UtcNow,
             SoloDocId = Guid.NewGuid() // Генерируем временный ID для документа Solo
         };
@@ -126,10 +143,27 @@ public class ApplicationService : IApplicationService
         // Сохраняем заявку
         await _applicationRepository.AddAsync(application);
         
-        // Возвращаем детальную информацию о заявке
-        return await GetApplicationByIdAsync(application.Id) 
-            ?? throw new ApiException("Ошибка при создании заявки", 500);
+        // Проверяем, что заявка была успешно создана
+        var createdApplication = await GetApplicationByIdAsync(application.Id);
+        if (createdApplication == null)
+            throw new ApiException("Ошибка при создании заявки", 500);
+            
+        // Если всё прошло успешно, завершаем транзакцию
+        transaction.Complete();
+        
+        // Для логирования
+        _logger.LogInformation("Создана новая заявка с ID {ApplicationId} пользователем {UserId}", 
+            application.Id, userId);
+        
+        return createdApplication;
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Ошибка при создании заявки пользователем {UserId}", userId);
+        
+        throw; // Пробрасываем исключение дальше
+    }
+}
 
     public async Task<ApplicationDetailDto?> UpdateApplicationAsync(Guid id, UpdateApplicationDto applicationDto)
     {
@@ -182,7 +216,6 @@ public class ApplicationService : IApplicationService
         application.UpdatedAt = DateTimeOffset.UtcNow;
         await _applicationRepository.UpdateAsync(application);
         
-        // Возвращаем обновленную детальную информацию
         return await GetApplicationByIdAsync(id);
     }
 
@@ -218,7 +251,7 @@ public class ApplicationService : IApplicationService
         application.UpdatedAt = DateTimeOffset.UtcNow;
         await _applicationRepository.UpdateAsync(application);
         
-        // Возвращаем обновленную детальную информацию
+        
         return await GetApplicationByIdAsync(id);
     }
 
@@ -228,13 +261,13 @@ public class ApplicationService : IApplicationService
         if (application == null)
             return false;
             
-        // Получаем курс, связанный с заявкой
+
         var course = await _courseRepository.GetByIdAsync(application.CourseId);
         
-        // Удаляем заявку
+
         await _applicationRepository.RemoveAsync(application);
         
-        // Если курс существует, удаляем и его
+
         if (course != null)
         {
             await _courseRepository.RemoveAsync(course);
@@ -243,7 +276,7 @@ public class ApplicationService : IApplicationService
         return true;
     }
     
-    // Вспомогательные методы
+
     
     private IQueryable<Application> ApplyFilters(IQueryable<Application> query, Dictionary<string, string> filters)
     {
@@ -270,7 +303,6 @@ public class ApplicationService : IApplicationService
                     if (DateTimeOffset.TryParse(filter.Value, out var dateTo))
                         query = query.Where(a => a.CreatedAt <= dateTo);
                     break;
-                // Добавьте другие фильтры по необходимости
             }
         }
         
