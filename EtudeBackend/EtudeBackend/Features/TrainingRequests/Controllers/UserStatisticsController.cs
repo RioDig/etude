@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EtudeBackend.Features.TrainingRequests.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user-statistics")]
 [Authorize]
 public class UserStatisticsController : ControllerBase
 {
@@ -16,15 +16,50 @@ public class UserStatisticsController : ControllerBase
     {
         _userStatisticsService = userStatisticsService;
     }
-    
+        
     /// <summary>
-    /// Получает статистику обучения для указанного пользователя
+    /// Получает список компетенций пользователя
     /// </summary>
-    [HttpGet("{userId}")]
+    [HttpGet("competencies")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUserStatistics(int userId)
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetCompetencies()
     {
-        var statistics = await _userStatisticsService.GetStatisticsByUserIdAsync(userId);
-        return Ok(statistics);
+        try
+        {
+            var competencies = await _userStatisticsService.GetCompetenciesAsync();
+            return Ok(competencies);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
+    }
+        
+    /// <summary>
+    /// Получает список прошедших мероприятий пользователя
+    /// </summary>
+    [HttpGet("past-events")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetPastEvents()
+    {
+        try
+        {
+            var pastEvents = await _userStatisticsService.GetPastEventsAsync();
+            return Ok(pastEvents);
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return Unauthorized();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
     }
 }

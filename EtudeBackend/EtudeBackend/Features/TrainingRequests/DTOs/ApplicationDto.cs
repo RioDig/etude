@@ -56,6 +56,7 @@ public class CreateApplicationDto
     public string Type { get; set; } = string.Empty;
     public string Track { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;
+    public Guid EmployeeId { get; set; }
     public string TrainingCenter { get; set; } = string.Empty;
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }

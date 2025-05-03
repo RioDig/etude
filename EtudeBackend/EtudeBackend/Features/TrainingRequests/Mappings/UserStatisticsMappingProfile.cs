@@ -8,14 +8,10 @@ public class UserStatisticsMappingProfile : Profile
 {
     public UserStatisticsMappingProfile()
     {
-        // Entity -> DTO
-        CreateMap<UserStatistics, UserStatisticsDto>()
-            .ForMember(dest => dest.CourseName, opt => opt.MapFrom(src => src.Course.Name))
-            .ForMember(dest => dest.UserFullName, opt => opt.MapFrom(src => $"{src.User.Surname} {src.User.Name} {src.User.Patronymic}".Trim()));
-            
-        // CreateDTO -> Entity
-        CreateMap<CreateUserStatisticsDto, UserStatistics>();
-            
-        // Обновление Entity селективно реализуется в сервисе
+        // Course -> PastEventDto
+        CreateMap<Course, PastEventDto>()
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
+            .ForMember(dest => dest.Format, opt => opt.MapFrom(src => src.Format.ToString()))
+            .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track.ToString()));
     }
 }

@@ -2,91 +2,112 @@
 using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Entities;
 using EtudeBackend.Features.TrainingRequests.Repositories;
+using EtudeBackend.Shared.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
-namespace EtudeBackend.Features.TrainingRequests.Services;
-
-public class UserStatisticsService : IUserStatisticsService
+namespace EtudeBackend.Features.TrainingRequests.Services
 {
-    private readonly IUserStatisticsRepository _repository;
-    private readonly IMapper _mapper;
-
-    public UserStatisticsService(IUserStatisticsRepository repository, IMapper mapper)
+    public class UserStatisticsService : IUserStatisticsService
     {
-        _repository = repository;
-        _mapper = mapper;
+        private readonly ICourseRepository _courseRepository;
+        private readonly IMapper _mapper;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public UserStatisticsService(
+            ICourseRepository courseRepository,
+            IMapper mapper,
+            UserManager<ApplicationUser> userManager,
+            IHttpContextAccessor httpContextAccessor)
+        {
+            _courseRepository = courseRepository;
+            _mapper = mapper;
+            _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+    public async Task<List<CompetencyDto>> GetCompetenciesAsync()
+    {
+    // Получаем текущего пользователя
+    var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrEmpty(userId))
+    {
+        throw new UnauthorizedAccessException("Пользователь не авторизован");
     }
 
-    public async Task<List<UserStatisticsDto>> GetAllStatisticsAsync()
+    // Расширенный список компетенций
+    var allCompetencies = new List<CompetencyDto>
     {
-        var statistics = await _repository.GetAllAsync();
-        return _mapper.Map<List<UserStatisticsDto>>(statistics);
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Разработка на C#" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "ASP.NET Core" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Entity Framework Core" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Управление проектами" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Agile методологии" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Базы данных SQL" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Микросервисная архитектура" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "DevOps практики" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Контейнеризация (Docker)" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Azure Cloud Services" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Лидерство в команде" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Автоматизированное тестирование" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Паттерны проектирования" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Непрерывная интеграция (CI/CD)" },
+        new CompetencyDto { Id = Guid.NewGuid(), Name = "Функциональное программирование" }
+    };
+
+    // Случайное число компетенций от 3 до 6
+    var random = new Random();
+    int count = random.Next(3, 7); // Верхняя граница не включается, поэтому 7
+
+    // Перемешиваем список и берем первые count элементов
+    var shuffledCompetencies = allCompetencies.OrderBy(c => random.Next()).Take(count).ToList();
+
+    return shuffledCompetencies;
     }
 
-    public async Task<UserStatisticsDto?> GetStatisticsByIdAsync(Guid id)
-    {
-        var statistics = await _repository.GetByIdAsync(id);
-        return statistics != null ? _mapper.Map<UserStatisticsDto>(statistics) : null;
-    }
+        public async Task<List<PastEventDto>> GetPastEventsAsync()
+        {
+            // Получаем текущего пользователя
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                throw new UnauthorizedAccessException("Пользователь не авторизован");
+            }
 
-    public async Task<List<UserStatisticsDto>> GetStatisticsByCourseIdAsync(int courseId)
-    {
-        var statistics = await _repository.GetByCourseIdAsync(Guid.Parse(courseId.ToString()));
-        return _mapper.Map<List<UserStatisticsDto>>(statistics);
-    }
+            // Получаем пользователя из БД, чтобы узнать его SoloUserId
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user is not { SoloUserId: not null })
+            {
+                return new List<PastEventDto>(); // Возвращаем пустой список, если у пользователя нет SoloUserId
+            }
 
-    public async Task<List<UserStatisticsDto>> GetStatisticsByUserIdAsync(int userId)
-    {
-        var statistics = await _repository.GetByUserIdAsync(userId.ToString());
-        return _mapper.Map<List<UserStatisticsDto>>(statistics);
-    }
+            // Создаем Guid из идентификатора пользователя для поиска в репозитории
+            var employeeId = Guid.Parse(userId);
+    
+            // Получаем курсы, где пользователь указан как обучающийся (EmployeeId)
+            var userCourses = await _courseRepository.GetByEmployeeIdAsync(employeeId);
+    
+            // Фильтруем по дате окончания (прошедшие мероприятия)
+            var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
+            var pastCourses = userCourses
+                .Where(c => c.EndDate < currentDate)
+                .ToList();
 
-    public async Task<UserStatisticsDto?> GetStatisticsByUserAndCourseAsync(int userId, int courseId)
-    {
-        var statistics = await _repository.GetByUserAndCourseIdAsync(
-            userId.ToString(), 
-            Guid.Parse(courseId.ToString()));
-            
-        return statistics != null ? _mapper.Map<UserStatisticsDto>(statistics) : null;
-    }
+            // Маппим в DTO
+            var pastEvents = pastCourses.Select(course => new PastEventDto
+            {
+                Id = course.Id,
+                Name = course.Name,
+                Type = course.Type.ToString(),
+                Format = course.Format.ToString(),
+                Track = course.Track.ToString(),
+                StartDate = course.StartDate,
+                EndDate = course.EndDate
+            }).ToList();
 
-    public async Task<UserStatisticsDto> CreateStatisticsAsync(CreateUserStatisticsDto statisticsDto)
-    {
-        var statistics = _mapper.Map<UserStatistics>(statisticsDto);
-        
-        var createdStatistics = await _repository.AddAsync(statistics);
-        return _mapper.Map<UserStatisticsDto>(createdStatistics);
-    }
-
-    public async Task<UserStatisticsDto?> UpdateStatisticsAsync(Guid id, UpdateUserStatisticsDto statisticsDto)
-    {
-        var statistics = await _repository.GetByIdAsync(id);
-        if (statistics == null)
-            return null;
-
-        // Обновляем только заданные поля
-        if (statisticsDto.EnrollmentDate.HasValue)
-            statistics.EnrollmentDate = statisticsDto.EnrollmentDate;
-            
-        if (statisticsDto.CompletionDate.HasValue)
-            statistics.CompletionDate = statisticsDto.CompletionDate;
-            
-        if (statisticsDto.AttendanceRate.HasValue)
-            statistics.AttendanceRate = statisticsDto.AttendanceRate;
-            
-        if (statisticsDto.CertificateIssued.HasValue)
-            statistics.CertificateIssued = statisticsDto.CertificateIssued.Value;
-
-        await _repository.UpdateAsync(statistics);
-        return _mapper.Map<UserStatisticsDto>(statistics);
-    }
-
-    public async Task<bool> DeleteStatisticsAsync(Guid id)
-    {
-        var statistics = await _repository.GetByIdAsync(id);
-        if (statistics == null)
-            return false;
-
-        await _repository.RemoveAsync(statistics);
-        return true;
+            return pastEvents;
+        }
     }
 }

@@ -58,4 +58,11 @@ public class CourseRepository : Repository<Course>, ICourseRepository
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
     }
+    public async Task<List<Course>> GetByEmployeeIdAsync(Guid employeeId)
+    {
+        return await _dbSet
+            .Where(c => c.EmployeeId == employeeId)
+            .OrderByDescending(c => c.CreatedAt)
+            .ToListAsync();
+    }
 }

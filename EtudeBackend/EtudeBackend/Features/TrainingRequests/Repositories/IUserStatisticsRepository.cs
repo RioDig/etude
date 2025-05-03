@@ -10,7 +10,7 @@ namespace EtudeBackend.Features.TrainingRequests.Repositories
     public interface IUserStatisticsRepository : IRepository<UserStatistics>
     {
         Task<List<UserStatistics>> GetByCourseIdAsync(Guid courseId);
-        Task<List<UserStatistics>> GetByUserIdAsync(string userId); // Изменяем тип на string
+        Task<List<UserStatistics>> GetByUserIdAsync(string userId);
         Task<UserStatistics?> GetByUserAndCourseIdAsync(string userId, Guid courseId); // Изменяем тип на string
     }
 }

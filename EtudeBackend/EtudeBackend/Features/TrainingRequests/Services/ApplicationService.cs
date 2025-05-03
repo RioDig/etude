@@ -104,6 +104,7 @@ public class ApplicationService : IApplicationService
             Track = ParseEnum<CourseTrack>(applicationDto.Track),
             Format = ParseEnum<CourseFormat>(applicationDto.Format),
             TrainingCenter = applicationDto.TrainingCenter,
+            EmployeeId = applicationDto.EmployeeId,
             StartDate = applicationDto.StartDate,
             EndDate = applicationDto.EndDate,
             Price = applicationDto.Price,
