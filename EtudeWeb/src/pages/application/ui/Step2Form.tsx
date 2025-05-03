@@ -1,7 +1,10 @@
+// Обновление Step2Form.tsx с использованием API сотрудников
 import React, { useEffect, useState } from 'react'
 import { Control } from '@/shared/ui/controls'
 import { Typography } from '@/shared/ui/typography'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
+import { useEmployees } from '@/entities/employee'
+import { Spinner } from '@/shared/ui/spinner'
 
 interface Step2FormProps {
   onValidChange: (isValid: boolean) => void
@@ -18,13 +21,15 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   const [cost, setCost] = useState(currentApplication?.cost || '')
   const [participants, setParticipants] = useState<string[]>(currentApplication?.participants || [])
 
-  // Опции для выпадающих списков
-  const participantOptions = [
-    { value: '1', label: 'Иванов Иван Иванович' },
-    { value: '2', label: 'Петров Петр Петрович' },
-    { value: '3', label: 'Сидорова Елена Викторовна' },
-    { value: '4', label: 'Козлов Алексей Сергеевич' }
-  ]
+  // Получаем список сотрудников из API
+  const { data: employees, isLoading: isLoadingEmployees } = useEmployees()
+
+  // Опции для мультиселекта сотрудников
+  const participantOptions =
+    employees?.map((emp) => ({
+      value: emp.id,
+      label: emp.name
+    })) || []
 
   // Функция валидации формы
   const validateForm = () => {
@@ -104,15 +109,24 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
         />
 
         {/* Сотрудники */}
-        <Control.MultiSelect
-          label="Сотрудники"
-          required
-          options={participantOptions}
-          value={participants}
-          onChange={handleParticipantsChange}
-          placeholder="Выберите сотрудников"
-          hint="Выберите сотрудников, которые будут участвовать в мероприятии"
-        />
+        <div>
+          <Control.MultiSelect
+            label="Сотрудники"
+            required
+            options={participantOptions}
+            value={participants}
+            onChange={handleParticipantsChange}
+            placeholder={isLoadingEmployees ? 'Загрузка сотрудников...' : 'Выберите сотрудников'}
+            hint="Выберите сотрудников, которые будут участвовать в мероприятии"
+            disabled={isLoadingEmployees}
+          />
+          {isLoadingEmployees && (
+            <div className="mt-2 flex items-center">
+              <Spinner size="small" className="mr-2" />
+              <span className="text-mono-600 text-b4-regular">Загрузка списка сотрудников...</span>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

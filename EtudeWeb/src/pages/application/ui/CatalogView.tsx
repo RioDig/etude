@@ -97,23 +97,20 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     </div>
   )
 
-  // Показываем загрузку, но оставляем фильтры
-  if (isLoading) {
-    return (
-      <div className="flex flex-col gap-6">
-        {renderFilters()}
+  // Рендер содержимого каталога
+  const renderCatalogContent = () => {
+    // Показываем загрузку, но оставляем фильтры
+    if (isLoading) {
+      return (
         <div className="flex justify-center items-center h-[400px]">
           <Spinner size="large" label="Загрузка каталога мероприятий..." />
         </div>
-      </div>
-    )
-  }
+      )
+    }
 
-  // Показываем сообщение об ошибке, но оставляем фильтры
-  if (error) {
-    return (
-      <div className="flex flex-col gap-6">
-        {renderFilters()}
+    // Показываем сообщение об ошибке
+    if (error) {
+      return (
         <EmptyMessage
           variant="large"
           imageUrl={EmptyStateSvg}
@@ -125,15 +122,12 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </Button>
           }
         />
-      </div>
-    )
-  }
+      )
+    }
 
-  // Если нет мероприятий
-  if (!events || events.length === 0) {
-    return (
-      <div className="flex flex-col gap-6">
-        {renderFilters()}
+    // Если нет мероприятий
+    if (!events || events.length === 0) {
+      return (
         <EmptyMessage
           variant="large"
           imageUrl={EmptyStateSvg}
@@ -145,44 +139,51 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
             </Button>
           }
         />
-      </div>
+      )
+    }
+
+    // Рендер сетки с карточками мероприятий
+    return (
+      <>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {events.map((event) => (
+            <EventCard
+              key={event.id}
+              id={event.id}
+              title={event.title}
+              description={event.description || ''}
+              startDate={event.startDate}
+              endDate={event.endDate}
+              tags={[
+                { id: '1', label: getReadableType(event.type) },
+                { id: '2', label: getReadableFormat(event.format) },
+                { id: '3', label: getReadableCategory(event.category) }
+              ]}
+              isSelected={selectedEventId === event.id}
+              onClick={() => handleEventSelect(event)}
+            />
+          ))}
+        </div>
+
+        {/* Информационная подсказка при выборе мероприятия */}
+        {selectedEventId && (
+          <div className="mt-4 text-center">
+            <Typography variant="b3Regular" className="text-mono-600">
+              Нажмите "Далее" для перехода к заполнению заявления
+            </Typography>
+          </div>
+        )}
+      </>
     )
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Фильтры */}
+    <div className="flex flex-col gap-6 h-full">
+      {/* Фильтры вне области скролла */}
       {renderFilters()}
 
-      {/* Результаты поиска - сетка с карточками мероприятий */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {events.map((event) => (
-          <EventCard
-            key={event.id}
-            id={event.id}
-            title={event.title}
-            description={event.description || ''}
-            startDate={event.startDate}
-            endDate={event.endDate}
-            tags={[
-              { id: '1', label: getReadableType(event.type) },
-              { id: '2', label: getReadableFormat(event.format) },
-              { id: '3', label: getReadableCategory(event.category) }
-            ]}
-            isSelected={selectedEventId === event.id}
-            onClick={() => handleEventSelect(event)}
-          />
-        ))}
-      </div>
-
-      {/* Информационная подсказка при выборе мероприятия */}
-      {selectedEventId && (
-        <div className="mt-4 text-center">
-          <Typography variant="b3Regular" className="text-mono-600">
-            Нажмите "Далее" для перехода к заполнению заявления
-          </Typography>
-        </div>
-      )}
+      {/* Контент каталога в области скролла */}
+      <div className="overflow-auto flex-1">{renderCatalogContent()}</div>
     </div>
   )
 }

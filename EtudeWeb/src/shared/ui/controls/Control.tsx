@@ -739,7 +739,7 @@ export const SelectControl = forwardRef<HTMLDivElement, SelectControlProps>(({
         </ControlWrapper>
 
         {isOpen && (
-          <div className="absolute z-10 mt-1 w-full">
+          <div className="absolute z-20 mt-1 w-full">
             <Dropdown
               options={options}
               value={value}
@@ -1111,7 +1111,7 @@ export const DateInputControl = forwardRef<HTMLInputElement, DateInputControlPro
         </ControlWrapper>
 
         {isOpen && (
-          <div className="absolute z-10 mt-1 right-0">
+          <div className="absolute z-20 mt-1 right-0">
             <DatePicker
               value={value || undefined}
               onChange={handleDateSelect}

@@ -130,14 +130,14 @@ export const applicationApi = {
     }
   },
 
-  // Создание нового заявления
+// Создание нового заявления
   createApplication: async (applicationData: ApplicationData): Promise<ApplicationData> => {
     try {
       // В реальном проекте здесь будет реальный запрос
-      // const { data } = await api.post('/applications', applicationData);
+      // const { data } = await api.post('/application', applicationData);
 
       // Имитация запроса для демонстрации
-      await delay(1500)
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
       return {
         ...applicationData,

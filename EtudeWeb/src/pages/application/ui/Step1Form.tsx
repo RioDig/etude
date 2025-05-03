@@ -8,7 +8,7 @@ interface Step1FormProps {
 }
 
 export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
-  const { currentApplication, updateApplicationData } = useApplicationStore()
+  const { currentApplication, updateApplicationData, selectedEventId } = useApplicationStore()
 
   // Локальные состояния для полей формы
   const [type, setType] = useState(currentApplication?.type || '')
@@ -17,6 +17,10 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
   const [format, setFormat] = useState(currentApplication?.format || '')
   const [link, setLink] = useState(currentApplication?.link || '')
   const [description, setDescription] = useState(currentApplication?.description || '')
+
+  // Определяем, можно ли редактировать поля формы
+  // Если выбрано мероприятие из каталога - эти поля будут disabled
+  const isFieldDisabled = !!selectedEventId
 
   // Опции для выпадающих списков
   const typeOptions = [
@@ -85,6 +89,11 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
     <div className="flex flex-col gap-6">
       <Typography variant="b3Regular" className="text-mono-800">
         Заполните информацию о мероприятии. Поля, отмеченные *, обязательны для заполнения
+        {isFieldDisabled && (
+          <span className="ml-1 text-mono-700">
+            (некоторые поля недоступны для редактирования, так как мероприятие выбрано из каталога)
+          </span>
+        )}
       </Typography>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -96,6 +105,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           value={type}
           onChange={handleTypeChange}
           placeholder="Выберите тип курса"
+          disabled={isFieldDisabled}
         />
 
         {/* Наименование */}
@@ -105,6 +115,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           value={title}
           onChange={handleTitleChange}
           placeholder="Введите наименование"
+          disabled={isFieldDisabled}
         />
 
         {/* Направление */}
@@ -115,6 +126,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           value={category}
           onChange={handleCategoryChange}
           placeholder="Выберите направление курса"
+          disabled={isFieldDisabled}
         />
 
         {/* Формат */}
@@ -125,6 +137,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           value={format}
           onChange={handleFormatChange}
           placeholder="Выберите формат курса"
+          disabled={isFieldDisabled}
         />
 
         {/* Ссылка */}
@@ -144,6 +157,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
         onChange={handleDescriptionChange}
         placeholder="Введите описание"
         rows={5}
+        disabled={isFieldDisabled}
       />
     </div>
   )

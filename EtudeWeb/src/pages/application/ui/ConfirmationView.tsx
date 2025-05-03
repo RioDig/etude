@@ -1,9 +1,14 @@
+// Обновим ConfirmationView.tsx, добавив логику отправки:
 import React from 'react'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
 import { Edit } from '@mui/icons-material'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
 import { Tag } from '@/shared/ui/tag'
+// import { useApplicationSubmit } from '@/entities/application'
+// import { Spinner } from '@/shared/ui/spinner'
+// import { notification } from '@/shared/lib/notification'
+// import { useNavigate } from 'react-router-dom'
 
 interface SectionProps {
   title: string
@@ -45,6 +50,36 @@ const DataRow: React.FC<{ label: string; value: string | React.ReactNode }> = ({
 
 export const ConfirmationView: React.FC = () => {
   const { currentApplication, setActiveStep } = useApplicationStore()
+  // const navigate = useNavigate()
+
+  // Хук для отправки заявления
+  // const { mutate: submitApplication, isPending } = useApplicationSubmit()
+
+  // Обработчик отправки заявления
+  // const handleSubmit = () => {
+  //   if (!currentApplication) return
+  //
+  //   // Отправляем заявление на сервер
+  //   submitApplication(currentApplication, {
+  //     onSuccess: () => {
+  //       // Показываем уведомление об успехе
+  //       notification.success({
+  //         title: 'Заявление отправлено',
+  //         description: 'Ваше заявление успешно отправлено и находится на рассмотрении'
+  //       })
+  //
+  //       // Перенаправляем на страницу заявлений
+  //       navigate('/applications')
+  //     },
+  //     onError: () => {
+  //       // Показываем уведомление об ошибке
+  //       notification.error({
+  //         title: 'Ошибка отправки',
+  //         description: 'Не удалось отправить заявление. Пожалуйста, попробуйте позже.'
+  //       })
+  //     }
+  //   })
+  // }
 
   // Форматирование типа мероприятия
   const getEventType = () => {
@@ -206,6 +241,20 @@ export const ConfirmationView: React.FC = () => {
       <Section title="Согласующие" onEdit={() => setActiveStep(2)}>
         {getApprovers()}
       </Section>
+
+      {/* Кнопка отправки заявления */}
+      {/*<div className="mt-4 flex justify-center">*/}
+      {/*  <Button variant="primary" size="large" onClick={handleSubmit} disabled={isPending}>*/}
+      {/*    {isPending ? (*/}
+      {/*      <>*/}
+      {/*        <Spinner size="small" variant="white" className="mr-2" />*/}
+      {/*        <span>Отправка заявления...</span>*/}
+      {/*      </>*/}
+      {/*    ) : (*/}
+      {/*      'Подтвердить и отправить'*/}
+      {/*    )}*/}
+      {/*  </Button>*/}
+      {/*</div>*/}
     </div>
   )
 }

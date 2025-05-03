@@ -12,6 +12,9 @@ import { Step3Form } from './ui/Step3Form'
 import { ConfirmationView } from './ui/ConfirmationView'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
 import { ApplicationEvent } from '@/entities/application'
+import { Spinner } from '@/shared/ui/spinner'
+import { notification } from '@/shared/lib/notification'
+import { useApplicationSubmit } from '@/entities/application'
 
 export const ApplicationCreatePage: React.FC = () => {
   const navigate = useNavigate()
@@ -26,10 +29,13 @@ export const ApplicationCreatePage: React.FC = () => {
     activeStep: stepFromStore
   } = useApplicationStore()
 
+  // Хук для отправки заявления
+  const { mutate: submitApplication, isPending: isSubmitting } = useApplicationSubmit()
+
   // Локальное состояние страницы
   const [showForm, setShowForm] = useState(false)
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
   const [formIsValid, setFormIsValid] = useState(false)
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
 
   // Сбрасываем данные заявления при размонтировании компонента
   useEffect(() => {
@@ -60,6 +66,16 @@ export const ApplicationCreatePage: React.FC = () => {
       // Возврат от формы к каталогу
       setShowForm(false)
     }
+  }
+
+  // Обработчик для возврата к каталогу с очисткой данных
+  const handleGoToCatalog = () => {
+    // Сбрасываем состояние формы
+    reset()
+    // Переходим обратно к каталогу
+    setShowForm(false)
+    // Сбрасываем выбранное мероприятие
+    setSelectedEventId(null)
   }
 
   // Обработчик выбора мероприятия
@@ -93,9 +109,35 @@ export const ApplicationCreatePage: React.FC = () => {
     })
   }
 
-  // Обработчик изменения валидности формы - просто обновляем локальное состояние
+  // Обработчик изменения валидности формы
   const handleFormValidChange = (isValid: boolean) => {
     setFormIsValid(isValid)
+  }
+
+  // Обработчик отправки заявления
+  const handleSubmit = () => {
+    if (!currentApplication) return
+
+    // Отправляем заявление на сервер
+    submitApplication(currentApplication, {
+      onSuccess: () => {
+        // Показываем уведомление об успехе
+        notification.success({
+          title: 'Заявление отправлено',
+          description: 'Ваше заявление успешно отправлено и находится на рассмотрении'
+        })
+
+        // Перенаправляем на страницу заявлений
+        navigate('/applications')
+      },
+      onError: () => {
+        // Показываем уведомление об ошибке
+        notification.error({
+          title: 'Ошибка отправки',
+          description: 'Не удалось отправить заявление. Пожалуйста, попробуйте позже.'
+        })
+      }
+    })
   }
 
   // Получение заголовка на основе активного шага
@@ -140,7 +182,7 @@ export const ApplicationCreatePage: React.FC = () => {
   }
 
   return (
-    <Container className="flex flex-col gap-6 h-[calc(100vh-240px)] overflow-hidden">
+    <Container className="flex flex-col gap-6 h-full overflow-visible">
       {/* Верхний блок с заголовком и Stepper */}
       <div className="flex justify-between items-start">
         <div>
@@ -150,8 +192,8 @@ export const ApplicationCreatePage: React.FC = () => {
           <Typography variant="h2">{getStepTitle()}</Typography>
         </div>
 
-        {/* Показываем степпер только если форма активна */}
-        {showForm && (
+        {/* Показываем степпер только для этапов формы (не для подтверждения) */}
+        {showForm && stepFromStore < steps.length && (
           <div className="mt-2">
             <Stepper steps={steps} activeStep={stepFromStore} />
           </div>
@@ -160,7 +202,7 @@ export const ApplicationCreatePage: React.FC = () => {
 
       {/* Основной блок с содержимым шага */}
       <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-auto pr-2">{renderStepContent()}</div>
+        <div className="h-full overflow-auto pr-2 relative">{renderStepContent()}</div>
       </div>
 
       {/* Нижний блок с кнопками навигации */}
@@ -193,7 +235,7 @@ export const ApplicationCreatePage: React.FC = () => {
             </>
           ) : stepFromStore < steps.length ? (
             <>
-              <Button variant="secondary" onClick={() => setShowForm(false)}>
+              <Button variant="secondary" onClick={handleGoToCatalog}>
                 Перейти в каталог мероприятий
               </Button>
               <Button disabled={!formIsValid} onClick={handleNext}>
@@ -201,8 +243,15 @@ export const ApplicationCreatePage: React.FC = () => {
               </Button>
             </>
           ) : (
-            <Button variant="primary" onClick={() => navigate('/applications')}>
-              Подтвердить и отправить
+            <Button variant="primary" onClick={handleSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Spinner size="small" variant="white" className="mr-2" />
+                  <span>Отправка заявления...</span>
+                </>
+              ) : (
+                'Подтвердить и отправить'
+              )}
             </Button>
           )}
         </div>

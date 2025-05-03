@@ -1,6 +1,7 @@
 // Экспорт моделей данных
 export { useApplicationStore } from './model/applicationStore'
 export type { ApplicationData, ApplicationEvent } from './model/applicationStore'
+export { useApplicationSubmit } from './hooks/useApplicationSubmit'
 
 // Экспорт констант и вспомогательных функций
 export {
