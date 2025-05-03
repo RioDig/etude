@@ -103,7 +103,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     if (isLoading) {
       return (
         <div className="flex justify-center items-center h-[400px]">
-          <Spinner size="large" label="Загрузка каталога мероприятий..." />
+          <Spinner size='medium' className="mr-2" />
+          <span className="text-mono-600 text-b4-regular leading-none">Загрузка каталога мероприятий...</span>
         </div>
       )
     }
