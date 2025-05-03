@@ -10,7 +10,15 @@ interface Step2FormProps {
 export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
-  // Опции для выпадающих списков (примеры)
+  // Локальные состояния для полей формы
+  const [duration, setDuration] = useState<Date | null>(
+    currentApplication?.duration ? new Date(currentApplication.duration) : null
+  )
+  const [goal, setGoal] = useState(currentApplication?.goal || '')
+  const [cost, setCost] = useState(currentApplication?.cost || '')
+  const [participants, setParticipants] = useState<string[]>(currentApplication?.participants || [])
+
+  // Опции для выпадающих списков
   const participantOptions = [
     { value: '1', label: 'Иванов Иван Иванович' },
     { value: '2', label: 'Петров Петр Петрович' },
@@ -18,62 +26,45 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
     { value: '4', label: 'Козлов Алексей Сергеевич' }
   ]
 
-  // Инициализируем начальные значения из хранилища
-  const [formState] = useState({
-    duration: currentApplication?.duration || '',
-    goal: currentApplication?.goal || '',
-    cost: currentApplication?.cost || '',
-    participants: currentApplication?.participants || []
-  })
-
-  // Проверка валидации при начальном рендере
-  useEffect(() => {
-    // Проверяем валидность формы
-    const isValid =
-      !!formState.duration &&
-      !!formState.goal &&
-      !!formState.cost &&
-      (formState.participants?.length || 0) > 0
-
-    // Уведомляем родительский компонент
+  // Функция валидации формы
+  const validateForm = () => {
+    const isValid = duration !== null && goal !== '' && cost !== '' && participants.length > 0
     onValidChange(isValid)
-  }, [formState, onValidChange])
+    return isValid
+  }
+
+  // Эффект для валидации при изменении состояния полей
+  useEffect(() => {
+    validateForm()
+  }, [duration, goal, cost, participants])
 
   // Обработчик изменения даты
   const handleDateChange = (date: Date | null) => {
+    setDuration(date)
     if (date) {
       const formattedDate = date.toISOString().split('T')[0] // Формат YYYY-MM-DD
       updateApplicationData({ duration: formattedDate })
-      validateForm({ ...formState, duration: formattedDate })
     } else {
       updateApplicationData({ duration: '' })
-      validateForm({ ...formState, duration: '' })
     }
   }
 
   // Обработчик изменения цели
   const handleGoalChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setGoal(e.target.value)
     updateApplicationData({ goal: e.target.value })
-    validateForm({ ...formState, goal: e.target.value })
   }
 
   // Обработчик изменения стоимости
   const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCost(e.target.value)
     updateApplicationData({ cost: e.target.value })
-    validateForm({ ...formState, cost: e.target.value })
   }
 
   // Обработчик изменения участников
   const handleParticipantsChange = (values: string[]) => {
+    setParticipants(values)
     updateApplicationData({ participants: values })
-    validateForm({ ...formState, participants: values })
-  }
-
-  // Функция валидации формы
-  const validateForm = (data: typeof formState) => {
-    const isValid =
-      !!data.duration && !!data.goal && !!data.cost && (data.participants?.length || 0) > 0
-    onValidChange(isValid)
   }
 
   return (
@@ -87,7 +78,7 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
         <Control.DateInput
           label="Срок прохождения"
           required
-          value={currentApplication?.duration ? new Date(currentApplication.duration) : null}
+          value={duration}
           onChange={handleDateChange}
           placeholder="Введите срок прохождения"
         />
@@ -96,7 +87,7 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
         <Control.Textarea
           label="Цель участия"
           required
-          value={currentApplication?.goal || ''}
+          value={goal}
           onChange={handleGoalChange}
           placeholder="Введите цель участия"
           rows={3}
@@ -106,7 +97,7 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
         <Control.Input
           label="Стоимость участия"
           required
-          value={currentApplication?.cost || ''}
+          value={cost}
           onChange={handleCostChange}
           placeholder="Введите стоимость участия"
           hint="Укажите стоимость в рублях"
@@ -117,7 +108,7 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
           label="Сотрудники"
           required
           options={participantOptions}
-          value={currentApplication?.participants || []}
+          value={participants}
           onChange={handleParticipantsChange}
           placeholder="Выберите сотрудников"
           hint="Выберите сотрудников, которые будут участвовать в мероприятии"

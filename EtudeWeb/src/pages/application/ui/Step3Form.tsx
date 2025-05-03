@@ -17,12 +17,14 @@ interface Approver {
 export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
+  // Локальное состояние для списка согласующих
   const [approvers, setApprovers] = useState<Approver[]>(
-    currentApplication?.approvers || [{ id: '1', userId: '' }]
+    currentApplication?.approvers && currentApplication.approvers.length > 0
+      ? currentApplication.approvers
+      : [{ id: '1', userId: '' }]
   )
-  const [isFormInitialized, setIsFormInitialized] = useState(false)
 
-  // Опции для выпадающих списков (примеры)
+  // Опции для выпадающих списков
   const approverOptions = [
     { value: '1', label: 'Иванов Иван Иванович' },
     { value: '2', label: 'Петров Петр Петрович' },
@@ -30,27 +32,19 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
     { value: '4', label: 'Михайлов Михаил Михайлович' }
   ]
 
-  // Инициализация формы значениями из хранилища (только один раз)
-  useEffect(() => {
-    if (!isFormInitialized && currentApplication?.approvers) {
-      setApprovers(currentApplication.approvers)
-      setIsFormInitialized(true)
-    }
-  }, [currentApplication, isFormInitialized])
+  // Функция валидации формы
+  const validateForm = () => {
+    const isValid = approvers.length > 0 && approvers.every((approver) => approver.userId !== '')
+    onValidChange(isValid)
+    return isValid
+  }
 
-  // Проверка валидности формы и обновление данных заявления в хранилище
+  // Эффект для валидации при изменении списка согласующих
   useEffect(() => {
-    if (isFormInitialized) {
-      // Проверяем, что хотя бы один согласующий выбран
-      const isValid = approvers.length > 0 && approvers.every((approver) => !!approver.userId)
-      onValidChange(isValid)
-
-      // Обновляем данные заявления в хранилище
-      updateApplicationData({
-        approvers
-      })
-    }
-  }, [approvers, onValidChange, updateApplicationData, isFormInitialized])
+    validateForm()
+    // Обновляем данные в хранилище при изменении согласующих
+    updateApplicationData({ approvers })
+  }, [approvers])
 
   // Добавление нового согласующего
   const handleAddApprover = () => {

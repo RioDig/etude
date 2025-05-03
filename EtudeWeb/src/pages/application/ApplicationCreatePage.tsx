@@ -28,8 +28,8 @@ export const ApplicationCreatePage: React.FC = () => {
 
   // Локальное состояние страницы
   const [showForm, setShowForm] = useState(false)
-  const [formValid, setFormValid] = useState(false)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
+  const [formIsValid, setFormIsValid] = useState(false)
 
   // Сбрасываем данные заявления при размонтировании компонента
   useEffect(() => {
@@ -95,7 +95,7 @@ export const ApplicationCreatePage: React.FC = () => {
 
   // Обработчик изменения валидности формы - просто обновляем локальное состояние
   const handleFormValidChange = (isValid: boolean) => {
-    setFormValid(isValid)
+    setFormIsValid(isValid)
   }
 
   // Получение заголовка на основе активного шага
@@ -196,7 +196,7 @@ export const ApplicationCreatePage: React.FC = () => {
               <Button variant="secondary" onClick={() => setShowForm(false)}>
                 Перейти в каталог мероприятий
               </Button>
-              <Button disabled={!formValid} onClick={handleNext}>
+              <Button disabled={!formIsValid} onClick={handleNext}>
                 Далее
               </Button>
             </>

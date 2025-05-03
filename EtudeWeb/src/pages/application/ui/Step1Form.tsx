@@ -10,6 +10,14 @@ interface Step1FormProps {
 export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
+  // Локальные состояния для полей формы
+  const [type, setType] = useState(currentApplication?.type || '')
+  const [title, setTitle] = useState(currentApplication?.title || '')
+  const [category, setCategory] = useState(currentApplication?.category || '')
+  const [format, setFormat] = useState(currentApplication?.format || '')
+  const [link, setLink] = useState(currentApplication?.link || '')
+  const [description, setDescription] = useState(currentApplication?.description || '')
+
   // Опции для выпадающих списков
   const typeOptions = [
     { value: 'conference', label: 'Конференция' },
@@ -30,59 +38,47 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
     { value: 'mixed', label: 'Смешанный' }
   ]
 
-  // Инициализируем начальные значения из хранилища
-  const [formState] = useState({
-    type: currentApplication?.type || '',
-    title: currentApplication?.title || '',
-    category: currentApplication?.category || '',
-    format: currentApplication?.format || '',
-    link: currentApplication?.link || '',
-    description: currentApplication?.description || ''
-  })
-
-  // Проверка валидации при начальном рендере
-  useEffect(() => {
-    // Проверяем валидность формы
-    const isValid =
-      !!formState.type && !!formState.title && !!formState.category && !!formState.format
-
-    // Уведомляем родительский компонент
+  // Функция валидации формы
+  const validateForm = () => {
+    const isValid = !!type && !!title && !!category && !!format
     onValidChange(isValid)
-  }, [formState, onValidChange])
+    return isValid
+  }
+
+  // Эффект для валидации при изменении состояния полей
+  useEffect(() => {
+    validateForm()
+  }, [type, title, category, format])
 
   // Обработчики изменения полей
   const handleTypeChange = (value: string) => {
+    setType(value)
     updateApplicationData({ type: value })
-    validateForm({ ...formState, type: value })
   }
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTitle(e.target.value)
     updateApplicationData({ title: e.target.value })
-    validateForm({ ...formState, title: e.target.value })
   }
 
   const handleCategoryChange = (value: string) => {
+    setCategory(value)
     updateApplicationData({ category: value })
-    validateForm({ ...formState, category: value })
   }
 
   const handleFormatChange = (value: string) => {
+    setFormat(value)
     updateApplicationData({ format: value })
-    validateForm({ ...formState, format: value })
   }
 
   const handleLinkChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLink(e.target.value)
     updateApplicationData({ link: e.target.value })
   }
 
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescription(e.target.value)
     updateApplicationData({ description: e.target.value })
-  }
-
-  // Функция валидации формы
-  const validateForm = (data: typeof formState) => {
-    const isValid = !!data.type && !!data.title && !!data.category && !!data.format
-    onValidChange(isValid)
   }
 
   return (
@@ -97,7 +93,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           label="Тип"
           required
           options={typeOptions}
-          value={currentApplication?.type || ''}
+          value={type}
           onChange={handleTypeChange}
           placeholder="Выберите тип курса"
         />
@@ -106,7 +102,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
         <Control.Input
           label="Наименование"
           required
-          value={currentApplication?.title || ''}
+          value={title}
           onChange={handleTitleChange}
           placeholder="Введите наименование"
         />
@@ -116,7 +112,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           label="Направление"
           required
           options={categoryOptions}
-          value={currentApplication?.category || ''}
+          value={category}
           onChange={handleCategoryChange}
           placeholder="Выберите направление курса"
         />
@@ -126,7 +122,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
           label="Формат"
           required
           options={formatOptions}
-          value={currentApplication?.format || ''}
+          value={format}
           onChange={handleFormatChange}
           placeholder="Выберите формат курса"
         />
@@ -134,7 +130,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
         {/* Ссылка */}
         <Control.Input
           label="Ссылка"
-          value={currentApplication?.link || ''}
+          value={link}
           onChange={handleLinkChange}
           placeholder="Введите ссылку"
           hint="Укажите ссылку на курс или дополнительную информацию"
@@ -144,7 +140,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
       {/* Описание */}
       <Control.Textarea
         label="Описание"
-        value={currentApplication?.description || ''}
+        value={description}
         onChange={handleDescriptionChange}
         placeholder="Введите описание"
         rows={5}
