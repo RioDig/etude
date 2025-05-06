@@ -182,7 +182,7 @@ export const ApplicationCreatePage: React.FC = () => {
   }
 
   return (
-    <Container className="flex flex-col gap-6 h-full overflow-visible">
+    <Container className="flex flex-col gap-6 h-full max-w-[1200px] overflow-visible mx-auto">
       {/* Верхний блок с заголовком и Stepper */}
       <div className="flex justify-between items-start">
         <div>

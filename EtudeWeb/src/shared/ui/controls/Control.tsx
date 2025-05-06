@@ -1137,5 +1137,8 @@ export const Control = {
   Select: SelectControl,
   MultiSelect: MultiSelectControl,
   DateInput: DateInputControl,
+  Root: ControlRoot,
+  Label: ControlLabel,
+  Error: ControlError,
 };
 

@@ -133,19 +133,8 @@ export const applicationApi = {
 // Создание нового заявления
   createApplication: async (applicationData: ApplicationData): Promise<ApplicationData> => {
     try {
-      // В реальном проекте здесь будет реальный запрос
-      // const { data } = await api.post('/application', applicationData);
-
-      // Имитация запроса для демонстрации
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      return {
-        ...applicationData,
-        id: Math.random().toString(36).substring(2, 11),
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
+      const { data } = await api.post('/application', applicationData);
+      return data
     } catch (error) {
       console.error('Error creating application:', error)
       throw error

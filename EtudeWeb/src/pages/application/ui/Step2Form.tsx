@@ -1,10 +1,9 @@
-// Обновление Step2Form.tsx с использованием API сотрудников
+// Обновляем Step2Form.tsx - убираем выбор сотрудников
 import React, { useEffect, useState } from 'react'
 import { Control } from '@/shared/ui/controls'
 import { Typography } from '@/shared/ui/typography'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
-import { useEmployees } from '@/entities/employee'
-import { Spinner } from '@/shared/ui/spinner'
+import { useAuth } from '@/entities/session'
 
 interface Step2FormProps {
   onValidChange: (isValid: boolean) => void
@@ -12,6 +11,7 @@ interface Step2FormProps {
 
 export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
+  const { user } = useAuth() // Получаем текущего пользователя из контекста аутентификации
 
   // Локальные состояния для полей формы
   const [duration, setDuration] = useState<Date | null>(
@@ -19,21 +19,18 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   )
   const [goal, setGoal] = useState(currentApplication?.goal || '')
   const [cost, setCost] = useState(currentApplication?.cost || '')
-  const [participants, setParticipants] = useState<string[]>(currentApplication?.participants || [])
 
-  // Получаем список сотрудников из API
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees()
-
-  // Опции для мультиселекта сотрудников
-  const participantOptions =
-    employees?.map((emp) => ({
-      value: emp.id,
-      label: emp.name
-    })) || []
+  // Эффект для автоматического добавления текущего пользователя в список участников
+  useEffect(() => {
+    if (user) {
+      // Устанавливаем текущего пользователя как единственного участника
+      updateApplicationData({ participants: [user.id] })
+    }
+  }, [user, updateApplicationData])
 
   // Функция валидации формы
   const validateForm = () => {
-    const isValid = duration !== null && goal !== '' && cost !== '' && participants.length > 0
+    const isValid = duration !== null && goal !== '' && cost !== '' && !!user
     onValidChange(isValid)
     return isValid
   }
@@ -41,7 +38,7 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   // Эффект для валидации при изменении состояния полей
   useEffect(() => {
     validateForm()
-  }, [duration, goal, cost, participants])
+  }, [duration, goal, cost, user])
 
   // Обработчик изменения даты
   const handleDateChange = (date: Date | null) => {
@@ -66,16 +63,10 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
     updateApplicationData({ cost: e.target.value })
   }
 
-  // Обработчик изменения участников
-  const handleParticipantsChange = (values: string[]) => {
-    setParticipants(values)
-    updateApplicationData({ participants: values })
-  }
-
   return (
     <div className="flex flex-col gap-6">
       <Typography variant="b3Regular" className="text-mono-800">
-        Заполните данные о проведении мероприятия. Поля, отмеченные *, обязательны для заполнения
+        Заполните данные о проведении мероприятия. Поля, отмеченные *, обязательны для заполнения.
       </Typography>
 
       <div className="grid grid-cols-1 gap-6">
@@ -108,25 +99,19 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
           hint="Укажите стоимость в рублях"
         />
 
-        {/* Сотрудники */}
-        <div>
-          <Control.MultiSelect
-            label="Сотрудники"
-            required
-            options={participantOptions}
-            value={participants}
-            onChange={handleParticipantsChange}
-            placeholder={isLoadingEmployees ? 'Загрузка сотрудников...' : 'Выберите сотрудников'}
-            hint="Выберите сотрудников, которые будут участвовать в мероприятии"
-            disabled={isLoadingEmployees}
-          />
-          {isLoadingEmployees && (
-            <div className="mt-2 flex items-center">
-              <Spinner size="small" className="mr-2" />
-              <span className="text-mono-600 text-b4-regular">Загрузка списка сотрудников...</span>
-            </div>
-          )}
-        </div>
+        {/* Информация об участнике */}
+        {user && (
+          <div className="bg-mono-100 p-4 rounded-md">
+            <Typography variant="b3Semibold" className="mb-2">
+              Участник:
+            </Typography>
+            <Typography variant="b3Regular">
+              {user.surname} {user.name}
+              {user.position && `, ${user.position}`}
+              {user.department && ` (${user.department})`}
+            </Typography>
+          </div>
+        )}
       </div>
     </div>
   )

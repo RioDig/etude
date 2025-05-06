@@ -1,12 +1,11 @@
-// Обновление Step3Form.tsx с использованием API сотрудников
+// Обновляем Step3Form.tsx с использованием AutocompleteSelect
 import React, { useEffect, useState } from 'react'
-import { Control } from '@/shared/ui/controls'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
 import { Add, Delete } from '@mui/icons-material'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
-import { useEmployees } from '@/entities/employee'
-import { Spinner } from '@/shared/ui/spinner'
+import { AutocompleteSelect } from '@/shared/ui/autocompleteSelect'
+import { Employee } from '@/shared/api/employeeAutocomplete'
 
 interface Step3FormProps {
   onValidChange: (isValid: boolean) => void
@@ -15,13 +14,11 @@ interface Step3FormProps {
 interface Approver {
   id: string
   userId: string
+  employeeData?: Employee
 }
 
 export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
-
-  // Получаем список уже выбранных участников
-  const excludeIds = currentApplication?.participants || []
 
   // Локальное состояние для списка согласующих
   const [approvers, setApprovers] = useState<Approver[]>(
@@ -29,27 +26,6 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
       ? currentApplication.approvers
       : [{ id: '1', userId: '' }]
   )
-
-  // Получаем список сотрудников из API, исключая уже выбранных участников
-  const { data: employees, isLoading: isLoadingEmployees } = useEmployees(excludeIds)
-
-  // Опции для выпадающих списков, исключая уже выбранных согласующих
-  const getApproverOptions = (currentApprover: Approver) => {
-    if (!employees) return []
-
-    // Исключаем сотрудников, которые уже выбраны как согласующие (кроме текущего)
-    const otherApproverIds = approvers
-      .filter((a) => a.id !== currentApprover.id)
-      .map((a) => a.userId)
-      .filter((id) => id !== '') // Только заполненные значения
-
-    return employees
-      .filter((emp) => !otherApproverIds.includes(emp.id))
-      .map((emp) => ({
-        value: emp.id,
-        label: emp.name
-      }))
-  }
 
   // Функция валидации формы
   const validateForm = () => {
@@ -63,7 +39,12 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
     validateForm()
     // Обновляем данные в хранилище при изменении согласующих
     updateApplicationData({ approvers })
-  }, [approvers])
+  }, [approvers, updateApplicationData])
+
+  // Получаем массив идентификаторов уже выбранных согласующих
+  const getExcludeIds = (currentApproverId: string): string[] => {
+    return approvers.filter((a) => a.id !== currentApproverId && a.userId).map((a) => a.userId)
+  }
 
   // Добавление нового согласующего
   const handleAddApprover = () => {
@@ -78,9 +59,11 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   }
 
   // Обновление значения согласующего
-  const handleApproverChange = (id: string, value: string) => {
+  const handleApproverChange = (id: string, value: string, employeeData?: Employee) => {
     setApprovers(
-      approvers.map((approver) => (approver.id === id ? { ...approver, userId: value } : approver))
+      approvers.map((approver) =>
+        approver.id === id ? { ...approver, userId: value, employeeData } : approver
+      )
     )
   }
 
@@ -99,12 +82,13 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
             </div>
 
             <div className="flex-grow">
-              <Control.Select
-                options={getApproverOptions(approver)}
+              <AutocompleteSelect
                 value={approver.userId}
-                onChange={(value) => handleApproverChange(approver.id, value)}
-                placeholder={isLoadingEmployees ? 'Загрузка...' : 'Выберите сотрудника'}
-                disabled={isLoadingEmployees}
+                onChange={(value, employeeData) =>
+                  handleApproverChange(approver.id, value, employeeData)
+                }
+                placeholder="Начните вводить для поиска сотрудника..."
+                excludeIds={getExcludeIds(approver.id)}
               />
             </div>
 
@@ -119,25 +103,9 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
           </div>
         ))}
 
-        {isLoadingEmployees && (
-          <div className="mt-2 flex items-center">
-            <Spinner size="small" className="mr-2" />
-            <span className="text-mono-600 text-b4-regular">Загрузка списка сотрудников...</span>
-          </div>
-        )}
-
         {/* Кнопка добавления согласующего */}
         <div className="mt-2">
-          <Button
-            variant="secondary"
-            leftIcon={<Add />}
-            onClick={handleAddApprover}
-            disabled={
-              isLoadingEmployees ||
-              // Отключаем, если нет доступных сотрудников для добавления
-              (employees && employees.length <= approvers.filter((a) => a.userId !== '').length)
-            }
-          >
+          <Button variant="secondary" leftIcon={<Add />} onClick={handleAddApprover}>
             Добавить сотрудника
           </Button>
         </div>

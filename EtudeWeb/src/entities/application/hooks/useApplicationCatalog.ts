@@ -6,7 +6,6 @@ import { usePageFilters } from '@/entities/filter'
  * Хук для получения данных каталога мероприятий с учетом фильтрации
  */
 export const useApplicationCatalog = () => {
-  // Получаем фильтры из хранилища
   const { filters } = usePageFilters('application-catalog')
 
   // Преобразуем фильтры в формат, подходящий для API
@@ -21,12 +20,12 @@ export const useApplicationCatalog = () => {
     {} as Record<string, any>
   )
 
-  // Запрос на получение каталога с учетом фильтров
+
   return useQuery({
     queryKey: ['applications', 'catalog', filters],
     queryFn: () => applicationApi.getEventsCatalog(apiFilters),
-    staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
-    refetchOnWindowFocus: false // Не обновлять данные при фокусе окна
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false
   })
 }
 
