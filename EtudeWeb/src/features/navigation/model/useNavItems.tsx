@@ -24,10 +24,10 @@ export const useNavItems = (): NavItem[] => {
     });
 
     items.push({
-      id: 'courses',
+      id: 'applications',
       label: 'Обучения',
       icon: <Folder />,
-      to: '/courses',
+      to: '/applications',
       variant: 'third'
     });
 

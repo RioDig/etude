@@ -2,7 +2,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { eventApi } from '../api/eventApi'
 import { usePageFilters } from '@/entities/filter'
 import { Event } from '../model/types'
-import { MOCK_EVENTS, MOCK_EVENT_DETAILS, delay, filterEvents } from '../api/mocks'
 
 /**
  * Хук для получения списка мероприятий с учетом фильтров
@@ -21,22 +20,10 @@ export const useEvents = () => {
     {} as Record<string, any>
   )
 
-  // В реальном приложении используем API
-  // return useQuery({
-  //   queryKey: ['events', apiFilters],
-  //   queryFn: () => eventApi.getEvents(apiFilters),
-  //   staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
-  // });
-
-  // Для тестов используем мок-данные
+  // Используем API напрямую, без дублирования моков
   return useQuery({
     queryKey: ['events', apiFilters],
-    queryFn: async () => {
-      // Имитация задержки запроса
-      await delay(1000)
-      // Фильтрация данных
-      return filterEvents(MOCK_EVENTS, apiFilters)
-    },
+    queryFn: () => eventApi.getEvents(apiFilters),
     staleTime: 1000 * 60 * 5 // Данные считаются свежими 5 минут
   })
 }
@@ -45,41 +32,9 @@ export const useEvents = () => {
  * Хук для получения детальной информации о мероприятии
  */
 export const useEventDetails = (id?: string, options = {}) => {
-  // В реальном приложении используем API
-  // return useQuery({
-  //   queryKey: ['event', id],
-  //   queryFn: () => eventApi.getEventById(id!),
-  //   enabled: !!id,
-  //   ...options
-  // });
-
-  // Для тестов используем мок-данные
   return useQuery({
     queryKey: ['event', id],
-    queryFn: async () => {
-      // Имитация задержки запроса
-      await delay(800)
-      // Проверяем, есть ли детальная информация для этого мероприятия
-      if (id && MOCK_EVENT_DETAILS[id]) {
-        return MOCK_EVENT_DETAILS[id]
-      }
-      // Если нет детальных данных, находим базовое мероприятие
-      const event = MOCK_EVENTS.find((e) => e.id === id)
-      if (!event) {
-        throw new Error(`Event with id ${id} not found`)
-      }
-      return {
-        ...event,
-        // Добавляем пустые поля для детальной информации
-        location: undefined,
-        participants: [],
-        approvers: [],
-        cost: undefined,
-        goal: undefined,
-        comments: undefined,
-        documents: []
-      }
-    },
+    queryFn: () => eventApi.getEventById(id!),
     enabled: !!id,
     ...options
   })
@@ -91,39 +46,8 @@ export const useEventDetails = (id?: string, options = {}) => {
 export const useCreateEvent = () => {
   const queryClient = useQueryClient()
 
-  // В реальном приложении используем API
-  // return useMutation({
-  //   mutationFn: (eventData: Partial<Event>) => eventApi.createEvent(eventData),
-  //   onSuccess: () => {
-  //     // Инвалидируем кэш списка мероприятий для обновления данных
-  //     queryClient.invalidateQueries({ queryKey: ['events'] });
-  //   }
-  // });
-
-  // Для тестов используем мок-данные
   return useMutation({
-    mutationFn: async (eventData: Partial<Event>) => {
-      // Имитация задержки запроса
-      await delay(1500)
-
-      // Создаем новое мероприятие с генерацией ID и дат
-      const newEvent: Event = {
-        id: `${Math.floor(Math.random() * 1000)}`,
-        title: eventData.title || '',
-        description: eventData.description,
-        type: eventData.type || 'course',
-        format: eventData.format || 'online',
-        category: eventData.category || 'hard-skills',
-        status: 'pending',
-        startDate: eventData.startDate || new Date().toISOString(),
-        endDate: eventData.endDate || new Date().toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        employee: eventData.employee
-      }
-
-      return newEvent
-    },
+    mutationFn: (eventData: Partial<Event>) => eventApi.createEvent(eventData),
     onSuccess: () => {
       // Инвалидируем кэш списка мероприятий для обновления данных
       queryClient.invalidateQueries({ queryKey: ['events'] })
@@ -137,38 +61,9 @@ export const useCreateEvent = () => {
 export const useUpdateEvent = () => {
   const queryClient = useQueryClient()
 
-  // В реальном приложении используем API
-  // return useMutation({
-  //   mutationFn: ({ id, data }: { id: string; data: Partial<Event> }) =>
-  //     eventApi.updateEvent(id, data),
-  //   onSuccess: (data) => {
-  //     // Инвалидируем кэш для этого конкретного мероприятия и списка
-  //     queryClient.invalidateQueries({ queryKey: ['event', data.id] });
-  //     queryClient.invalidateQueries({ queryKey: ['events'] });
-  //   }
-  // });
-
-  // Для тестов используем мок-данные
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<Event> }) => {
-      // Имитация задержки запроса
-      await delay(1500)
-
-      // Находим мероприятие в моках
-      const eventIndex = MOCK_EVENTS.findIndex((e) => e.id === id)
-      if (eventIndex === -1) {
-        throw new Error(`Event with id ${id} not found`)
-      }
-
-      // Обновляем мероприятие
-      const updatedEvent: Event = {
-        ...MOCK_EVENTS[eventIndex],
-        ...data,
-        updatedAt: new Date().toISOString()
-      }
-
-      return updatedEvent
-    },
+    mutationFn: ({ id, data }: { id: string; data: Partial<Event> }) =>
+      eventApi.updateEvent(id, data),
     onSuccess: (data) => {
       // Инвалидируем кэш для этого конкретного мероприятия и списка
       queryClient.invalidateQueries({ queryKey: ['event', data.id] })
@@ -183,25 +78,8 @@ export const useUpdateEvent = () => {
 export const useChangeEventStatus = () => {
   const queryClient = useQueryClient()
 
-  // В реальном приложении используем API
-  // return useMutation({
-  //   mutationFn: ({ id, status, reason }: { id: string; status: 'approved' | 'rejected'; reason?: string }) => {
-  //     if (status === 'approved') {
-  //       return eventApi.approveEvent(id);
-  //     } else {
-  //       return eventApi.rejectEvent(id, reason || '');
-  //     }
-  //   },
-  //   onSuccess: (data) => {
-  //     // Инвалидируем кэш для этого конкретного мероприятия и списка
-  //     queryClient.invalidateQueries({ queryKey: ['event', data.id] });
-  //     queryClient.invalidateQueries({ queryKey: ['events'] });
-  //   }
-  // });
-
-  // Для тестов используем мок-данные
   return useMutation({
-    mutationFn: async ({
+    mutationFn: ({
       id,
       status,
       reason
@@ -210,23 +88,15 @@ export const useChangeEventStatus = () => {
       status: 'approved' | 'rejected' | 'completed'
       reason?: string
     }) => {
-      // Имитация задержки запроса
-      await delay(1000)
-
-      // Находим мероприятие в моках
-      const eventIndex = MOCK_EVENTS.findIndex((e) => e.id === id)
-      if (eventIndex === -1) {
-        throw new Error(`Event with id ${id} not found`)
+      if (status === 'approved') {
+        return eventApi.approveEvent(id)
+      } else if (status === 'rejected') {
+        return eventApi.rejectEvent(id, reason || '')
+      } else {
+        // Для статуса 'completed' можно добавить отдельный метод в API
+        // или использовать обновление
+        return eventApi.updateEvent(id, { status })
       }
-
-      // Обновляем статус мероприятия
-      const updatedEvent: Event = {
-        ...MOCK_EVENTS[eventIndex],
-        status,
-        updatedAt: new Date().toISOString()
-      }
-
-      return updatedEvent
     },
     onSuccess: (data) => {
       // Инвалидируем кэш для этого конкретного мероприятия и списка

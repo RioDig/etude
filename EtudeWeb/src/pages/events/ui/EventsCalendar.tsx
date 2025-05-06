@@ -1,11 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef } from 'react'
 import { Calendar } from '@/widgets/calendar'
-import { CalendarCardItem } from '@/widgets/calendar/ui/CalendarCardItem'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
-import { Button } from '@/shared/ui/button'
 import { Event } from '@/entities/event/model/types'
-import { CalendarCard, CalendarViewMode } from '@/widgets/calendar/model/types'
+import { CalendarCard } from '@/widgets/calendar/model/types'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 
 interface EventsCalendarProps {
@@ -15,19 +13,12 @@ interface EventsCalendarProps {
   onEventSelect: (event: Event) => void
 }
 
-/**
- * Компонент для отображения мероприятий в формате календаря
- */
 export const EventsCalendar: React.FC<EventsCalendarProps> = ({
   events,
   isLoading,
   error,
   onEventSelect
 }) => {
-  // Текущая дата и режим отображения
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [viewMode, setViewMode] = useState<CalendarViewMode>('month')
-
   // Сохраняем соответствие между карточками и строками
   const cardRowMapRef = useRef<Record<string, number>>({})
 
@@ -56,45 +47,23 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
     }
   }
 
-  // Обработчик изменения даты
-  const handleDateChange = (date: Date) => {
-    setCurrentDate(date)
-  }
-
-  // Обработчик изменения режима отображения
-  const handleViewModeChange = (mode: CalendarViewMode) => {
-    setViewMode(mode)
-  }
-
   // Если идет загрузка, показываем спиннер
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
+      <div className="flex justify-center items-center h-[400px]">
         <Spinner size="large" label="Загрузка календаря..." />
       </div>
     )
   }
 
-  // Если есть ошибка, отображаем сообщение об ошибке
-  if (error) {
+  // Если данных нет или возникла ошибка, показываем пустое состояние
+  if (error || events.length === 0) {
     return (
       <EmptyMessage
         variant="large"
         imageUrl={EmptyStateSvg}
-        title="Ошибка загрузки данных"
-        description={error}
-      />
-    )
-  }
-
-  // Если нет мероприятий, показываем пустое состояние
-  if (events.length === 0) {
-    return (
-      <EmptyMessage
-        variant="large"
-        imageUrl={EmptyStateSvg}
-        title="Нет данных для отображения"
-        description="В системе пока нет мероприятий или они были отфильтрованы"
+        title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
+        description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
       />
     )
   }
@@ -103,16 +72,8 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
   const calendarCards = transformEventsToCalendarCards(events)
 
   return (
-    <div className="flex flex-col gap-4">
-      <Calendar
-        cards={calendarCards}
-        initialViewMode={viewMode}
-        initialDate={currentDate}
-        onCardClick={handleCardClick}
-        onDateChange={handleDateChange}
-        onViewModeChange={handleViewModeChange}
-        pageId="events-calendar"
-      />
+    <div className="h-full">
+      <Calendar cards={calendarCards} onCardClick={handleCardClick} pageId="events-calendar" />
     </div>
   )
 }

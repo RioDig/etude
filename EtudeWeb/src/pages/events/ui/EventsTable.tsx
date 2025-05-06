@@ -14,9 +14,6 @@ interface EventsTableProps {
   onEventSelect: (event: Event) => void
 }
 
-/**
- * Компонент таблицы для отображения списка мероприятий
- */
 export const EventsTable: React.FC<EventsTableProps> = ({
   events,
   isLoading,
@@ -32,108 +29,6 @@ export const EventsTable: React.FC<EventsTableProps> = ({
   // Обработчик изменения сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
-  }
-
-  // Получение цвета и текста для статуса
-  const getStatusInfo = (
-    status: string
-  ): { text: string; variant: 'default' | 'error' | 'warning' | 'success' | 'system' } => {
-    switch (status) {
-      case 'pending':
-        return { text: 'На согласовании', variant: 'warning' }
-      case 'approved':
-        return { text: 'Согласовано', variant: 'success' }
-      case 'rejected':
-        return { text: 'Отклонено', variant: 'error' }
-      case 'completed':
-        return { text: 'Пройдено', variant: 'default' }
-      default:
-        return { text: status, variant: 'default' }
-    }
-  }
-
-  // Получение названия для типа мероприятия
-  const getEventTypeName = (type: string): string => {
-    switch (type) {
-      case 'conference':
-        return 'Конференция'
-      case 'course':
-        return 'Курс'
-      case 'webinar':
-        return 'Вебинар'
-      case 'training':
-        return 'Тренинг'
-      default:
-        return type
-    }
-  }
-
-  // Получение названия для формата мероприятия
-  const getFormatName = (format: string): string => {
-    switch (format) {
-      case 'offline':
-        return 'Очно'
-      case 'online':
-        return 'Онлайн'
-      case 'mixed':
-        return 'Смешанный'
-      default:
-        return format
-    }
-  }
-
-  // Получение названия для категории мероприятия
-  const getCategoryName = (category: string): string => {
-    switch (category) {
-      case 'hard-skills':
-        return 'Hard Skills'
-      case 'soft-skills':
-        return 'Soft Skills'
-      case 'management':
-        return 'Management'
-      default:
-        return category
-    }
-  }
-
-  // Форматирование даты
-  const formatDate = (date: Date | string): string => {
-    if (!date) return ''
-    const dateObj = typeof date === 'string' ? new Date(date) : date
-    return dateObj.toLocaleDateString('ru-RU')
-  }
-
-  // Если идет загрузка, показываем спиннер
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Spinner size="large" label="Загрузка мероприятий..." />
-      </div>
-    )
-  }
-
-  // Если есть ошибка, отображаем сообщение об ошибке
-  if (error) {
-    return (
-      <EmptyMessage
-        variant="large"
-        imageUrl={EmptyStateSvg}
-        title="Ошибка загрузки данных"
-        description={error}
-      />
-    )
-  }
-
-  // Если нет мероприятий, показываем пустое состояние
-  if (events.length === 0) {
-    return (
-      <EmptyMessage
-        variant="large"
-        imageUrl={EmptyStateSvg}
-        title="Нет данных для отображения"
-        description="В системе пока нет мероприятий или они были отфильтрованы"
-      />
-    )
   }
 
   // Определение колонок таблицы
@@ -195,7 +90,85 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     }
   ]
 
-  // Рендер таблицы
+  // Вспомогательные функции для отображения данных
+  const getStatusInfo = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return { text: 'На согласовании', variant: 'warning' as const }
+      case 'approved':
+        return { text: 'Согласовано', variant: 'success' as const }
+      case 'rejected':
+        return { text: 'Отклонено', variant: 'error' as const }
+      case 'completed':
+        return { text: 'Пройдено', variant: 'default' as const }
+      default:
+        return { text: status, variant: 'default' as const }
+    }
+  }
+
+  const getEventTypeName = (type: string) => {
+    const types = {
+      conference: 'Конференция',
+      course: 'Курс',
+      webinar: 'Вебинар',
+      training: 'Тренинг'
+    }
+    return types[type as keyof typeof types] || type
+  }
+
+  const getFormatName = (format: string) => {
+    const formats = {
+      offline: 'Очно',
+      online: 'Онлайн',
+      mixed: 'Смешанный'
+    }
+    return formats[format as keyof typeof formats] || format
+  }
+
+  const getCategoryName = (category: string) => {
+    const categories = {
+      'hard-skills': 'Hard Skills',
+      'soft-skills': 'Soft Skills',
+      management: 'Management'
+    }
+    return categories[category as keyof typeof categories] || category
+  }
+
+  const formatDate = (date: Date | string) => {
+    if (!date) return ''
+    const dateObj = typeof date === 'string' ? new Date(date) : date
+    return dateObj.toLocaleDateString('ru-RU')
+  }
+
+  // Если идет загрузка, показываем таблицу со спиннером
+  if (isLoading) {
+    return (
+      <div className="h-full">
+        <div className="h-[52px] bg-mono-50 border-b border-mono-200 rounded-t-lg">
+          {/* Пустая шапка таблицы */}
+        </div>
+        <div className="flex justify-center items-center h-[400px]">
+          <Spinner size="large" label="Загрузка мероприятий..." />
+        </div>
+      </div>
+    )
+  }
+
+  // Если данных нет или возникла ошибка, показываем пустое состояние
+  if (error || events.length === 0) {
+    return (
+      <div className="h-full">
+        <EmptyMessage
+          variant="large"
+          imageUrl={EmptyStateSvg}
+          title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
+          description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
+        />
+      </div>
+    )
+  }
+
+  // Рендер таблицы с данными
   return (
     <Table
       data={events}
@@ -204,6 +177,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
       onSort={handleSort}
       rowClassName="cursor-pointer"
       onRowClick={(row) => onEventSelect(row as Event)}
+      className="h-full"
     />
   )
 }

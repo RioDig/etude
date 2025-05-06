@@ -6,26 +6,19 @@ import { Switch } from '@/shared/ui/switch'
 import { Filter } from '@/shared/ui/filter'
 import { FilterOption } from '@/shared/ui/filter/types'
 import { CalendarTodayOutlined, TableChartOutlined, Add } from '@mui/icons-material'
-import { Sidebar } from '@/widgets/sidebar'
 import { EventsTable } from './EventsTable'
 import { EventsCalendar } from './EventsCalendar'
 import { EventsSidebar } from './EventsSidebar'
 import { useEvents } from '@/entities/event'
 import { Event } from '@/entities/event/model/types'
 
-/**
- * Страница списка мероприятий с двумя режимами отображения:
- * таблица и календарь
- */
 export const EventsPage: React.FC = () => {
-  // Состояние для режима отображения (table или calendar)
+  // Состояние для режима отображения и сайдбара
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table')
-
-  // Состояние для открытия/закрытия сайдбара и выбранного мероприятия
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
 
-  // Получение данных мероприятий с использованием хука
+  // Получение данных мероприятий
   const { data: events, isLoading, error } = useEvents()
 
   // Опции для фильтров
@@ -84,34 +77,35 @@ export const EventsPage: React.FC = () => {
     { id: 'calendar', label: 'Календарь', icon: <CalendarTodayOutlined /> }
   ]
 
-  // Обработчик изменения режима отображения
+  // Обработчики событий
   const handleViewModeChange = (mode: string) => {
     setViewMode(mode as 'table' | 'calendar')
   }
 
-  // Обработчик выбора мероприятия для отображения в сайдбаре
   const handleEventSelect = useCallback((event: Event) => {
     setSelectedEvent(event)
     setIsSidebarOpen(true)
   }, [])
 
-  // Обработчик закрытия сайдбара
   const handleSidebarClose = useCallback(() => {
     setIsSidebarOpen(false)
   }, [])
 
-  // Обработчик для создания нового мероприятия
   const handleCreateEvent = () => {
-    // Здесь будет код перехода на страницу создания мероприятия
     console.log('Create new event')
   }
 
   return (
-    <Container className="flex flex-col gap-6 h-full max-w-[1200px] mx-auto">
+    <Container className="flex flex-col gap-6 h-full w-full">
       {/* Верхний блок с заголовком и кнопкой создания */}
       <div className="flex justify-between items-center">
         <Typography variant="h2">Обучения</Typography>
-        <Button variant="primary" leftIcon={<Add />} onClick={handleCreateEvent}>
+        <Button
+          variant="primary"
+          leftIcon={<Add />}
+          onClick={handleCreateEvent}
+          className="whitespace-nowrap"
+        >
           Новое заявление
         </Button>
       </div>
@@ -126,8 +120,8 @@ export const EventsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Блок содержимого: таблица или календарь */}
-      <div className="flex-1 overflow-hidden">
+      {/* Содержимое: таблица или календарь */}
+      <div className="flex-1 h-[500px] overflow-hidden">
         {viewMode === 'table' ? (
           <EventsTable
             events={events || []}
@@ -146,7 +140,9 @@ export const EventsPage: React.FC = () => {
       </div>
 
       {/* Сайдбар с информацией о мероприятии */}
-      <EventsSidebar open={isSidebarOpen} onClose={handleSidebarClose} event={selectedEvent} />
+      {selectedEvent && (
+        <EventsSidebar open={isSidebarOpen} onClose={handleSidebarClose} event={selectedEvent} />
+      )}
     </Container>
   )
 }

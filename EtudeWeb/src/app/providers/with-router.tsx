@@ -30,6 +30,7 @@ import { ApplicationCreatePage } from '@/pages/application/ApplicationCreatePage
 import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { PublicRoute } from '@/shared/routes/PublicRoute'
+import { EventsPage } from '@/pages/events'
 
 const router = createBrowserRouter([
   // Публичные маршруты
@@ -86,6 +87,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <ApplicationCreatePage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: '/applications',
+        element: (
+          <ProtectedRoute>
+            <EventsPage />
           </ProtectedRoute>
         )
       },
