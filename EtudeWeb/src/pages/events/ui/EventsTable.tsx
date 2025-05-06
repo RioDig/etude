@@ -145,63 +145,37 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     return dateObj.toLocaleDateString('ru-RU')
   }
 
-  // Если идет загрузка, показываем таблицу со спиннером
-  if (isLoading) {
-    return (
-      <div className="h-full overflow-auto">
-        <Table
-          data={[]}
-          columns={columns}
-          sortState={sortState}
-          onSort={handleSort}
-          loading={true}
-          className="h-full"
-          emptyComponent={
-            <div className="flex justify-center items-center h-[300px] w-full">
-              <Spinner size="large" label="Загрузка мероприятий..." />
-            </div>
-          }
-        />
-      </div>
-    )
-  }
+  // Компонент пустого состояния
+  const emptyComponent = (
+    <div className="flex justify-center my-auto">
+      <EmptyMessage
+        variant="small"
+        imageUrl={EmptyStateSvg}
+        title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
+        description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
+      />
+    </div>
+  )
 
-  // Если данных нет или возникла ошибка, все равно показываем таблицу, но с EmptyMessage внутри
-  if (error || events.length === 0) {
-    return (
-      <div className="flex flex-col h-full overflow-auto">
-        <Table
-          data={[]}
-          columns={columns}
-          sortState={sortState}
-          onSort={handleSort}
-          className="h-full flex"
-          emptyComponent={
-            <div className="flex justify-center items-center w-full">
-              <EmptyMessage
-                variant="small"
-                imageUrl={EmptyStateSvg}
-                title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
-                description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
-              />
-            </div>
-          }
-        />
-      </div>
-    )
-  }
+  // Компонент загрузки
+  const loadingComponent = (
+    <div className="flex justify-center items-center p-8">
+      <Spinner size="large" label="Загрузка мероприятий..." />
+    </div>
+  )
 
-  // Рендер таблицы с данными
   return (
     <div className="h-full overflow-auto">
       <Table
-        data={events}
+        data={isLoading ? [] : events}
         columns={columns}
         sortState={sortState}
         onSort={handleSort}
+        loading={isLoading}
         rowClassName="cursor-pointer"
         onRowClick={handleRowClick}
-        className="h-full"
+        className="h-full flex flex-col"
+        emptyComponent={isLoading ? loadingComponent : emptyComponent}
       />
     </div>
   )

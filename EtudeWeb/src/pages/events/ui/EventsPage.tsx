@@ -5,13 +5,19 @@ import { Switch } from '@/shared/ui/switch'
 import { Filter } from '@/shared/ui/filter'
 import { FilterOption } from '@/shared/ui/filter/types'
 import { Counter } from '@/shared/ui/counter'
-import { CalendarTodayOutlined, TableChartOutlined } from '@mui/icons-material'
+import {
+  CalendarTodayOutlined,
+  TableChartOutlined,
+  KeyboardArrowLeft,
+  KeyboardArrowRight
+} from '@mui/icons-material'
 import { EventsTable } from './EventsTable'
 import { EventsCalendar } from './EventsCalendar'
 import { EventsSidebar } from './EventsSidebar'
 import { useEvents } from '@/entities/event'
 import { Event } from '@/entities/event/model/types'
 import { DatePicker } from '@/shared/ui/datepicker/Datepicker'
+import { createPortal } from 'react-dom'
 
 export const EventsPage: React.FC = () => {
   // Состояние для режима отображения и сайдбара
@@ -115,6 +121,64 @@ export const EventsPage: React.FC = () => {
     setCurrentDate(date)
   }, [])
 
+  // Форматирование заголовка календаря
+  const formatCalendarTitle = () => {
+    if (calendarViewMode === 'week') {
+      // Для недели показываем диапазон дат
+      const startOfWeek = new Date(currentDate)
+      const day = startOfWeek.getDay() // 0-6 (0 - воскресенье)
+
+      // Находим понедельник текущей недели
+      const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
+      startOfWeek.setDate(diff)
+
+      // Находим воскресенье (конец недели)
+      const endOfWeek = new Date(startOfWeek)
+      endOfWeek.setDate(startOfWeek.getDate() + 6)
+
+      // Форматируем диапазон
+      const startDateStr = startOfWeek.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long'
+      })
+
+      const endDateStr = endOfWeek.toLocaleDateString('ru-RU', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
+
+      return `${startDateStr} - ${endDateStr}`
+    } else {
+      // Для месяца показываем название месяца и год
+      return currentDate.toLocaleDateString('ru-RU', {
+        month: 'long',
+        year: 'numeric'
+      })
+    }
+  }
+
+  // Навигация по календарю
+  const handlePrevPeriod = () => {
+    const newDate = new Date(currentDate)
+    if (calendarViewMode === 'week') {
+      newDate.setDate(newDate.getDate() - 7)
+    } else {
+      newDate.setMonth(newDate.getMonth() - 1)
+    }
+    setCurrentDate(newDate)
+  }
+
+  const handleNextPeriod = () => {
+    const newDate = new Date(currentDate)
+    if (calendarViewMode === 'week') {
+      newDate.setDate(newDate.getDate() + 7)
+    } else {
+      newDate.setMonth(newDate.getMonth() + 1)
+    }
+    setCurrentDate(newDate)
+  }
+
   // Обработчик открытия DatePicker
   const handleOpenDatePicker = (event: React.MouseEvent<HTMLButtonElement>) => {
     setDatePickerAnchor(event.currentTarget)
@@ -126,6 +190,27 @@ export const EventsPage: React.FC = () => {
     setCurrentDate(date)
     setIsDatePickerOpen(false)
   }
+
+  // Закрытие выпадающего списка при клике вне компонента
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        datePickerAnchor &&
+        !datePickerAnchor.contains(event.target as Node) &&
+        !(event.target as Element).closest('.datepicker-container')
+      ) {
+        setIsDatePickerOpen(false)
+      }
+    }
+
+    if (isDatePickerOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isDatePickerOpen, datePickerAnchor])
 
   // Получение количества событий для счетчика
   const eventsCount = events?.length || 0
@@ -150,14 +235,32 @@ export const EventsPage: React.FC = () => {
         {/* Элементы управления календарем, видимые только в режиме календаря */}
         {viewMode === 'calendar' && (
           <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
-            <button
-              className="flex items-center gap-1 px-3 py-1 hover:bg-mono-100 rounded-md transition-colors"
-              onClick={handleOpenDatePicker}
-              aria-label="Выбрать дату"
-            >
-              <span className="text-b3-semibold">{currentDate.toLocaleDateString('ru-RU')}</span>
-              <CalendarTodayOutlined fontSize="small" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePrevPeriod}
+                className="p-2 hover:bg-mono-100 rounded-full transition-colors"
+                aria-label="Предыдущий период"
+              >
+                <KeyboardArrowLeft />
+              </button>
+
+              <button
+                className="flex items-center gap-1 px-3 py-1 hover:bg-mono-100 rounded-md transition-colors"
+                onClick={handleOpenDatePicker}
+                aria-label="Выбрать дату"
+              >
+                <span className="text-b3-semibold">{formatCalendarTitle()}</span>
+                <CalendarTodayOutlined fontSize="small" />
+              </button>
+
+              <button
+                onClick={handleNextPeriod}
+                className="p-2 hover:bg-mono-100 rounded-full transition-colors"
+                aria-label="Следующий период"
+              >
+                <KeyboardArrowRight />
+              </button>
+            </div>
 
             <Switch
               options={calendarViewOptions}
@@ -165,22 +268,6 @@ export const EventsPage: React.FC = () => {
               onChange={handleCalendarViewChange}
               size="small"
             />
-
-            {isDatePickerOpen && datePickerAnchor && (
-              <div
-                className="fixed z-50"
-                style={{
-                  top: `${datePickerAnchor.getBoundingClientRect().bottom + 8}px`,
-                  left: `${datePickerAnchor.getBoundingClientRect().left}px`
-                }}
-              >
-                <DatePicker
-                  value={currentDate}
-                  onChange={handleDateSelect}
-                  onClose={() => setIsDatePickerOpen(false)}
-                />
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -188,7 +275,7 @@ export const EventsPage: React.FC = () => {
       {/* Содержимое: таблица или календарь */}
       <div className="flex-1 overflow-hidden">
         {viewMode === 'table' ? (
-          <div className="h-full overflow-auto">
+          <div className="h-full overflow-auto flex flex-col ">
             <EventsTable
               events={events || []}
               isLoading={isLoading}
@@ -210,6 +297,26 @@ export const EventsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* DatePicker в портале */}
+      {isDatePickerOpen &&
+        datePickerAnchor &&
+        createPortal(
+          <div
+            className="fixed z-50 datepicker-container"
+            style={{
+              top: `${datePickerAnchor.getBoundingClientRect().bottom + 8}px`,
+              left: `${datePickerAnchor.getBoundingClientRect().left}px`
+            }}
+          >
+            <DatePicker
+              value={currentDate}
+              onChange={handleDateSelect}
+              onClose={() => setIsDatePickerOpen(false)}
+            />
+          </div>,
+          document.body
+        )}
 
       {/* Сайдбар с информацией о мероприятии */}
       {selectedEvent && (

@@ -68,31 +68,34 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
   )
 
   const errorOrEmptyComponent = (
-    <div className="flex justify-center items-center h-full">
-      <EmptyMessage
-        variant="small"
-        imageUrl={EmptyStateSvg}
-        title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
-        description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
-      />
-    </div>
+    <EmptyMessage
+      variant="small"
+      imageUrl={EmptyStateSvg}
+      title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
+      description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
+      className="my-auto"
+    />
   )
 
   // Преобразуем события в формат карточек календаря
   const calendarCards = events?.length > 0 ? transformEventsToCalendarCards(events) : []
 
   return (
-    <div className="h-full">
-      <Calendar
-        cards={calendarCards}
-        onCardClick={handleCardClick}
-        pageId="events-calendar"
-        emptyComponent={isLoading ? loadingComponent : errorOrEmptyComponent}
-        initialDate={initialDate}
-        initialViewMode={viewMode}
-        onDateChange={handleCalendarDateChange}
-        hideControls={true} // Скрываем встроенные элементы управления календаря
-      />
+    <div className="h-full flex flex-col">
+      {isLoading ? (
+        loadingComponent
+      ) : (
+        <Calendar
+          cards={calendarCards}
+          onCardClick={handleCardClick}
+          pageId="events-calendar"
+          emptyComponent={events.length === 0 ? errorOrEmptyComponent : undefined}
+          initialDate={initialDate}
+          initialViewMode={viewMode}
+          onDateChange={handleCalendarDateChange}
+          hideControls={true} // Скрываем встроенные элементы управления календаря
+        />
+      )}
     </div>
   )
 }
