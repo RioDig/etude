@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { API_URL } from '@/shared/config'
-import { ApplicationEvent, ApplicationData } from '../model/applicationStore'
+import { ApplicationEvent, ApplicationData } from '@/entities/application'
 
 // Создаем инстанс axios с базовыми настройками
 const api = axios.create({
