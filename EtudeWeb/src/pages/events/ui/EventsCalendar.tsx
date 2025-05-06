@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React, { useRef } from 'react'
 import { Calendar } from '@/widgets/calendar'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
@@ -11,13 +11,19 @@ interface EventsCalendarProps {
   isLoading: boolean
   error?: string
   onEventSelect: (event: Event) => void
+  initialDate?: Date
+  onDateChange?: (date: Date) => void
+  viewMode?: 'week' | 'month'
 }
 
 export const EventsCalendar: React.FC<EventsCalendarProps> = ({
   events,
   isLoading,
   error,
-  onEventSelect
+  onEventSelect,
+  initialDate,
+  onDateChange,
+  viewMode = 'month'
 }) => {
   // Сохраняем соответствие между карточками и строками
   const cardRowMapRef = useRef<Record<string, number>>({})
@@ -47,33 +53,46 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
     }
   }
 
-  // Если идет загрузка, показываем спиннер
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-[400px]">
-        <Spinner size="large" label="Загрузка календаря..." />
-      </div>
-    )
+  // Обработчик изменения даты в календаре
+  const handleCalendarDateChange = (date: Date) => {
+    if (onDateChange) {
+      onDateChange(date)
+    }
   }
 
-  // Если данных нет или возникла ошибка, показываем пустое состояние
-  if (error || events.length === 0) {
-    return (
+  // Подготавливаем компоненты для разных состояний
+  const loadingComponent = (
+    <div className="flex justify-center items-center h-full">
+      <Spinner size="large" label="Загрузка календаря..." />
+    </div>
+  )
+
+  const errorOrEmptyComponent = (
+    <div className="flex justify-center items-center h-full">
       <EmptyMessage
-        variant="large"
+        variant="small"
         imageUrl={EmptyStateSvg}
         title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
         description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
       />
-    )
-  }
+    </div>
+  )
 
   // Преобразуем события в формат карточек календаря
-  const calendarCards = transformEventsToCalendarCards(events)
+  const calendarCards = events?.length > 0 ? transformEventsToCalendarCards(events) : []
 
   return (
     <div className="h-full">
-      <Calendar cards={calendarCards} onCardClick={handleCardClick} pageId="events-calendar" />
+      <Calendar
+        cards={calendarCards}
+        onCardClick={handleCardClick}
+        pageId="events-calendar"
+        emptyComponent={isLoading ? loadingComponent : errorOrEmptyComponent}
+        initialDate={initialDate}
+        initialViewMode={viewMode}
+        onDateChange={handleCalendarDateChange}
+        hideControls={true} // Скрываем встроенные элементы управления календаря
+      />
     </div>
   )
 }

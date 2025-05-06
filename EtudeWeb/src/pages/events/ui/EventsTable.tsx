@@ -31,6 +31,11 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     setSortState(newSortState)
   }
 
+  // Обработчик клика по строке таблицы
+  const handleRowClick = (row: unknown) => {
+    onEventSelect(row as Event)
+  }
+
   // Определение колонок таблицы
   const columns = [
     {
@@ -143,26 +148,44 @@ export const EventsTable: React.FC<EventsTableProps> = ({
   // Если идет загрузка, показываем таблицу со спиннером
   if (isLoading) {
     return (
-      <div className="h-full">
-        <div className="h-[52px] bg-mono-50 border-b border-mono-200 rounded-t-lg">
-          {/* Пустая шапка таблицы */}
-        </div>
-        <div className="flex justify-center items-center h-[400px]">
-          <Spinner size="large" label="Загрузка мероприятий..." />
-        </div>
+      <div className="h-full overflow-auto">
+        <Table
+          data={[]}
+          columns={columns}
+          sortState={sortState}
+          onSort={handleSort}
+          loading={true}
+          className="h-full"
+          emptyComponent={
+            <div className="flex justify-center items-center h-[300px] w-full">
+              <Spinner size="large" label="Загрузка мероприятий..." />
+            </div>
+          }
+        />
       </div>
     )
   }
 
-  // Если данных нет или возникла ошибка, показываем пустое состояние
+  // Если данных нет или возникла ошибка, все равно показываем таблицу, но с EmptyMessage внутри
   if (error || events.length === 0) {
     return (
-      <div className="h-full">
-        <EmptyMessage
-          variant="large"
-          imageUrl={EmptyStateSvg}
-          title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
-          description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
+      <div className="flex flex-col h-full overflow-auto">
+        <Table
+          data={[]}
+          columns={columns}
+          sortState={sortState}
+          onSort={handleSort}
+          className="h-full flex"
+          emptyComponent={
+            <div className="flex justify-center items-center w-full">
+              <EmptyMessage
+                variant="small"
+                imageUrl={EmptyStateSvg}
+                title={error ? 'Ошибка загрузки данных' : 'Нет данных для отображения'}
+                description={error || 'В системе пока нет мероприятий или они были отфильтрованы'}
+              />
+            </div>
+          }
         />
       </div>
     )
@@ -170,15 +193,17 @@ export const EventsTable: React.FC<EventsTableProps> = ({
 
   // Рендер таблицы с данными
   return (
-    <Table
-      data={events}
-      columns={columns}
-      sortState={sortState}
-      onSort={handleSort}
-      rowClassName="cursor-pointer"
-      onRowClick={(row) => onEventSelect(row as Event)}
-      className="h-full"
-    />
+    <div className="h-full overflow-auto">
+      <Table
+        data={events}
+        columns={columns}
+        sortState={sortState}
+        onSort={handleSort}
+        rowClassName="cursor-pointer"
+        onRowClick={handleRowClick}
+        className="h-full"
+      />
+    </div>
   )
 }
 

@@ -1,22 +1,28 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { Container } from '@/shared/ui/container'
 import { Typography } from '@/shared/ui/typography'
-import { Button } from '@/shared/ui/button'
 import { Switch } from '@/shared/ui/switch'
 import { Filter } from '@/shared/ui/filter'
 import { FilterOption } from '@/shared/ui/filter/types'
-import { CalendarTodayOutlined, TableChartOutlined, Add } from '@mui/icons-material'
+import { Counter } from '@/shared/ui/counter'
+import { CalendarTodayOutlined, TableChartOutlined } from '@mui/icons-material'
 import { EventsTable } from './EventsTable'
 import { EventsCalendar } from './EventsCalendar'
 import { EventsSidebar } from './EventsSidebar'
 import { useEvents } from '@/entities/event'
 import { Event } from '@/entities/event/model/types'
+import { DatePicker } from '@/shared/ui/datepicker/Datepicker'
 
 export const EventsPage: React.FC = () => {
   // Состояние для режима отображения и сайдбара
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+
+  // Состояние для хранения текущей даты при переключении видов
+  const [currentDate, setCurrentDate] = useState<Date>(new Date())
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
+  const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null)
 
   // Получение данных мероприятий
   const { data: events, isLoading, error } = useEvents()
@@ -77,9 +83,22 @@ export const EventsPage: React.FC = () => {
     { id: 'calendar', label: 'Календарь', icon: <CalendarTodayOutlined /> }
   ]
 
+  // Опции для переключателя режима календаря
+  const calendarViewOptions = [
+    { id: 'week', label: 'Неделя' },
+    { id: 'month', label: 'Месяц' }
+  ]
+
+  // Состояние для режима календаря
+  const [calendarViewMode, setCalendarViewMode] = useState('month')
+
   // Обработчики событий
   const handleViewModeChange = (mode: string) => {
     setViewMode(mode as 'table' | 'calendar')
+  }
+
+  const handleCalendarViewChange = (mode: string) => {
+    setCalendarViewMode(mode)
   }
 
   const handleEventSelect = useCallback((event: Event) => {
@@ -91,51 +110,104 @@ export const EventsPage: React.FC = () => {
     setIsSidebarOpen(false)
   }, [])
 
-  const handleCreateEvent = () => {
-    console.log('Create new event')
+  // Обработчик изменения текущей даты в календаре
+  const handleDateChange = useCallback((date: Date) => {
+    setCurrentDate(date)
+  }, [])
+
+  // Обработчик открытия DatePicker
+  const handleOpenDatePicker = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setDatePickerAnchor(event.currentTarget)
+    setIsDatePickerOpen(true)
   }
+
+  // Обработчик выбора даты
+  const handleDateSelect = (date: Date) => {
+    setCurrentDate(date)
+    setIsDatePickerOpen(false)
+  }
+
+  // Получение количества событий для счетчика
+  const eventsCount = events?.length || 0
 
   return (
     <Container className="flex flex-col gap-6 h-full w-full">
-      {/* Верхний блок с заголовком и кнопкой создания */}
+      {/* Верхний блок с заголовком и переключателем режимов отображения */}
       <div className="flex justify-between items-center">
-        <Typography variant="h2">Обучения</Typography>
-        <Button
-          variant="primary"
-          leftIcon={<Add />}
-          onClick={handleCreateEvent}
-          className="whitespace-nowrap"
-        >
-          Новое заявление
-        </Button>
+        <div className="flex items-center gap-2">
+          <Typography variant="h2">Обучения</Typography>
+          <Counter value={eventsCount} />
+        </div>
+        <Switch options={viewModeOptions} value={viewMode} onChange={handleViewModeChange} />
       </div>
 
-      {/* Блок с фильтрами и переключателем режимов */}
-      <div className="flex flex-wrap justify-between items-center gap-4">
+      {/* Блок с фильтрами и элементами управления календарем */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex-grow">
           <Filter filters={filterOptions} pageId="events-page" className="flex-wrap" />
         </div>
-        <div className="flex-shrink-0">
-          <Switch options={viewModeOptions} value={viewMode} onChange={handleViewModeChange} />
-        </div>
+
+        {/* Элементы управления календарем, видимые только в режиме календаря */}
+        {viewMode === 'calendar' && (
+          <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
+            <button
+              className="flex items-center gap-1 px-3 py-1 hover:bg-mono-100 rounded-md transition-colors"
+              onClick={handleOpenDatePicker}
+              aria-label="Выбрать дату"
+            >
+              <span className="text-b3-semibold">{currentDate.toLocaleDateString('ru-RU')}</span>
+              <CalendarTodayOutlined fontSize="small" />
+            </button>
+
+            <Switch
+              options={calendarViewOptions}
+              value={calendarViewMode}
+              onChange={handleCalendarViewChange}
+              size="small"
+            />
+
+            {isDatePickerOpen && datePickerAnchor && (
+              <div
+                className="fixed z-50"
+                style={{
+                  top: `${datePickerAnchor.getBoundingClientRect().bottom + 8}px`,
+                  left: `${datePickerAnchor.getBoundingClientRect().left}px`
+                }}
+              >
+                <DatePicker
+                  value={currentDate}
+                  onChange={handleDateSelect}
+                  onClose={() => setIsDatePickerOpen(false)}
+                />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Содержимое: таблица или календарь */}
-      <div className="flex-1 h-[500px] overflow-hidden">
+      <div className="flex-1 overflow-hidden">
         {viewMode === 'table' ? (
-          <EventsTable
-            events={events || []}
-            isLoading={isLoading}
-            error={error ? String(error) : undefined}
-            onEventSelect={handleEventSelect}
-          />
+          <div className="h-full overflow-auto">
+            <EventsTable
+              events={events || []}
+              isLoading={isLoading}
+              error={error ? String(error) : undefined}
+              onEventSelect={handleEventSelect}
+            />
+          </div>
         ) : (
-          <EventsCalendar
-            events={events || []}
-            isLoading={isLoading}
-            error={error ? String(error) : undefined}
-            onEventSelect={handleEventSelect}
-          />
+          <div className="h-full overflow-auto">
+            <EventsCalendar
+              events={events || []}
+              isLoading={isLoading}
+              error={error ? String(error) : undefined}
+              onEventSelect={handleEventSelect}
+              initialDate={currentDate}
+              onDateChange={handleDateChange}
+              viewMode={calendarViewMode as 'week' | 'month'}
+            />
+          </div>
         )}
       </div>
 
