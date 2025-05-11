@@ -26,7 +26,7 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
   viewMode = 'month'
 }) => {
   // Сохраняем соответствие между карточками и строками
-  const cardRowMapRef = useRef<Record<string, number>>({})
+  useRef<Record<string, number>>({})
 
   // Преобразуем данные Event в формат CalendarCard
   const transformEventsToCalendarCards = (events: Event[]): CalendarCard[] => {

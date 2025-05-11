@@ -220,7 +220,7 @@ export const EventsPage: React.FC = () => {
       {/* Верхний блок с заголовком и переключателем режимов отображения */}
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Typography variant="h2">Обучения</Typography>
+          <Typography variant="h2">Мероприятия</Typography>
           <Counter value={eventsCount} />
         </div>
         <Switch options={viewModeOptions} value={viewMode} onChange={handleViewModeChange} />
@@ -249,13 +249,13 @@ export const EventsPage: React.FC = () => {
                 onClick={handleOpenDatePicker}
                 aria-label="Выбрать дату"
               >
-                <span className="text-b3-semibold">{formatCalendarTitle()}</span>
+                <span className="text-b3-semibold leading-none mr-2">{formatCalendarTitle()}</span>
                 <CalendarTodayOutlined fontSize="small" />
               </button>
 
               <button
                 onClick={handleNextPeriod}
-                className="p-2 hover:bg-mono-100 rounded-full transition-colors"
+                className="p-2 hover:bg-mono-100 rounded-full transition-colors leading-none"
                 aria-label="Следующий период"
               >
                 <KeyboardArrowRight />

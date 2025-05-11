@@ -17,11 +17,8 @@ export const Calendar: React.FC<ExtendedCalendarProps> = ({
   initialDate = new Date(),
   className,
   onCardClick,
-  onDateChange,
-  onViewModeChange,
   pageId = 'calendar',
-  emptyComponent,
-  hideControls = false
+  emptyComponent
 }) => {
   // Используем реф для отслеживания распределения карточек по строкам
   const cardRowMapRef = useRef<Record<string, number>>({})

@@ -25,7 +25,7 @@ export const useNavItems = (): NavItem[] => {
 
     items.push({
       id: 'applications',
-      label: 'Обучения',
+      label: 'Мероприятия',
       icon: <Folder />,
       to: '/applications',
       variant: 'third'
