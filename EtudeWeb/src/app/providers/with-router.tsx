@@ -31,6 +31,7 @@ import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import { PublicRoute } from '@/shared/routes/PublicRoute'
 import { EventsPage } from '@/pages/events'
+import { AdminPage } from '@/pages/admin'
 
 const router = createBrowserRouter([
   // Публичные маршруты
@@ -95,6 +96,17 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <EventsPage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: '/admin/*',
+        element: (
+          // <AdminRoute>
+          //   <AdminPage />
+          // </AdminRoute>
+          <ProtectedRoute>
+            <AdminPage />
           </ProtectedRoute>
         )
       },

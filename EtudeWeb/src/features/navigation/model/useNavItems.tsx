@@ -1,6 +1,6 @@
 import { NavItem } from '@/widgets/header';
 import { USER_ROLES } from "@/entities/user";
-import { AdminPanelSettings, School, Add, Folder } from '@mui/icons-material'
+import { Add, Folder, Settings } from '@mui/icons-material'
 import { useAuth } from "@/entities/session";
 import { useCallback } from "react";
 
@@ -32,11 +32,11 @@ export const useNavItems = (): NavItem[] => {
     });
 
     // Пункты только для администраторов
-    if (user.role === USER_ROLES.admin) {
+    if (user.role !== USER_ROLES.admin) { // TODO: не забыть вернуть равенство
       items.push({
         id: 'admin',
         label: 'Администрирование',
-        icon: <AdminPanelSettings />,
+        icon: <Settings />,
         to: '/admin',
         variant: 'third'
       });
