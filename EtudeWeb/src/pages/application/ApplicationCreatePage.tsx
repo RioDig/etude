@@ -107,6 +107,7 @@ export const ApplicationCreatePage: React.FC = () => {
       description: '',
       link: ''
     })
+    selectEvent('')
   }
 
   // Обработчик изменения валидности формы
@@ -169,7 +170,10 @@ export const ApplicationCreatePage: React.FC = () => {
     // Показываем соответствующую форму для текущего шага
     switch (stepFromStore) {
       case 0:
-        return <Step1Form onValidChange={handleFormValidChange} />
+        return <Step1Form
+          onValidChange={handleFormValidChange}
+          isEventSelected={!!selectedEventId} // Добавить этот проп
+        />
       case 1:
         return <Step2Form onValidChange={handleFormValidChange} />
       case 2:

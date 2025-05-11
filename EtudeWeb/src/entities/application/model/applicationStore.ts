@@ -12,6 +12,17 @@ export interface ApplicationEvent {
   endDate: Date
 }
 
+export interface Approver {
+  id: string
+  userId: string
+  employeeData?: {
+    id: string
+    name: string
+    position?: string
+    department?: string
+  }
+}
+
 export interface ApplicationData {
   // О мероприятии (Шаг 1)
   type?: string
@@ -28,10 +39,7 @@ export interface ApplicationData {
   participants?: string[]
 
   // Согласующие (Шаг 3)
-  approvers?: Array<{
-    id: string
-    userId: string
-  }>
+  approvers?: Approver[]
 
   // Системные поля
   id?: string

@@ -134,6 +134,8 @@ export interface TableProps<T> {
    * ID для тестирования
    */
   testId?: string
+
+  onRowClick?: (item: T, index: number) => void
 }
 
 // Пропсы для Header
@@ -206,7 +208,8 @@ export function Table<T>({
   headerClassName,
   rowClassName,
   cellClassName,
-  testId = 'table'
+  testId = 'table',
+  onRowClick
 }: TableProps<T>) {
   // Локальное состояние сортировки, если внешнее не предоставлено
   const [localSortState, setLocalSortState] = useState<SortState>({
@@ -435,6 +438,8 @@ export function Table<T>({
                 key={rowIndex}
                 className={clsx('bg-mono-25 hover:bg-mono-100 transition-colors', rowClassName)}
                 data-testid={`${testId}-row-${rowIndex}`}
+                onClick={() => onRowClick?.(item, rowIndex)} // Добавить обработчик клика
+                style={{ cursor: onRowClick ? 'pointer' : 'auto' }} // Изменить курсор
               >
                 {columns.map((column) => (
                   <td

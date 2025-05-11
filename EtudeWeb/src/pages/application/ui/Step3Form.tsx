@@ -21,11 +21,16 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
   // Локальное состояние для списка согласующих
-  const [approvers, setApprovers] = useState<Approver[]>(
-    currentApplication?.approvers && currentApplication.approvers.length > 0
-      ? currentApplication.approvers
-      : [{ id: '1', userId: '' }]
-  )
+  const [approvers, setApprovers] = useState<Approver[]>(() => {
+    if (currentApplication?.approvers && currentApplication.approvers.length > 0) {
+      // Создаем массив с уже сохраненными данными
+      return currentApplication.approvers.map(approver => ({
+        ...approver,
+        employeeData: approver.employeeData || undefined
+      }))
+    }
+    return [{ id: '1', userId: '' }]
+  })
 
   // Функция валидации формы
   const validateForm = () => {
@@ -89,6 +94,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
                 }
                 placeholder="Начните вводить для поиска сотрудника..."
                 excludeIds={getExcludeIds(approver.id)}
+                initialEmployee={approver.employeeData}
               />
             </div>
 

@@ -81,9 +81,10 @@ export const EventsTable: React.FC<EventsTableProps> = ({
       }
     },
     {
-      id: 'period',
+      id: 'startDate',
       header: 'Даты проведения',
       sortable: true,
+      accessor: 'startDate',
       width: '20%',
       render: (event: Event) => {
         return (
@@ -173,7 +174,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
         onSort={handleSort}
         loading={isLoading}
         rowClassName="cursor-pointer"
-        onRowClick={handleRowClick}
+        onRowClick={(event: Event) => onEventSelect(event)}
         className="h-full flex flex-col"
         emptyComponent={isLoading ? loadingComponent : emptyComponent}
       />

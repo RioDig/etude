@@ -20,6 +20,7 @@ export interface AutocompleteSelectProps {
   excludeIds?: string[]
   className?: string
   testId?: string
+  initialEmployee?: Employee
 }
 
 export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectProps>(
@@ -35,7 +36,8 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       onChange,
       excludeIds = [],
       className,
-      testId = 'autocomplete-select'
+      testId = 'autocomplete-select',
+      initialEmployee
     },
     ref
   ) => {
@@ -53,6 +55,15 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
 
     // Используем debounce для предотвращения слишком частых запросов
     const debouncedSearchTerm = useDebounce(searchTerm, 300)
+
+    useEffect(() => {
+      if (initialEmployee && value && !searchTerm) {
+        setSearchTerm(
+          initialEmployee.name + (initialEmployee.position ? `, ${initialEmployee.position}` : '')
+        )
+        setSelectedEmployee(initialEmployee)
+      }
+    }, [initialEmployee, value])
 
     // Эффект для загрузки данных при изменении поискового запроса
     useEffect(() => {
@@ -168,7 +179,7 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
         label: 'Слишком много вариантов, уточните запрос',
         data: {} as Employee,
         disabled: true
-      } as any)
+      } as never)
     }
 
     return (

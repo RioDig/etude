@@ -5,10 +5,11 @@ import { useApplicationStore } from '@/entities/application/model/applicationSto
 
 interface Step1FormProps {
   onValidChange: (isValid: boolean) => void
+  isEventSelected?: boolean
 }
 
-export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
-  const { currentApplication, updateApplicationData, selectedEventId } = useApplicationStore()
+export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange, isEventSelected }) => {
+  const { currentApplication, updateApplicationData } = useApplicationStore()
 
   // Локальные состояния для полей формы
   const [type, setType] = useState(currentApplication?.type || '')
@@ -20,7 +21,7 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange }) => {
 
   // Определяем, можно ли редактировать поля формы
   // Если выбрано мероприятие из каталога - эти поля будут disabled
-  const isFieldDisabled = !!selectedEventId
+  const isFieldDisabled = isEventSelected
 
   // Опции для выпадающих списков
   const typeOptions = [

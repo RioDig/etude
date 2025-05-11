@@ -80,7 +80,8 @@ export const EventsPage: React.FC = () => {
         { value: 'rejected', label: 'Отклонено' },
         { value: 'completed', label: 'Пройдено' }
       ]
-    }
+    },
+
   ]
 
   // Опции для переключателя режимов отображения
