@@ -16,7 +16,7 @@ from db import get_async_session, User, OAuthClient, RefreshToken, AuthToken, Do
     Company, Department
 from models import CompanyInDB, CompanyCreate, CompanyWithDepartments, CompanyUpdate, UserResponse, UserInDB, \
     DepartmentWithEmployees, DepartmentInDB, DepartmentUpdate, DepartmentCreate, UserUpdate, UserCreate, DocumentInDB, \
-    DocumentCreate, DocumentResponse, DocumentUpdate, TokenResponse, EmailLoginRequest
+    DocumentCreate, DocumentResponse, DocumentUpdate, TokenResponse, EmailLoginRequest, OrganizationStructure
 from oauth2 import create_access_token, create_refresh_token, validate_token, revoke_token
 from config import settings
 from fastapi.security import OAuth2PasswordBearer
@@ -1548,6 +1548,73 @@ async def login_with_email(
         expires_in=3600,
         refresh_token=refresh_token_value
     )
+
+
+@app.get("/api/organization/structure", response_model=OrganizationStructure)
+async def get_organization_structure(
+        db: AsyncSession = Depends(get_async_session)
+):
+    # Получаем компанию
+    company_query = select(Company).order_by(Company.name)
+    company_result = await db.execute(company_query)
+    company = company_result.scalars().first()
+
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Создаем структуру ответа
+    structure = {"company": {"name": company.name, "departments": []}}
+
+    # Получаем все департаменты
+    departments_query = select(Department).where(Department.company_id == company.id).order_by(Department.name)
+    departments_result = await db.execute(departments_query)
+    departments = departments_result.scalars().all()
+
+    # Для каждого департамента
+    for department in departments:
+        # Получаем руководителя (is_leader = True)
+        manager_query = select(User).where(
+            (User.department_id == department.id) &
+            (User.is_leader == True)
+        )
+        manager_result = await db.execute(manager_query)
+        manager = manager_result.scalars().first()
+
+        if not manager:
+            # Если руководитель не найден, пропускаем департамент
+            continue
+
+        # Получаем всех сотрудников департамента, кроме руководителя
+        employees_query = select(User).where(
+            (User.department_id == department.id) &
+            (User.is_leader == False)
+        ).order_by(User.surname, User.name)
+        employees_result = await db.execute(employees_query)
+        employees = employees_result.scalars().all()
+
+        # Создаем объект департамента
+        dept_structure = {
+            "name": department.name,
+            "manager": {
+                "name": f"{manager.surname} {manager.name} {manager.patronymic if manager.patronymic else ''}".strip(),
+                "position": manager.position,
+                "email": manager.org_email
+            },
+            "employees": []
+        }
+
+        # Добавляем сотрудников
+        for employee in employees:
+            dept_structure["employees"].append({
+                "name": f"{employee.surname} {employee.name} {employee.patronymic if employee.patronymic else ''}".strip(),
+                "position": employee.position,
+                "email": employee.org_email
+            })
+
+        structure["company"]["departments"].append(dept_structure)
+
+    return structure
+
 
 if __name__ == "__main__":
     import uvicorn

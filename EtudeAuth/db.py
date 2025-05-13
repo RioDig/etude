@@ -1,6 +1,6 @@
 import uuid
-
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text, ARRAY, JSON
+from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey, Text, ARRAY, JSON, Integer
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from sqlalchemy.sql import func
@@ -31,7 +31,7 @@ async def get_async_session():
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True)
     org_email = Column(String, unique=True, index=True)
     name = Column(String)
@@ -40,7 +40,8 @@ class User(Base):
     position = Column(String)
     hashed_password = Column(String)
     EtudeID = Column(Integer, nullable=True)
-    department_id = Column(Integer, ForeignKey("departments.id"), nullable=True)
+    department_id = Column(UUID(as_uuid=True), ForeignKey("departments.id"), nullable=True)
+    is_leader = Column(Boolean, default=False, nullable=False)
 
     # Отношения
     department = relationship("Department", back_populates="employees")
@@ -69,7 +70,7 @@ class AuthorizationCode(Base):
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String, unique=True, index=True)
     client_id = Column(String, ForeignKey("oauth_clients.client_id"))
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     email = Column(String)
     scopes = Column(String)  # Разделенные запятой scopes
     redirect_uri = Column(String)
@@ -87,7 +88,7 @@ class RefreshToken(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String, unique=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     email = Column(String)
     scopes = Column(String)  # Разделенные запятой scopes
     client_id = Column(String, ForeignKey("oauth_clients.client_id"))
@@ -110,7 +111,7 @@ class Document(Base):
     isApproval = Column(Boolean, default=False)  # Статус согласования
     DocInfo = Column(JSON)  # Вся информация о документе в JSON
     created_at = Column(DateTime, default=func.now())  # Дата и время создания документа
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
 
     # Отношения
     owner = relationship("User", back_populates="documents")
@@ -132,7 +133,7 @@ class AuthToken(Base):
 class Company(Base):
     __tablename__ = "companies"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String, unique=True, index=True)
 
     # Отношения
@@ -142,9 +143,9 @@ class Company(Base):
 class Department(Base):
     __tablename__ = "departments"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     name = Column(String, index=True)
-    company_id = Column(Integer, ForeignKey("companies.id"))
+    company_id = Column(UUID(as_uuid=True), ForeignKey("companies.id"))
 
     # Отношения
     company = relationship("Company", back_populates="departments")

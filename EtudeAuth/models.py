@@ -154,3 +154,20 @@ class AuthToken(BaseModel):
     scopes: List[str]
     redirect_uri: str
     expires_at: int
+
+class EmployeeInfo(BaseModel):
+    name: str
+    position: str
+    email: str
+
+class DepartmentStructure(BaseModel):
+    name: str
+    manager: EmployeeInfo
+    employees: List[EmployeeInfo] = []
+
+class CompanyStructure(BaseModel):
+    name: str
+    departments: List[DepartmentStructure] = []
+
+class OrganizationStructure(BaseModel):
+    company: CompanyStructure
