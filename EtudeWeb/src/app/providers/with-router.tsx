@@ -36,7 +36,7 @@ import { AdminPage } from '@/pages/admin'
 const router = createBrowserRouter([
   // Публичные маршруты
   {
-    element: <BaseLayout isAuthPage={true} />,
+    element: <BaseLayout isNotLayoutPage={true} />,
     errorElement: <NotFoundPage />,
     children: [
       {
@@ -59,6 +59,24 @@ const router = createBrowserRouter([
         path: '/forbidden',
         element: <ForbiddenPage />
       }
+    ]
+  },
+
+  {
+    element: <BaseLayout isNotLayoutPage={true} isAdminPage={true} />,
+    errorElement: <NotFoundPage />,
+    children: [
+      {
+        path: '/admin/*',
+        element: (
+          // <AdminRoute>
+          //   <AdminPage />
+          // </AdminRoute>
+          <ProtectedRoute>
+            <AdminPage />
+          </ProtectedRoute>
+        )
+      },
     ]
   },
 
@@ -96,17 +114,6 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <EventsPage />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: '/admin/*',
-        element: (
-          // <AdminRoute>
-          //   <AdminPage />
-          // </AdminRoute>
-          <ProtectedRoute>
-            <AdminPage />
           </ProtectedRoute>
         )
       },

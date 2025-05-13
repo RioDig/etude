@@ -1,3 +1,4 @@
+// src/pages/admin/ui/StatusesPage.tsx
 import React, { useState } from 'react'
 import { Table, SortState } from '@/widgets/table'
 import { Filter, FilterOption } from '@/shared/ui/filter'
@@ -6,8 +7,11 @@ import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 import { useStatuses, AdditionalStatus } from '@/entities/status'
-import { MoreHoriz, Edit, Delete } from '@mui/icons-material'
+import { MoreHoriz, Edit, Delete, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
+import { Container } from '@/shared/ui/container'
+import { Control } from '@/shared/ui/controls'
+import { Typography } from '@/shared/ui/typography'
 
 export const StatusesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -15,6 +19,7 @@ export const StatusesPage: React.FC = () => {
     direction: 'asc'
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState<string>('')
 
   // Используем хук для загрузки данных
   const { data: statuses, isLoading, error } = useStatuses()
@@ -23,15 +28,32 @@ export const StatusesPage: React.FC = () => {
   const filterOptions: FilterOption[] = [
     {
       id: 'name',
-      label: 'Поиск по названию',
+      label: 'Название',
       type: 'dropdown',
-      options: []
+      options: [
+        { value: '', label: 'Все статусы' },
+        ...(statuses?.map((status) => ({
+          value: status.name,
+          label: status.name
+        })) || [])
+      ]
     }
   ]
 
   // Обработчик сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
+  }
+
+  // Обработчик поиска
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
+
+  // Обработчик добавления статуса
+  const handleAddStatus = () => {
+    console.log('Add new status')
+    // Здесь будет логика добавления статуса
   }
 
   // Обработчик действий
@@ -49,6 +71,12 @@ export const StatusesPage: React.FC = () => {
         break
     }
   }
+
+  // Фильтрация статусов по поисковому запросу
+  const filteredStatuses =
+    statuses?.filter(
+      (status) => searchTerm === '' || status.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || []
 
   // Колонки таблицы
   const columns = [
@@ -116,7 +144,12 @@ export const StatusesPage: React.FC = () => {
       variant="small"
       imageUrl={EmptyStateSvg}
       title={error ? 'Ошибка загрузки данных' : 'Нет дополнительных статусов'}
-      description={error ? String(error) : 'В системе пока нет дополнительных статусов'}
+      description={
+        error
+          ? String(error)
+          : 'По заданному запросу нет дополнительных статусов, либо их нет в системе'
+      }
+      className={'my-auto'}
     />
   )
 
@@ -128,14 +161,31 @@ export const StatusesPage: React.FC = () => {
   )
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-6 h-full">
+      {/* Заголовок и кнопка добавления */}
+      <div className="flex justify-between items-center mb-2">
+        <Typography variant="h1">Дополнительные статусы</Typography>
+        <Button variant="primary" leftIcon={<Add />} onClick={handleAddStatus}>
+          Добавить статус
+        </Button>
+      </div>
+
+      {/* Поиск */}
+      <div className="w-full">
+        <Control.Input
+          placeholder="Поиск по названию статуса..."
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+      </div>
+
       {/* Фильтры */}
-      <Filter filters={filterOptions} pageId="admin-statuses" />
+      {/*<Filter filters={filterOptions} pageId="admin-statuses" />*/}
 
       {/* Таблица */}
       <div className="flex-1 overflow-hidden">
         <Table
-          data={isLoading ? [] : statuses || []}
+          data={isLoading ? [] : filteredStatuses}
           columns={columns}
           sortState={sortState}
           onSort={handleSort}

@@ -1,17 +1,18 @@
 import React from 'react'
-import { Navigate, Routes, Route, useLocation, NavLink } from 'react-router-dom'
+import { Navigate, Routes, Route, useLocation, Link } from 'react-router-dom'
 import { Container } from '@/shared/ui/container'
 import { Typography } from '@/shared/ui/typography'
 import { TemplatesPage } from './TemplatesPage'
 import { StatusesPage } from './StatusesPage'
 import { ReportsPage } from './ReportsPage'
+import { NotFoundPage } from '@/pages/errors/NotFoundPage'
 import clsx from 'clsx'
 
 export const AdminPage: React.FC = () => {
   const location = useLocation()
 
   // Определяем активную вкладку на основе пути
-  const activePath = location.pathname.split('/').pop()
+  const activePath = location.pathname.split('/admin/')[1] || 'templates'
 
   // Навигационные элементы
   const navItems = [
@@ -21,39 +22,39 @@ export const AdminPage: React.FC = () => {
   ]
 
   return (
-    <Container className="flex flex-col gap-6 h-full">
-      {/* Заголовок */}
-      <Typography variant="h2">Администрирование</Typography>
+    <div className="flex h-full bg-mono-25 flex-1 overflow-hidden">
+      {/* Боковое меню */}
 
-      {/* Навигация по вкладкам */}
-      <div className="flex gap-1 border-b border-mono-300">
+      <div className="flex flex-col gap-2 p-4 border-r-[1px] border-mono-300 min-w-[280px]">
         {navItems.map((item) => (
-          <NavLink
+          <Link
             key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              clsx(
-                'px-4 py-2 text-b3-regular transition-colors',
-                isActive || activePath === item.path
-                  ? 'text-blue-500 border-b-2 border-blue-500'
-                  : 'text-mono-700 hover:text-mono-900'
-              )
-            }
+            to={`/admin/${item.path}`}
+            className={clsx(
+              'px-4 py-3.5 rounded-md transition-colors w-full',
+              activePath === item.path
+                ? 'bg-mono-200 text-mono-950 text-b3-regular font-medium'
+                : 'text-mono-950 text-b3-regular hover:bg-mono-100 font-medium'
+            )}
           >
             {item.label}
-          </NavLink>
+          </Link>
         ))}
       </div>
 
       {/* Содержимое страницы */}
-      <div className="flex-1 overflow-hidden">
-        <Routes>
-          <Route index element={<Navigate to="templates" replace />} />
-          <Route path="templates" element={<TemplatesPage />} />
-          <Route path="statuses" element={<StatusesPage />} />
-          <Route path="reports" element={<ReportsPage />} />
-        </Routes>
+      <div className="flex flex-col flex-1 min-h-0">
+        <div className="w-full !bg-mono-25 p-8 max-h-full h-full">
+          <Routes>
+            <Route index element={<Navigate to="templates" replace />} />
+            <Route path="templates" element={<TemplatesPage />} />
+            <Route path="statuses" element={<StatusesPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            {/* Обработка несуществующих путей */}
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </div>
       </div>
-    </Container>
+    </div>
   )
 }

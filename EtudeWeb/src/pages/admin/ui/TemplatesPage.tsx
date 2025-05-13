@@ -6,8 +6,9 @@ import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 import { useTemplates, Template } from '@/entities/template'
-import { MoreHoriz, Edit, Delete } from '@mui/icons-material'
+import { MoreHoriz, Edit, Delete, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
+import { Typography } from '@/shared/ui/typography'
 
 export const TemplatesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -76,6 +77,11 @@ export const TemplatesPage: React.FC = () => {
         // Здесь будет логика удаления
         break
     }
+  }
+
+  const handleAddTemplate = () => {
+    console.log('Add new template')
+    // Здесь будет логика добавления шаблона
   }
 
   // Колонки таблицы
@@ -192,7 +198,10 @@ export const TemplatesPage: React.FC = () => {
       variant="small"
       imageUrl={EmptyStateSvg}
       title={error ? 'Ошибка загрузки данных' : 'Нет шаблонов курсов'}
-      description={error ? String(error) : 'В системе пока нет шаблонов курсов'}
+      description={
+        error ? String(error) : 'По заданным фильтрам нет шаблонов курсов, либо их нет в системе'
+      }
+      className={'my-auto'}
     />
   )
 
@@ -204,7 +213,14 @@ export const TemplatesPage: React.FC = () => {
   )
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-6 h-full">
+      <div className="flex justify-between items-center">
+        <Typography variant={'h1'}>Шаблоны курсов</Typography>
+        <Button variant="primary" leftIcon={<Add />} onClick={handleAddTemplate}>
+          Добавить шаблон
+        </Button>
+      </div>
+
       {/* Фильтры */}
       <Filter filters={filterOptions} pageId="admin-templates" />
 

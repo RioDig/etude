@@ -6,9 +6,10 @@ import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 import { useReports, useDownloadReport, Report } from '@/entities/report'
-import { MoreHoriz, Download } from '@mui/icons-material'
+import { MoreHoriz, Download, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { notification } from '@/shared/lib/notification'
+import { Typography } from '@/shared/ui/typography'
 
 export const ReportsPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -51,6 +52,11 @@ export const ReportsPage: React.FC = () => {
   // Обработчик сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
+  }
+
+  const handleAddReport = () => {
+    console.log('Generate new report')
+    // Здесь будет логика генерации отчета
   }
 
   // Обработчик скачивания отчета
@@ -133,7 +139,10 @@ export const ReportsPage: React.FC = () => {
       variant="small"
       imageUrl={EmptyStateSvg}
       title={error ? 'Ошибка загрузки данных' : 'Нет отчетов'}
-      description={error ? String(error) : 'В системе пока нет отчетов'}
+      description={
+        error ? String(error) : 'По заданным фильтрам нет отчетов, либо их нет в системе'
+      }
+      className={'my-auto'}
     />
   )
 
@@ -145,7 +154,14 @@ export const ReportsPage: React.FC = () => {
   )
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-6 h-full">
+      <div className="flex justify-between items-center">
+        <Typography variant={'h1'}>Отчетность</Typography>
+        <Button variant="primary" leftIcon={<Add />} onClick={handleAddReport}>
+          Сформировать отчет
+        </Button>
+      </div>
+
       {/* Фильтры */}
       <Filter filters={filterOptions} pageId="admin-reports" />
 
@@ -158,6 +174,7 @@ export const ReportsPage: React.FC = () => {
           onSort={handleSort}
           loading={isLoading}
           emptyComponent={isLoading ? loadingComponent : emptyComponent}
+          infiniteScroll={true}
         />
       </div>
     </div>

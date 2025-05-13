@@ -5,17 +5,18 @@ import { Header } from '@/widgets/header'
 import clsx from 'clsx'
 
 type Props = {
-  isAuthPage?: boolean
+  isNotLayoutPage?: boolean
+  isAdminPage?: boolean
 }
 
-function BaseLayout({ isAuthPage = false }: Props) {
+function BaseLayout({ isNotLayoutPage = false, isAdminPage = false }: Props) {
   return (
     <div className="flex flex-col min-h-screen w-full">
-      {Boolean(!isAuthPage) && (
+      {Boolean(!isNotLayoutPage || isAdminPage) && (
         <Header notificationsCount={5} className="sticky top-0 z-50 bg-white" />
       )}
 
-      <main className={clsx('flex-1 overflow-auto bg-mono-100', !isAuthPage && 'p-8')}>
+      <main className={clsx('flex-1 overflow-auto bg-mono-100', !isNotLayoutPage && 'p-8')}>
         <Outlet />
       </main>
       <NotificationContainer />

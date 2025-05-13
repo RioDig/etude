@@ -334,7 +334,7 @@ export function Table<T>({
   if (!children && !data.length && !loading) {
     return (
       <div
-        className={clsx('rounded-[4px] border border-mono-200 overflow-hidden', className)}
+        className={clsx('rounded-[4px] border border-mono-200 overflow-hidden flex-col flex h-full', className)}
         data-testid={testId}
       >
         {emptyComponent || (
@@ -361,7 +361,7 @@ export function Table<T>({
 
     const tableContainerClass = clsx(
       scrollable ? 'overflow-x-auto w-full' : 'w-full',
-      infiniteScroll && 'max-h-[600px] overflow-y-auto'
+      infiniteScroll && 'max-h-[750px] overflow-y-auto'
     )
 
     return (
