@@ -33,8 +33,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   today.setHours(0, 0, 0, 0)
 
   return (
-    <div className="border border-mono-200 rounded-[8px] overflow-auto bg-white">
+    <div className="border border-mono-200 rounded-[8px] overflow-auto bg-white h-full">
       <div
+        className='h-full'
         style={{
           width: 'fit-content',
           minWidth: '100%'
@@ -74,7 +75,8 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${days.length}, minmax(50px, 1fr))`,
-            gridTemplateRows: `repeat(${Math.max(1, maxRows)}, minmax(100px, auto))`
+            gridTemplateRows: `repeat(${Math.max(1, maxRows)}, 100px) auto`,
+            height: 'calc(100% - 51px)',
           }}
         >
           {/* Вертикальные разделители */}
@@ -91,8 +93,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 )}
                 style={{
                   gridColumn: index + 1,
-                  gridRow: '1 / span ' + Math.max(1, maxRows),
-                  height: '100%'
+                  gridRow: '1 / span ' + Math.max(1, maxRows + 1)
                 }}
               />
             )
