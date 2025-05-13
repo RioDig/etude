@@ -52,7 +52,7 @@ export const Calendar: React.FC<ExtendedCalendarProps> = ({
   }, [initialDate, initialViewMode])
 
   return (
-    <div className={clsx('flex flex-col h-full', className)}>
+    <div className={clsx('flex flex-col h-full', emptyComponent && 'justify-center', className)}>
       {/* Контент календаря */}
 
       {cards && cards.length > 0 ? (

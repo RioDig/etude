@@ -28,6 +28,10 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     setElement(node)
   }, [])
 
+  // Получаем текущую дату для подсветки текущего дня
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
   return (
     <div className="border border-mono-200 rounded-[8px] overflow-auto bg-white">
       <div
@@ -45,17 +49,23 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           }}
           ref={ref}
         >
-          {days.map((day, index) => (
-            <div
-              key={`header-${index}`}
-              className={clsx(
-                'h-[50px] flex items-center px-[16px] py-[12px] text-b1 text-mono-950 justify-center',
-                '[&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200'
-              )}
-            >
-              {day.getDate()}
-            </div>
-          ))}
+          {days.map((day, index) => {
+            // Проверяем, является ли день текущим
+            const isToday = day.toDateString() === today.toDateString()
+
+            return (
+              <div
+                key={`header-${index}`}
+                className={clsx(
+                  'h-[50px] flex items-center px-[16px] py-[12px] text-b1 text-mono-950 justify-center',
+                  '[&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200',
+                  isToday && 'bg-mono-200' // Добавляем подсветку для текущего дня
+                )}
+              >
+                {day.getDate()}
+              </div>
+            )
+          })}
         </div>
 
         {/* Сетка календаря */}
@@ -68,17 +78,25 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           }}
         >
           {/* Вертикальные разделители */}
-          {Array.from({ length: days.length }).map((_, index) => (
-            <div
-              key={`divider-${index}`}
-              className={index !== days.length - 1 ? 'border-r border-mono-200' : ''}
-              style={{
-                gridColumn: index + 1,
-                gridRow: '1 / span ' + Math.max(1, maxRows),
-                height: '100%'
-              }}
-            />
-          ))}
+          {Array.from({ length: days.length }).map((_, index) => {
+            // Проверяем, является ли колонка текущим днем
+            const isToday = days[index] && days[index].toDateString() === today.toDateString()
+
+            return (
+              <div
+                key={`divider-${index}`}
+                className={clsx(
+                  index !== days.length - 1 ? 'border-r border-mono-200' : '',
+                  isToday ? 'bg-mono-200' : '' // Добавляем подсветку для колонки текущего дня
+                )}
+                style={{
+                  gridColumn: index + 1,
+                  gridRow: '1 / span ' + Math.max(1, maxRows),
+                  height: '100%'
+                }}
+              />
+            )
+          })}
 
           {/* Карточки */}
           {distributedCards.flatMap((row, rowIndex) =>

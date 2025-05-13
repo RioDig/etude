@@ -26,6 +26,7 @@ import { AdminRoute, ProtectedRoute } from '@/shared/routes/ProtectedRoute'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
 import { ApplicationCreatePage } from '@/pages/application/ApplicationCreatePage'
+import { SchedulePage } from '@/pages/schedule'
 
 import { ForbiddenPage } from '@/pages/errors/ForbiddenPage'
 import { NotFoundPage } from '@/pages/errors/NotFoundPage'
@@ -114,6 +115,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <EventsPage />
+          </ProtectedRoute>
+        )
+      },
+      {
+        path: '/schedule',
+        element: (
+          <ProtectedRoute>
+            <SchedulePage />
           </ProtectedRoute>
         )
       },
