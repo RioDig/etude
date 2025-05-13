@@ -159,6 +159,8 @@ class EmployeeInfo(BaseModel):
     name: str
     position: str
     email: str
+    is_leader: bool
+    department_name: str  # Добавляем название отдела
 
 class DepartmentStructure(BaseModel):
     name: str

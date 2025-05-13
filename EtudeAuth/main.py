@@ -11,6 +11,7 @@ from sqlalchemy import select
 from typing import Optional, List, Annotated
 from datetime import datetime, timedelta
 import uuid
+from uuid import UUID
 from urllib.parse import urlencode
 from db import get_async_session, User, OAuthClient, RefreshToken, AuthToken, Document, \
     Company, Department
@@ -1203,7 +1204,7 @@ async def read_users(
 
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 async def read_user(
-        user_id: int,
+        user_id: UUID,
         current_user: User = Depends(get_current_active_user),
         db: AsyncSession = Depends(get_async_session)
 ):
@@ -1231,7 +1232,7 @@ async def read_user(
 
 @app.put("/api/users/{user_id}", response_model=UserResponse)
 async def update_user(
-        user_id: int,
+        user_id: uuid.UUID,
         user: UserUpdate,
         current_user: User = Depends(get_current_active_user),
         db: AsyncSession = Depends(get_async_session)
@@ -1281,7 +1282,7 @@ async def update_user(
 
 @app.delete("/api/users/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(
-        user_id: int,
+        user_id: uuid.UUID,
         current_user: User = Depends(get_current_active_user),
         db: AsyncSession = Depends(get_async_session)
 ):
@@ -1560,7 +1561,7 @@ async def get_organization_structure(
     company = company_result.scalars().first()
 
     if not company:
-        raise HTTPException(status_code=404, detail="Company not found")
+        raise HTTPException(status_code=404, detail="Компания не найдена")
 
     # Создаем структуру ответа
     structure = {"company": {"name": company.name, "departments": []}}
@@ -1598,7 +1599,9 @@ async def get_organization_structure(
             "manager": {
                 "name": f"{manager.surname} {manager.name} {manager.patronymic if manager.patronymic else ''}".strip(),
                 "position": manager.position,
-                "email": manager.org_email
+                "email": manager.org_email,
+                "is_leader": True,
+                "department_name": department.name
             },
             "employees": []
         }
@@ -1608,7 +1611,9 @@ async def get_organization_structure(
             dept_structure["employees"].append({
                 "name": f"{employee.surname} {employee.name} {employee.patronymic if employee.patronymic else ''}".strip(),
                 "position": employee.position,
-                "email": employee.org_email
+                "email": employee.org_email,
+                "is_leader": False,
+                "department_name": department.name
             })
 
         structure["company"]["departments"].append(dept_structure)

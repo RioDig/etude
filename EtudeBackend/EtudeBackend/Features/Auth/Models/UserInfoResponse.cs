@@ -5,7 +5,7 @@ namespace EtudeBackend.Features.Auth.Models;
 public class UserInfoResponse
 {
     [JsonPropertyName("id")]
-    public int UserId { get; set; }
+    public string UserId { get; set; } 
     
     [JsonPropertyName("name")]
     public string Name { get; set; }
