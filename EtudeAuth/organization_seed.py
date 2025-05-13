@@ -6,8 +6,7 @@ import random
 from faker import Faker
 
 # Инициализируем Faker для генерации случайных данных
-fake_ru = Faker('ru_RU')  # Для русских имен
-fake_en = Faker('en_US')  # Для английских данных, в т.ч. почты
+fake_ru = Faker('ru_RU')  # Для русских имен и текста
 
 # Набор уже использованных email-адресов для проверки уникальности
 used_emails = set()
@@ -36,26 +35,67 @@ def transliterate(name):
     return result
 
 
-# Создаем структуру организации
-def generate_organization_structure():
-    # Создаем компанию с английским названием
-    company = {
-        "id": str(uuid.uuid4()),
-        "name": "Tech Progress LLC"
+# Функция для преобразования названия отдела в родительный падеж
+def department_to_genitive(name):
+    """Преобразует название отдела в родительный падеж"""
+    # Словарь окончаний и их форм в родительном падеже
+    replacements = {
+        "Отдел": "Отдела",
+        "Бухгалтерия": "Бухгалтерии",
+        "Администрация": "Администрации",
+        "Служба": "Службы",
+        "отдел": "отдела",
+        "бухгалтерия": "бухгалтерии",
+        "администрация": "администрации",
+        "служба": "службы"
     }
 
-    # Создаем отделы с английскими названиями
+    # Обработка сложных названий
+    for word, genitive in replacements.items():
+        if name.endswith(word):
+            # Заменяем только окончание
+            prefix = name[:-len(word)]
+            return prefix + genitive
+
+    # Специальные случаи
+    special_cases = {
+        "ИТ Отдел": "ИТ Отдела",
+        "Отдел разработки": "Отдела разработки",
+        "Отдел продаж": "Отдела продаж",
+        "Отдел маркетинга": "Отдела маркетинга",
+        "Отдел кадров": "Отдела кадров",
+        "Юридический отдел": "Юридического отдела",
+        "Служба безопасности": "Службы безопасности",
+        "Отдел логистики": "Отдела логистики"
+    }
+
+    if name in special_cases:
+        return special_cases[name]
+
+    # Если нет в специальных случаях, добавляем стандартное окончание
+    return name + "а"
+
+
+# Создаем структуру организации
+def generate_organization_structure():
+    # Создаем компанию на русском языке
+    company = {
+        "id": str(uuid.uuid4()),
+        "name": "ООО Технопрогресс"
+    }
+
+    # Создаем отделы на русском языке
     departments = [
-        {"id": str(uuid.uuid4()), "name": "IT Department", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Accounting", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Development", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Sales", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Marketing", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "HR", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Legal", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Security", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Administration", "company_id": company["id"]},
-        {"id": str(uuid.uuid4()), "name": "Logistics", "company_id": company["id"]}
+        {"id": str(uuid.uuid4()), "name": "ИТ Отдел", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Бухгалтерия", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Отдел разработки", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Отдел продаж", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Отдел маркетинга", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Отдел кадров", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Юридический отдел", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Служба безопасности", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Администрация", "company_id": company["id"]},
+        {"id": str(uuid.uuid4()), "name": "Отдел логистики", "company_id": company["id"]}
     ]
 
     # Создаем пользователей
@@ -78,8 +118,8 @@ def generate_organization_structure():
         department_id = department["id"]
         department_count = users_per_department[department_id]
 
-        # Преобразуем название отдела в slug для email
-        department_slug = department["name"].lower().replace(' ', '_')
+        # Преобразуем название отдела в slug для email (транслитерация)
+        department_slug = transliterate(department["name"].lower()).replace(' ', '_')
 
         # Создаем пользователей для отдела
         for i in range(department_count):
@@ -96,31 +136,35 @@ def generate_organization_structure():
                 last_name = fake_ru.last_name_male()
                 middle_name = fake_ru.middle_name_male()
 
-                # Английские должности
+                # Должности на русском
                 position_options = [
-                    "Manager", "Specialist", "Analyst", "Engineer",
-                    "Programmer", "Consultant", "Senior Developer",
-                    "Technical Lead", "System Administrator"
+                    "Менеджер", "Специалист", "Аналитик", "Инженер",
+                    "Программист", "Консультант", "Старший разработчик",
+                    "Технический руководитель", "Системный администратор"
                 ]
                 position = random.choice(position_options)
 
                 if is_leader:
-                    position = f"Head of {department['name']}"
+                    # Преобразуем название отдела в родительный падеж
+                    department_genitive = department_to_genitive(department['name'])
+                    position = f"Руководитель {department_genitive}"
             else:
                 first_name = fake_ru.first_name_female()
                 last_name = fake_ru.last_name_female()
                 middle_name = fake_ru.middle_name_female()
 
-                # Английские должности
+                # Должности на русском
                 position_options = [
-                    "Manager", "Specialist", "Analyst", "Engineer",
-                    "Programmer", "Consultant", "HR Specialist",
-                    "Content Manager", "Accountant", "Designer"
+                    "Менеджер", "Специалист", "Аналитик", "Инженер",
+                    "Программист", "Консультант", "HR Специалист",
+                    "Контент-менеджер", "Бухгалтер", "Дизайнер"
                 ]
                 position = random.choice(position_options)
 
                 if is_leader:
-                    position = f"Head of {department['name']}"
+                    # Преобразуем название отдела в родительный падеж
+                    department_genitive = department_to_genitive(department['name'])
+                    position = f"Руководитель {department_genitive}"
 
             # Создаем email с английскими буквами и гарантируем уникальность
             first_name_latin = transliterate(first_name).lower()

@@ -92,6 +92,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOAuthService, OAuthService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddHttpContextAccessor();
+        services.AddScoped<EtudeAuthApiService>();
 
         return services;
     }

@@ -13,7 +13,7 @@ public partial class UserInfo
     public string Surname { get; set; } = string.Empty;
     public string? Patronymic { get; set; }
     public string Position { get; set; } = string.Empty;
-    public int? SoloUserId { get; set; }
+    public string? SoloUserId { get; set; }
     public int RoleId { get; set; }
 }
 

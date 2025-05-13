@@ -10,7 +10,7 @@ public class ApplicationUser : IdentityUser
     public string OrgEmail { get; set; } = string.Empty;
     public string Position { get; set; } = string.Empty;
     public int RoleId { get; set; }
-    public int? SoloUserId { get; set; }
+    public string? SoloUserId { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
     

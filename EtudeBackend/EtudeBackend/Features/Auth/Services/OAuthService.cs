@@ -204,7 +204,7 @@ public class OAuthService : IOAuthService
             // Возвращаем кэшированную информацию о пользователе
             return new UserInfoResponse
             {
-                UserId = tokenInfo.UserInfo.SoloUserId ?? 0,
+                UserId = tokenInfo.UserInfo.SoloUserId,
                 Name = tokenInfo.UserInfo.Name,
                 Surname = tokenInfo.UserInfo.Surname,
                 Patronymic = tokenInfo.UserInfo.Patronymic,
