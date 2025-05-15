@@ -9,7 +9,8 @@ public class StatusMappingProfile : Profile
     public StatusMappingProfile()
     {
         // Status -> StatusDto
-        CreateMap<Status, StatusDto>();
+        CreateMap<Status, StatusDto>()
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => "Processed")); // Устанавливаем тип "Processed" для кастомных статусов
         
         // CreateStatusDto -> Status маппинг производится вручную в сервисе
     }

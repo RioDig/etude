@@ -30,7 +30,10 @@ public class CustomStatusService : ICustomStatusService
         
         foreach (var statusDto in statusDtos)
         {
-            var statusGuid = new Guid(statusDto.Id.ToString());
+            // Устанавливаем тип "Processed" для всех кастомных статусов
+            statusDto.Type = "Processed";
+            
+            var statusGuid = statusDto.Id;
             var applicationCount = await _applicationRepository.GetAllQuery()
                 .CountAsync(a => a.StatusId == statusGuid);
                 
@@ -48,9 +51,13 @@ public class CustomStatusService : ICustomStatusService
             
         var statusDto = _mapper.Map<StatusDto>(status);
         
-        var statusGuid = new Guid(statusDto.Id.ToString());
-        statusDto.ApplicationCount = await _applicationRepository.GetAllQuery()
-            .CountAsync(a => a.StatusId == statusGuid);
+        // Устанавливаем тип "Processed" для кастомного статуса
+        statusDto.Type = "Processed";
+        
+        var applicationCount = await _applicationRepository.GetAllQuery()
+            .CountAsync(a => a.StatusId == id);
+            
+        statusDto.ApplicationCount = applicationCount;
             
         return statusDto;
     }
@@ -63,9 +70,13 @@ public class CustomStatusService : ICustomStatusService
             
         var statusDto = _mapper.Map<StatusDto>(status);
         
-        var statusGuid = new Guid(statusDto.Id.ToString());
-        statusDto.ApplicationCount = await _applicationRepository.GetAllQuery()
-            .CountAsync(a => a.StatusId == statusGuid);
+        // Устанавливаем тип "Processed" для кастомного статуса
+        statusDto.Type = "Processed";
+        
+        var applicationCount = await _applicationRepository.GetAllQuery()
+            .CountAsync(a => a.StatusId == statusDto.Id);
+            
+        statusDto.ApplicationCount = applicationCount;
             
         return statusDto;
     }
@@ -81,13 +92,15 @@ public class CustomStatusService : ICustomStatusService
             Id = Guid.NewGuid(),
             Name = statusDto.Name,
             Description = statusDto.Description,
-            IsProtected = statusDto.IsProtected,
-            IsTerminal = statusDto.IsTerminal
+            IsProtected = false,  // По умолчанию не защищенный
+            IsTerminal = false    // По умолчанию не терминальный
         };
         
         var createdStatus = await _statusRepository.AddAsync(status);
         var resultDto = _mapper.Map<StatusDto>(createdStatus);
         
+        // Устанавливаем тип "Processed" для нового кастомного статуса
+        resultDto.Type = "Processed";
         resultDto.ApplicationCount = 0;
         
         return resultDto;
@@ -114,15 +127,12 @@ public class CustomStatusService : ICustomStatusService
         if (statusDto.Description != null)
             status.Description = statusDto.Description;
             
-        if (statusDto.IsProtected.HasValue)
-            status.IsProtected = statusDto.IsProtected.Value;
-            
-        if (statusDto.IsTerminal.HasValue)
-            status.IsTerminal = statusDto.IsTerminal.Value;
-            
         await _statusRepository.UpdateAsync(status);
         
         var result = _mapper.Map<StatusDto>(status);
+        
+        // Устанавливаем тип "Processed" для обновленного кастомного статуса
+        result.Type = "Processed";
         
         result.ApplicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == result.Id);
