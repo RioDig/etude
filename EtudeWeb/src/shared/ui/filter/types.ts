@@ -1,52 +1,48 @@
-import { FilterValue } from '@/entities/filter';
+import { FilterValue } from '@/entities/filter'
 
-// Опция для выпадающего списка
 export interface FilterDropdownOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
-// Тип фильтра (поддерживаемые варианты)
-export type FilterType = 'dropdown' | 'date';
+export type FilterType = 'dropdown' | 'date'
 
-// Опция фильтра
 export interface FilterOption {
-  id: string;
-  label: string;
-  type: FilterType;
-  defaultValue?: string;
-  options?: FilterDropdownOption[];
+  id: string
+  label: string
+  type: FilterType
+  defaultValue?: string
+  options?: FilterDropdownOption[]
 }
 
-// Пропсы для компонента фильтра
 export interface FilterProps {
   /**
    * Список опций фильтров
    */
-  filters: FilterOption[];
+  filters: FilterOption[]
 
   /**
    * ID страницы/компонента для сохранения состояния
    */
-  pageId: string;
+  pageId: string
 
   /**
    * Обработчик изменения фильтра
    */
-  onChange?: (filterId: string, value: FilterValue) => void;
+  onChange?: (filterId: string, value: FilterValue) => void
 
   /**
    * Обработчик сброса фильтров
    */
-  onReset?: () => void;
+  onReset?: () => void
 
   /**
    * Дополнительные CSS классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }

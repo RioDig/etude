@@ -97,10 +97,8 @@ export const Hint: React.FC<HintProps> = ({
   const hintRef = useRef<HTMLDivElement>(null)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Определение позиции подсказки в зависимости от доступного пространства
   const calculatePosition = useCallback(
     (event: MouseEvent): void => {
-      // Если позиция уже была рассчитана и подсказка видна, ничего не делаем
       if (initialCalculated && isVisible) return
 
       const viewportWidth = window.innerWidth
@@ -108,63 +106,43 @@ export const Hint: React.FC<HintProps> = ({
       const cursorX = event.clientX
       const cursorY = event.clientY
 
-      // Отступы и приблизительные минимальные размеры подсказки
       const minHintWidth = 300
-      const minHintHeight = 200 // Увеличенная высота для лучшего определения границ
+      const minHintHeight = 200
 
-      // Вычисляем доступное пространство с каждой стороны
       const rightSpace = viewportWidth - cursorX
       const bottomSpace = viewportHeight - cursorY
       // const leftSpace = cursorX;
       // const topSpace = cursorY;
 
-      // Если указана фиксированная позиция, используем её
       if (position) {
         setHintPosition(position)
       } else {
-        // Упрощенная логика определения позиции
-        // Сначала проверяем, достаточно ли места снизу
         if (bottomSpace < minHintHeight) {
-          // Недостаточно места снизу, размещаем сверху
           if (rightSpace < minHintWidth) {
-            setHintPosition('top-left') // Верх-лево
+            setHintPosition('top-left')
           } else {
-            setHintPosition('top-right') // Верх-право
+            setHintPosition('top-right')
           }
         } else {
-          // Места снизу достаточно
           if (rightSpace < minHintWidth) {
-            setHintPosition('bottom-left') // Низ-лево
+            setHintPosition('bottom-left')
           } else {
-            setHintPosition('bottom-right') // Низ-право (по умолчанию)
+            setHintPosition('bottom-right')
           }
         }
       }
 
-      // Устанавливаем координаты подсказки
       setCoords({
         x: cursorX,
         y: cursorY
       })
 
-      // Для отладки можно раскомментировать
-      // console.log({
-      //   viewportHeight,
-      //   cursorY,
-      //   bottomSpace,
-      //   position: hintPosition,
-      //   minHintHeight
-      // });
-
-      // Отмечаем, что позиция была рассчитана
       setInitialCalculated(true)
     },
     [initialCalculated, isVisible, position]
   )
 
-  // Позиционирование подсказки относительно курсора
   const getHintStyles = (): React.CSSProperties => {
-    // Отступы для позиционирования
     const offset = 10
 
     switch (hintPosition) {
@@ -217,40 +195,33 @@ export const Hint: React.FC<HintProps> = ({
     }
   }
 
-  // Показать подсказку с задержкой
   const handleMouseEnter = (event: React.MouseEvent): void => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
 
-    // Рассчитываем позицию только при первом наведении
     if (!initialCalculated) {
       calculatePosition(event.nativeEvent)
     }
 
-    // Показать подсказку с задержкой
     timeoutRef.current = setTimeout(() => {
       setIsVisible(true)
     }, delay)
   }
 
-  // Скрыть подсказку с задержкой
   const handleMouseLeave = (): void => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
     }
 
-    // Скрыть подсказку с задержкой
     timeoutRef.current = setTimeout(() => {
       setIsVisible(false)
-      // Сбрасываем флаг расчета позиции для следующего показа
+
       setInitialCalculated(false)
     }, delay)
   }
 
-  // Обработка клика на триггере
   const handleTriggerClick = (event: React.MouseEvent): void => {
-    // Если подсказка уже показана, скрываем её сразу
     if (isVisible) {
       setIsVisible(false)
       setInitialCalculated(false)
@@ -260,7 +231,6 @@ export const Hint: React.FC<HintProps> = ({
       return
     }
 
-    // Иначе показываем подсказку после задержки
     calculatePosition(event.nativeEvent)
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current)
@@ -270,7 +240,6 @@ export const Hint: React.FC<HintProps> = ({
     }, delay)
   }
 
-  // Обработчик клика вне компонента
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent): void => {
       if (
@@ -291,7 +260,6 @@ export const Hint: React.FC<HintProps> = ({
     }
   }, [isVisible])
 
-  // Обработка клавиши Escape
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent): void => {
       if (event.key === 'Escape' && isVisible) {
@@ -306,7 +274,6 @@ export const Hint: React.FC<HintProps> = ({
     }
   }, [isVisible])
 
-  // Очистка таймера при размонтировании
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
@@ -315,11 +282,9 @@ export const Hint: React.FC<HintProps> = ({
     }
   }, [])
 
-  // Обрабатываем изменение размера окна
   useEffect(() => {
     const handleResize = (): void => {
       if (isVisible) {
-        // Переопределяем позицию при изменении размера окна
         setIsVisible(false)
         setInitialCalculated(false)
       }
@@ -363,14 +328,12 @@ export const Hint: React.FC<HintProps> = ({
             {label && (
               <div data-testid={`${testId}-label`} className="self-start flex flex-wrap gap-2">
                 {Array.isArray(label) ? (
-                  // Если label - массив, рендерим каждый элемент как тег
                   label.map((item, index) => (
                     <React.Fragment key={index}>
                       {typeof item === 'string' ? <Tag>{item}</Tag> : item}
                     </React.Fragment>
                   ))
-                ) : // Если label - один элемент
-                typeof label === 'string' ? (
+                ) : typeof label === 'string' ? (
                   <Tag>{label}</Tag>
                 ) : (
                   label

@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { SvgIconProps } from '@mui/material'
 
-// Тип для пункта меню
 export type MenuItemVariant = 'default' | 'warning'
 
 export interface MenuItemProps {
@@ -118,22 +117,18 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
 }) => {
   const menuRef = useRef<HTMLDivElement>(null)
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 })
-  // Состояние для контроля видимости меню при позиционировании
+
   const [isPositioned, setIsPositioned] = useState(false)
 
-  // Обработчик клика по пункту меню
   const handleItemClick = (onClick?: () => void) => () => {
     if (onClick) onClick()
     onClose()
   }
 
-  // Обновление позиции меню при изменении anchorEl или position
   useEffect(() => {
     if (anchorEl && open) {
-      // Сначала сбрасываем флаг позиционирования
       setIsPositioned(false)
 
-      // Задержка для вычисления правильной позиции
       requestAnimationFrame(() => {
         const anchorRect = anchorEl.getBoundingClientRect()
         const { top, left, bottom, right } = anchorRect
@@ -141,7 +136,6 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         let newTop = 0
         let newLeft = 0
 
-        // Позиционирование по вертикали
         if (position.startsWith('bottom')) {
           newTop = bottom + offset
         } else if (position.startsWith('top')) {
@@ -151,7 +145,6 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
           }
         }
 
-        // Позиционирование по горизонтали
         if (position.endsWith('right')) {
           newLeft = right - width
         } else if (position.endsWith('left')) {
@@ -160,25 +153,20 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
 
         setMenuPosition({ top: newTop, left: newLeft })
 
-        // Устанавливаем флаг позиционирования после вычисления
         requestAnimationFrame(() => {
           setIsPositioned(true)
         })
       })
     } else {
-      // Если меню закрыто, сбрасываем флаг позиционирования
       setIsPositioned(false)
     }
   }, [anchorEl, open, position, offset, width])
 
-  // Закрытие меню при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         menuRef.current &&
         !menuRef.current.contains(event.target as Node) &&
-        // Если клик не по меню, закрываем меню
-        // Клик по якорю (кнопке-триггеру) уже обрабатывается самой кнопкой
         !(anchorEl === event.target || anchorEl?.contains(event.target as Node))
       ) {
         onClose()
@@ -194,12 +182,10 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
     }
   }, [open, onClose, anchorEl])
 
-  // Обрезаем списки до максимального количества элементов
   const limitedDefaultItems = defaultItems.slice(0, maxItems)
   const remainingItems = Math.max(0, maxItems - limitedDefaultItems.length)
   const limitedWarningItems = warningItems.slice(0, remainingItems)
 
-  // Если меню не открыто, не рендерим его
   if (!open) return null
 
   return (
@@ -209,7 +195,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         'fixed z-50 overflow-hidden bg-mono-25',
         'w-[300px] rounded-lg shadow-[0px_4px_16px_0px_rgba(0,0,0,0.12)]',
         'py-2 transition-opacity duration-150',
-        isPositioned ? 'opacity-100' : 'opacity-0', // Управляем видимостью через opacity
+        isPositioned ? 'opacity-100' : 'opacity-0',
         className
       )}
       style={{
@@ -219,7 +205,6 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
       }}
       data-testid={testId}
     >
-      {/* Стандартные пункты меню */}
       {limitedDefaultItems.length > 0 && (
         <div className="">
           {limitedDefaultItems.map((item, index) => (
@@ -234,12 +219,10 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({
         </div>
       )}
 
-      {/* Разделитель между группами пунктов */}
       {limitedDefaultItems.length > 0 && limitedWarningItems.length > 0 && (
         <div className="mx-0 my-2 h-[1px] bg-mono-300"></div>
       )}
 
-      {/* Предупреждающие пункты меню */}
       {limitedWarningItems.length > 0 && (
         <div className="">
           {limitedWarningItems.map((item, index) => (
@@ -268,21 +251,18 @@ const MenuItem: React.FC<MenuItemProps> = ({
   onClick,
   testId = 'menu-item'
 }) => {
-  // Стили для различных вариантов пунктов
   const variantStyles = disabled
     ? 'text-mono-500'
     : variant === 'warning'
       ? 'text-red-500'
       : 'text-mono-950'
 
-  // Обработчик клика на пункт меню
   const handleClick = () => {
     if (!disabled && onClick) {
       onClick()
     }
   }
 
-  // Подготовка иконки с единым размером, если она предоставлена
   const iconElement = icon
     ? React.cloneElement(icon, {
         sx: { width: 20, height: 20, fontSize: 20 },

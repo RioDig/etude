@@ -1,4 +1,3 @@
-// src/shared/ui/eventCard/EventCard.tsx
 import React from 'react'
 import clsx from 'clsx'
 import { Tag } from '@/shared/ui/tag'
@@ -84,7 +83,6 @@ export const EventCard: React.FC<EventCardProps> = ({
   className,
   testId = `event-card-${id}`
 }) => {
-  // Форматирование дат
   const formatDate = (date: string | Date): string => {
     if (typeof date === 'string') {
       date = new Date(date)
@@ -96,7 +94,6 @@ export const EventCard: React.FC<EventCardProps> = ({
     }).format(date)
   }
 
-  // Создаем диапазон дат
   const dateRange = `${formatDate(startDate)} – ${formatDate(endDate)}`
 
   return (
@@ -112,21 +109,16 @@ export const EventCard: React.FC<EventCardProps> = ({
       onClick={onClick}
       data-testid={testId}
     >
-      {/* Верхняя часть с тегами */}
       <div className="flex flex-wrap gap-2 mb-4">
         {tags.map((tag) => (
           <Tag key={tag.id}>{tag.label}</Tag>
         ))}
       </div>
 
-      {/* Контент */}
       <div className="flex-grow overflow-hidden mb-4">
-        {/* Заголовок с обрезанием */}
         <h3 className="text-b2 text-mono-950 mb-2 truncate">{title}</h3>
 
-        {/* Описание с обрезанием на двух строках */}
         <div className="text-b3-regular text-mono-800 max-h-[40px] relative overflow-hidden">
-          {/* Стили для обрезания текста на двух строках с многоточием в конце */}
           <p
             style={{
               display: '-webkit-box',
@@ -141,7 +133,6 @@ export const EventCard: React.FC<EventCardProps> = ({
         </div>
       </div>
 
-      {/* Нижняя часть с датой и ссылкой */}
       <div className="flex items-center mt-auto">
         <div className="inline-flex items-center">
           <AccessTime sx={{ width: 20, height: 20 }} className="text-mono-800" />

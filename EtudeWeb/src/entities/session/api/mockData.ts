@@ -1,4 +1,5 @@
-import { User, USER_ROLES } from '@/entities/user';
+import { USER_ROLES } from '@/entities/user';
+import { User } from '@/shared/types'
 
 export const MOCK_USERS: User[] = [
   {

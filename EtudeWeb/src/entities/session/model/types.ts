@@ -1,5 +1,6 @@
 // src/entities/session/model/types.ts
-import { User } from '@/entities/user'
+
+import { User } from '@/shared/types'
 
 export interface LoginCredentials {
   email: string

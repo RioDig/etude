@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { User } from '@/entities/user'
 import { SessionState } from './types'
+import { User } from '@/shared/types'
 
 export const useSessionStore = create<
   SessionState & {

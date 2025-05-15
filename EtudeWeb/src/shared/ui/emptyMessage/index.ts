@@ -1,2 +1,2 @@
-export { EmptyMessage } from './EmptyMessage';
-export type { EmptyMessageProps } from './EmptyMessage';
+export { EmptyMessage } from './EmptyMessage'
+export type { EmptyMessageProps } from './EmptyMessage'

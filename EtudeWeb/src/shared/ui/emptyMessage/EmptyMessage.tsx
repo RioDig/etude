@@ -1,46 +1,45 @@
-import React from 'react';
-import clsx from 'clsx';
-import { typography } from "@/shared/ui/typography";
+import React from 'react'
+import clsx from 'clsx'
+import { typography } from '@/shared/ui/typography'
 
-
-type EmptyMessageVariant = 'large' | 'small';
+type EmptyMessageVariant = 'large' | 'small'
 
 export interface EmptyMessageProps {
   /**
    * Вариант отображения (large или small)
    * @default 'large'
    */
-  variant?: EmptyMessageVariant;
+  variant?: EmptyMessageVariant
 
   /**
    * URL изображения
    */
-  imageUrl: string;
+  imageUrl: string
 
   /**
    * Заголовок
    */
-  title: string;
+  title: string
 
   /**
    * Подзаголовок/описание
    */
-  description: string;
+  description: string
 
   /**
    * Кнопка действия (опционально)
    */
-  actionButton?: React.ReactNode;
+  actionButton?: React.ReactNode
 
   /**
    * Дополнительные CSS классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }
 
 /**
@@ -55,69 +54,54 @@ export const EmptyMessage: React.FC<EmptyMessageProps> = ({
   description,
   actionButton,
   className,
-  testId = 'empty-message',
+  testId = 'empty-message'
 }) => {
-  // Конфигурация для разных вариантов
   const variantConfig = {
     large: {
       imageSize: 'w-[180px] h-[180px]',
-      imageToTitle: 'mt-8', // 32px
+      imageToTitle: 'mt-8',
       titleClass: typography.h1,
-      titleToDescription: 'mt-4', // 16px
+      titleToDescription: 'mt-4',
       titleColor: 'text-gray-900',
       descriptionClass: typography.h2Regular,
-      descriptionToButton: 'mt-10', // 40px
-      descriptionColor: 'text-mono-700',
+      descriptionToButton: 'mt-10',
+      descriptionColor: 'text-mono-700'
     },
     small: {
       imageSize: 'w-[120px] h-[120px]',
-      imageToTitle: 'mt-6', // 24px
+      imageToTitle: 'mt-6',
       titleClass: typography.h2,
-      titleToDescription: 'mt-2', // 8px
+      titleToDescription: 'mt-2',
       titleColor: 'text-gray-900',
       descriptionClass: typography.b2Regular,
-      descriptionToButton: 'mt-8', // 32px
-      descriptionColor: 'text-mono-700',
-    },
-  };
+      descriptionToButton: 'mt-8',
+      descriptionColor: 'text-mono-700'
+    }
+  }
 
-  const config = variantConfig[variant];
+  const config = variantConfig[variant]
 
   return (
-    <div
-      className={clsx(
-        'flex flex-col items-center text-center',
-        className
-      )}
-      data-testid={testId}
-    >
-      {/* Изображение */}
+    <div className={clsx('flex flex-col items-center text-center', className)} data-testid={testId}>
       <div className={clsx(config.imageSize, 'flex items-center justify-center')}>
-        <img
-          src={imageUrl}
-          alt={title}
-          className="max-w-full max-h-full object-contain"
-        />
+        <img src={imageUrl} alt={title} className="max-w-full max-h-full object-contain" />
       </div>
 
-      {/* Заголовок */}
-      <h2 className={clsx(config.titleClass, config.titleColor, config.imageToTitle)}>
-        {title}
-      </h2>
+      <h2 className={clsx(config.titleClass, config.titleColor, config.imageToTitle)}>{title}</h2>
 
-      {/* Описание */}
-      <p className={clsx(config.descriptionClass, config.descriptionColor, config.titleToDescription)}>
+      <p
+        className={clsx(
+          config.descriptionClass,
+          config.descriptionColor,
+          config.titleToDescription
+        )}
+      >
         {description}
       </p>
 
-      {/* Кнопка (если есть) */}
-      {actionButton && (
-        <div className={config.descriptionToButton}>
-          {actionButton}
-        </div>
-      )}
+      {actionButton && <div className={config.descriptionToButton}>{actionButton}</div>}
     </div>
-  );
-};
+  )
+}
 
-export default EmptyMessage;
+export default EmptyMessage

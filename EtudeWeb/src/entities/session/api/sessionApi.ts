@@ -1,8 +1,8 @@
 // src/entities/session/api/sessionApi.ts
 import axios, { AxiosError, AxiosRequestConfig } from 'axios'
-import { User } from '@/entities/user'
 import { LoginCredentials, RegisterData } from '../model/types'
 import { API_URL } from '@/shared/config'
+import { User } from '@/shared/types'
 
 // Создаем инстанс axios для работы с бэкендом
 const api = axios.create({

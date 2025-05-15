@@ -3,9 +3,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sessionApi } from '../api/sessionApi'
 import { useCallback, useEffect } from 'react'
-import { User } from '@/entities/user'
 import { LoginCredentials, RegisterData } from '../model/types'
 import { useSessionStore } from '@/entities/session/model/store.ts'
+import { User } from '@/shared/types'
 
 export const useAuth = () => {
   const queryClient = useQueryClient()

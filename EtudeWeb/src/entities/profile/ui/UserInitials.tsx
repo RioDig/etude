@@ -1,6 +1,7 @@
 // src/entities/profile/ui/UserInitials.tsx
 import React from 'react'
-import { User } from '@/entities/user'
+
+import { User } from '@/shared/types'
 
 // Функция для генерации уникального цвета на основе имени пользователя
 const generateUserColor = (name: string, surname: string): string => {

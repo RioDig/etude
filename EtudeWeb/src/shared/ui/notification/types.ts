@@ -1,75 +1,74 @@
-import { ReactNode } from 'react';
+import { ReactNode } from 'react'
 
-// Типы для компонента
-export type NotificationVariant = 'success' | 'error' | 'info' | 'base';
+export type NotificationVariant = 'success' | 'error' | 'info' | 'base'
 
 export interface NotificationProps {
   /**
    * Вариант уведомления
    * @default 'base'
    */
-  variant?: NotificationVariant;
+  variant?: NotificationVariant
 
   /**
    * Заголовок уведомления
    */
-  title: string;
+  title: string
 
   /**
    * Описание уведомления (опционально)
    */
-  description?: string;
+  description?: string
 
   /**
    * Кнопка действия (опционально)
    */
-  action?: ReactNode;
+  action?: ReactNode
 
   /**
    * Обработчик закрытия уведомления
    */
-  onClose: () => void;
+  onClose: () => void
 
   /**
    * Автоматически закрыть уведомление через указанное время (мс)
    * Если null - не закрывать автоматически
    * @default определяется наличием action: без action - 3000мс, с action - 7000мс
    */
-  autoClose?: number | null;
+  autoClose?: number | null
 
   /**
    * Показывать индикатор времени
    * @default true
    */
-  showTimer?: boolean;
+  showTimer?: boolean
 
   /**
    * Дополнительные CSS классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 
   /**
    * Флаг для анимации исчезновения
    */
-  isLeaving?: boolean;
+  isLeaving?: boolean
 
   /**
    * ID уведомления
    */
-  id?: string;
+  id?: string
 
   /**
    * Время начала таймера
    */
-  startTime?: number;
+  startTime?: number
 
   /**
    * Время окончания таймера
    */
-  endTime?: number;
+  endTime?: number
 }

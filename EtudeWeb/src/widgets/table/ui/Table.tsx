@@ -25,7 +25,7 @@ export interface SortState {
 export interface TableColumn<T> {
   id: string
   header?: React.ReactNode
-  accessor?: keyof T
+  accessor?: keyof T | string
   render?: (item: T, index: number) => React.ReactNode
   sortable?: boolean
   width?: string // может быть в px (для фиксированных колонок) или процентах % (для растягивающихся)
@@ -236,6 +236,11 @@ export function Table<T>({
     }
   }
 
+  // @ts-expect-error Any fix
+  const getValueByPath = (obj, path: string) => {
+    return path.split('.').reduce((p, c) => (p && p[c] !== undefined ? p[c] : null), obj)
+  }
+
   const handleScroll = useCallback(() => {
     if (!infiniteScroll || !onLoadMore || !hasMore || loading || !containerRef.current) {
       return
@@ -279,8 +284,16 @@ export function Table<T>({
     }
 
     return [...data].sort((a, b) => {
-      const fieldA = a[currentSortState.field as keyof T]
-      const fieldB = b[currentSortState.field as keyof T]
+      const fieldPath = currentSortState.field
+      let fieldA, fieldB
+
+      if (fieldPath.includes('.')) {
+        fieldA = getValueByPath(a, fieldPath)
+        fieldB = getValueByPath(b, fieldPath)
+      } else {
+        fieldA = a[fieldPath as keyof T]
+        fieldB = b[fieldPath as keyof T]
+      }
 
       if (fieldA === fieldB) {
         return 0
@@ -420,7 +433,11 @@ export function Table<T>({
                     {column.render
                       ? column.render(item, rowIndex)
                       : column.accessor
-                        ? (item[column.accessor] as React.ReactNode)
+                        ? typeof column.accessor === 'string' &&
+                          String(column.accessor).includes('.')
+                          ? getValueByPath(item, String(column.accessor))
+                          // @ts-expect-error Any fix
+                          : (item[column.accessor] as React.ReactNode)
                         : null}
                   </td>
                 ))}

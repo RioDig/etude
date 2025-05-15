@@ -1,4 +1,3 @@
-// src/shared/ui/spinner/Spinner.tsx
 import React from 'react'
 import clsx from 'clsx'
 
@@ -51,28 +50,24 @@ export const Spinner: React.FC<SpinnerProps> = ({
   className,
   testId = 'spinner'
 }) => {
-  // Определение размеров для разных вариантов
   const sizeClasses = {
     small: 'w-4 h-4 border-2',
     medium: 'w-8 h-8 border-2',
     large: 'w-12 h-12 border-3'
   }
 
-  // Определение цветов для разных вариантов
   const variantClasses = {
     primary: 'border-blue-500 border-t-transparent',
     secondary: 'border-mono-500 border-t-transparent',
     white: 'border-white border-t-transparent'
   }
 
-  // Классы для лейбла
   const labelClasses = {
     small: 'text-b5 ml-2',
     medium: 'text-b4-regular ml-3',
     large: 'text-b3-regular ml-4'
   }
 
-  // Если используется как оверлей
   if (overlay) {
     return (
       <div
@@ -108,7 +103,6 @@ export const Spinner: React.FC<SpinnerProps> = ({
     )
   }
 
-  // Стандартный вариант
   return (
     <div className={clsx('flex items-center', className)} data-testid={testId}>
       <div
