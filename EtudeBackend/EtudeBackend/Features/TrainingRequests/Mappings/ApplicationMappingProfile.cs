@@ -37,7 +37,6 @@ public class ApplicationMappingProfile : Profile
         CreateMap<ApplicationUser, UserBasicDto>();
     }
     
-    // Вспомогательный метод для десериализации списка согласующих
     public class ApproversValueResolver : IValueResolver<Application, ApplicationDetailDto, List<UserBasicDto>>
     {
         private readonly UserManager<ApplicationUser> _userManager;

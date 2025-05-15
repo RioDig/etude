@@ -8,6 +8,5 @@ public class EventType
     
     public string Description { get; set; } = string.Empty;
     
-    // Навигационное свойство
     public virtual ICollection<Log> Logs { get; set; } = new List<Log>();
 }

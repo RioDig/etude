@@ -1,6 +1,4 @@
-﻿using System.Net;
-using System.Net.Mail;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using System.Security.Cryptography;
 using EtudeBackend.Features.Auth.Models;
 using EtudeBackend.Features.Auth.Services;
@@ -27,7 +25,6 @@ public class AuthController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IAuthService _authService;
     private readonly ITokenStorageService _tokenStorageService;
-    private readonly IDistributedCache _cache;
 
     public AuthController(
         IOAuthService oauthService,
@@ -50,7 +47,6 @@ public class AuthController : ControllerBase
         _emailService = emailService;
         _authService = authService;
         _tokenStorageService = tokenStorageService;
-        _cache = cache;
     }
 
     /// <summary>
@@ -62,8 +58,6 @@ public class AuthController : ControllerBase
     {
         try
         {
-            // Сохраняем URL для возврата после авторизации
-            // ВАЖНО: Всегда устанавливаем state, даже если redirectAfterLogin не указан
             string state;
             if (!string.IsNullOrEmpty(redirectAfterLogin))
             {
@@ -71,18 +65,15 @@ public class AuthController : ControllerBase
             }
             else
             {
-                // Используем "/" как значение по умолчанию для редиректа
                 state = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("/"));
             }
 
             _logger.LogInformation("OAuth авторизация. RedirectAfterLogin: {Redirect}, Encoded state: {State}", 
                 redirectAfterLogin ?? "/", state);
-
-            // Формируем URL для callback
+            
             var baseUrl = _configuration["Application:BaseUrl"];
             var callbackUrl = $"{baseUrl}/api/auth/callback";
-
-            // Получаем URL авторизации и перенаправляем пользователя
+            
             var authUrl = _oauthService.GetAuthorizationUrl(callbackUrl, state);
         
             _logger.LogInformation("Перенаправление на OAuth авторизацию: {Url}", authUrl);
@@ -114,27 +105,22 @@ public class AuthController : ControllerBase
 
     try
     {
-        // Получаем URL для callback
         var baseUrl = _configuration["Application:BaseUrl"];
         var callbackUrl = $"{baseUrl}/api/auth/callback";
-
-        // Обмениваем код на токены
+        
         var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
-
-        // Получаем информацию о пользователе
+        
         var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
-
-        // Проверяем, существует ли пользователь в нашей системе
+        
         var existingUser = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
 
         if (existingUser == null)
         {
-            // Создаем нового пользователя
             var appUser = new ApplicationUser
             {
-                UserName = userInfo.OrgEmail, // Обязательное поле для IdentityUser
-                Email = userInfo.OrgEmail,    // Обязательное поле для IdentityUser
-                EmailConfirmed = true,        // Подтверждаем email сразу
+                UserName = userInfo.OrgEmail,
+                Email = userInfo.OrgEmail,
+                EmailConfirmed = true,
                 Name = userInfo.Name,
                 Surname = userInfo.Surname,
                 Patronymic = userInfo.Patronymic,
@@ -142,13 +128,11 @@ public class AuthController : ControllerBase
                 Position = userInfo.Position,
                 SoloUserId = userInfo.UserId,
                 IsActive = true,
-                RoleId = 1 // Роль по умолчанию
+                RoleId = 1
             };
-
-            // Генерируем случайный пароль для нового пользователя
+            
             string temporaryPassword = GenerateRandomPassword();
-
-            // Создаем пользователя и обрабатываем результат
+            
             var result = await _userManager.CreateAsync(appUser, temporaryPassword);
 
             if (!result.Succeeded)
@@ -158,32 +142,27 @@ public class AuthController : ControllerBase
                 return BadRequest("Не удалось создать пользователя");
             }
             
-            // Отправляем email с временным паролем
             await _emailService.SendEmailAsync(userInfo.OrgEmail, temporaryPassword);
             _logger.LogInformation("Создан новый пользователь: {Email} c паролем {Password}", 
                 userInfo.OrgEmail, temporaryPassword);
                 
-            existingUser = appUser; // Используем созданного пользователя
+            existingUser = appUser;
         }
-
-        // Выполняем вход пользователя
+        
         await _signInManager.SignInAsync(existingUser,
             new AuthenticationProperties
             {
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
             });
-
-        // Генерируем уникальный идентификатор для токена
+        
         var identityToken = GenerateSecureToken();
         
-        // Срок действия токена - 30 дней или на основе ExpiresIn из OAuth токена
         var expiresAt = DateTimeOffset.UtcNow.AddSeconds(
             tokenResponse.ExpiresIn > 0 
                 ? tokenResponse.ExpiresIn 
-                : 30 * 24 * 60 * 60); // 30 дней по умолчанию
-
-        // Преобразуем токен OAuth в модель для хранения
+                : 30 * 24 * 60 * 60);
+        
         var oauthTokenInfo = new OAuthTokenInfo
         {
             AccessToken = tokenResponse.AccessToken,
@@ -192,8 +171,7 @@ public class AuthController : ControllerBase
             ExpiresIn = tokenResponse.ExpiresIn,
             Scope = tokenResponse.Scope
         };
-
-        // Сохраняем токены в Redis
+        
         await _tokenStorageService.StoreTokensAsync(
             existingUser.Id, 
             identityToken, 
@@ -210,8 +188,7 @@ public class AuthController : ControllerBase
                 RoleId = existingUser.RoleId
             }, 
             expiresAt);
-
-        // Перенаправляем пользователя на исходную страницу, если она была указана
+        
         string redirectUrl = "/";
         if (!string.IsNullOrEmpty(state))
         {
@@ -244,13 +221,11 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> TestEndpoint()
     {
-        // Если пользователь аутентифицирован, получаем его id
         if (User.Identity.IsAuthenticated)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(userId))
             {
-                // Получаем список токенов пользователя из Redis
                 var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
                 
                 return Ok(new { 
@@ -334,7 +309,6 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
         
-        // Получаем активные токены пользователя
         var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
         var activeTokens = tokens.Where(t => t.ExpiresAt > DateTimeOffset.UtcNow).ToList();
         
@@ -360,7 +334,6 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
         
-        // Получаем токены пользователя из Redis
         var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
         var activeSessions = tokens
             .Where(t => t.ExpiresAt > DateTimeOffset.UtcNow)
@@ -395,7 +368,6 @@ public class AuthController : ControllerBase
             return Unauthorized();
         }
         
-        // Получаем токены пользователя из Redis
         var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
         var token = tokens.FirstOrDefault(t => t.IdentityToken.StartsWith(tokenId));
         
@@ -404,10 +376,8 @@ public class AuthController : ControllerBase
             return NotFound();
         }
         
-        // Отзываем токен в Redis
         await _tokenStorageService.RevokeTokenAsync(token.IdentityToken);
         
-        // Если у токена есть OAuth токены, отзываем их тоже
         if (token.OAuthTokens != null && !string.IsNullOrEmpty(token.OAuthTokens.AccessToken))
         {
             await _oauthService.RevokeTokenAsync(token.OAuthTokens.AccessToken);
@@ -459,8 +429,7 @@ public class AuthController : ControllerBase
     /// </summary>
     private bool IsCurrentSession(string tokenId)
     {
-        // В реальном приложении здесь должна быть логика определения текущей сессии
-        // Например, через cookie или заголовок запроса
+        // здесь должна быть логика определения текущей сессии
         return false;
     }
 }

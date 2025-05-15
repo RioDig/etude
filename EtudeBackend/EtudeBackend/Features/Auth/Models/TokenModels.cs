@@ -79,7 +79,7 @@ public class TokenInfo
     public string IpAddress { get; set; } = string.Empty;
     
     /// <summary>
-    /// Тип аутентификации (OAuth, Email+Password, и т.д.)
+    /// Тип аутентификации (OAuth, Email+Password)
     /// </summary>
     public string AuthType { get; set; } = string.Empty;
     

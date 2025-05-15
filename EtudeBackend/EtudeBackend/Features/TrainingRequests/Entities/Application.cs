@@ -27,7 +27,6 @@ public class Application
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset? UpdatedAt { get; set; }
     
-    // Навигационные свойства для связей
     public virtual Course Course { get; set; } = null!;
     public virtual Status Status { get; set; } = null!;
     public virtual ApplicationUser Author { get; set; } = null!;

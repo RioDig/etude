@@ -32,15 +32,13 @@ public class TokenConfiguration : IEntityTypeConfiguration<Token>
             
         builder.Property(t => t.IsActive)
             .HasDefaultValue(true);
-            
-        // Уникальные индексы для токенов
+        
         builder.HasIndex(t => t.Etude_Token)
             .IsUnique();
             
         builder.HasIndex(t => t.Solo_Token)
             .IsUnique();
-            
-        // Связь с пользователем
+        
         builder.HasOne(t => t.User)
             .WithMany(u => u.Tokens)
             .HasForeignKey(t => t.UserId)

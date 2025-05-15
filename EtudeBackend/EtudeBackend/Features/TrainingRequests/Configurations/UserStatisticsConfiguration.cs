@@ -29,19 +29,16 @@ public class UserStatisticsConfiguration : IEntityTypeConfiguration<UserStatisti
         builder.Property(us => us.CertificateIssued)
             .HasDefaultValue(false);
         
-        // Связь с курсом
         builder.HasOne(us => us.Course)
             .WithMany(c => c.Statistics)
             .HasForeignKey(us => us.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        // Связь с пользователем
         builder.HasOne(us => us.User)
             .WithMany(u => u.Statistics)
             .HasForeignKey(us => us.UserId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        // Составной индекс
         builder.HasIndex(us => new { us.UserId, us.CourseId })
             .IsUnique();
     }

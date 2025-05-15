@@ -28,7 +28,7 @@ public class ApplicationRepository : Repository<Application>, IApplicationReposi
             .ToListAsync();
     }
 
-    public Task<List<Application>> GetByAuthorIdAsync(string authorId) // Изменяем тип на string
+    public Task<List<Application>> GetByAuthorIdAsync(string authorId)
     {
         return _dbSet
             .Where(a => a.AuthorId == authorId)

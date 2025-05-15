@@ -14,12 +14,10 @@ public class TokenStorageService : ITokenStorageService
     private readonly ILogger<TokenStorageService> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
     
-    // Префиксы для хранения токенов в Redis
     private const string IdTokenPrefix = "auth:identity:";
     private const string OAuthTokenPrefix = "auth:oauth:";
     private const string UserTokensPrefix = "auth:user:";
     
-    // Настройки сериализации и десериализации JSON
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -58,26 +56,22 @@ public class TokenStorageService : ITokenStorageService
                 IpAddress = GetClientIpAddress(),
                 UserAgent = GetUserAgent()
             };
-
-            // Сериализуем токен в JSON
+            
             var tokenJson = JsonSerializer.Serialize(tokenInfo, _jsonOptions);
             
-            // Вычисляем время жизни токена в кэше
             var expiration = expiresAt - DateTimeOffset.UtcNow;
             var cacheOptions = new DistributedCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = expiration > TimeSpan.Zero 
                     ? expiration 
-                    : TimeSpan.FromDays(30) // Если экспирация в прошлом, используем 30 дней по умолчанию
+                    : TimeSpan.FromDays(30)
             };
-
-            // Сохраняем токен по идентификатору Identity токена
+            
             await _cache.SetStringAsync(
                 IdTokenPrefix + identityToken, 
                 tokenJson, 
                 cacheOptions);
             
-            // Если есть OAuth токены, создаем связь с OAuth Access Token
             if (oauthTokens != null && !string.IsNullOrEmpty(oauthTokens.AccessToken))
             {
                 await _cache.SetStringAsync(
@@ -85,8 +79,7 @@ public class TokenStorageService : ITokenStorageService
                     identityToken, 
                     cacheOptions);
             }
-
-            // Добавляем токен в список токенов пользователя
+            
             await AddTokenToUserList(userId, identityToken, cacheOptions);
             
             _logger.LogInformation("Токен для пользователя {UserId} успешно сохранен в Redis", userId);
@@ -123,14 +116,12 @@ public class TokenStorageService : ITokenStorageService
     {
         try
         {
-            // Сначала получаем соответствующий identity токен
             var identityToken = await _cache.GetStringAsync(OAuthTokenPrefix + oauthToken);
             if (string.IsNullOrEmpty(identityToken))
             {
                 return null;
             }
-
-            // Затем получаем полную информацию о токене
+            
             return await GetTokenByIdentityTokenAsync(identityToken);
         }
         catch (Exception ex)
@@ -181,24 +172,20 @@ public class TokenStorageService : ITokenStorageService
     {
         try
         {
-            // Получаем информацию о токене
             var token = await GetTokenByIdentityTokenAsync(identityToken);
             if (token == null)
             {
                 _logger.LogWarning("Попытка отозвать несуществующий токен");
                 return;
             }
-
-            // Удаляем связь с OAuth токеном, если она есть
+            
             if (token.OAuthTokens != null && !string.IsNullOrEmpty(token.OAuthTokens.AccessToken))
             {
                 await _cache.RemoveAsync(OAuthTokenPrefix + token.OAuthTokens.AccessToken);
             }
-
-            // Удаляем токен из Redis
+            
             await _cache.RemoveAsync(IdTokenPrefix + identityToken);
 
-            // Удаляем токен из списка токенов пользователя
             await RemoveTokenFromUserList(token.UserId, identityToken);
             
             _logger.LogInformation("Токен {TokenId} для пользователя {UserId} успешно отозван", 
@@ -215,23 +202,18 @@ public class TokenStorageService : ITokenStorageService
     {
         try
         {
-            // Получаем все токены пользователя
             var tokens = await GetUserTokensAsync(userId);
             
-            // Отзываем каждый токен
             foreach (var token in tokens)
             {
-                // Удаляем связь с OAuth токеном, если она есть
                 if (token.OAuthTokens != null && !string.IsNullOrEmpty(token.OAuthTokens.AccessToken))
                 {
                     await _cache.RemoveAsync(OAuthTokenPrefix + token.OAuthTokens.AccessToken);
                 }
-
-                // Удаляем токен из Redis
+                
                 await _cache.RemoveAsync(IdTokenPrefix + token.IdentityToken);
             }
-
-            // Очищаем список токенов пользователя
+            
             await _cache.RemoveAsync(UserTokensPrefix + userId);
             
             _logger.LogInformation("Все токены пользователя {UserId} успешно отозваны", userId);
@@ -315,21 +297,18 @@ public class TokenStorageService : ITokenStorageService
         {
             return "unknown";
         }
-
-        // Сначала проверяем X-Forwarded-For заголовок
+        
         var forwardedHeader = _httpContextAccessor.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
         
         if (!string.IsNullOrEmpty(forwardedHeader))
         {
-            // X-Forwarded-For может содержать несколько IP через запятую, берем первый
             var ips = forwardedHeader.Split(',', StringSplitOptions.RemoveEmptyEntries);
             if (ips.Length > 0)
             {
                 return ips[0].Trim();
             }
         }
-
-        // Если X-Forwarded-For нет, используем RemoteIpAddress
+        
         var remoteIp = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress;
         return remoteIp?.ToString() ?? "unknown";
     }

@@ -10,9 +10,8 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
     {
         builder.HasKey(c => c.Id);
         
-        // Настройка GUID как первичного ключа
         builder.Property(c => c.Id)
-            .HasDefaultValueSql("gen_random_uuid()");  // Для PostgreSQL
+            .HasDefaultValueSql("gen_random_uuid()");
         builder.Property(c => c.Name)
             .IsRequired()
             .HasMaxLength(100);
@@ -29,8 +28,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         builder.Property(c => c.Price)
             .HasColumnType("decimal(10,2)");
-
-        // Конфигурация для перечислений
+        
         builder.Property(c => c.Type)
             .IsRequired()
             .HasConversion<string>();  
@@ -48,8 +46,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             
         builder.Property(c => c.UpdatedAt)
             .HasColumnType("timestamp with time zone");
-            
-        // Индексы для оптимизации запросов
+        
         builder.HasIndex(c => c.Type);
         builder.HasIndex(c => c.Track);
         builder.HasIndex(c => c.Format);

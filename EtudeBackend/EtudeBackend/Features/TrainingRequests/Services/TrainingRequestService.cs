@@ -31,7 +31,7 @@ public class TrainingRequestService : ITrainingRequestService
     public async Task<CourseDto> CreateRequestAsync(CreateCourseDto requestDto)
     {
         var request = _mapper.Map<Course>(requestDto);
-        request.Id = Guid.NewGuid(); // Генерируем новый Id
+        request.Id = Guid.NewGuid();
         request.CreatedAt = DateTimeOffset.UtcNow;
 
         var createdRequest = await _repository.AddAsync(request);
@@ -43,8 +43,7 @@ public class TrainingRequestService : ITrainingRequestService
         var request = await _repository.GetByIdAsync(id);
         if (request == null)
             return null;
-
-        // Обновляем только заданные поля
+        
         if (requestDto.Name != null)
             request.Name = requestDto.Name;
             

@@ -78,15 +78,13 @@ public class ApplicationController : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
-        // Получаем ID текущего пользователя из токена
+        
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
             return Unauthorized(new { message = "Невозможно идентифицировать текущего пользователя" });
 
         try
         {
-            // Передаем ID пользователя без преобразований
             var createdApplication = await _applicationService.CreateApplicationAsync(applicationDto, userIdClaim);
         
             return CreatedAtAction(
@@ -96,7 +94,6 @@ public class ApplicationController : ControllerBase
         }
         catch (ApiException ex)
         {
-            // Возвращаем информацию об ошибке
             return StatusCode(ex.StatusCode, new { message = ex.Message });
         }
     }

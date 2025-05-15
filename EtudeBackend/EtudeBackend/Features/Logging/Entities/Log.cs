@@ -1,5 +1,4 @@
-﻿// EtudeBackend/EtudeBackend/Features/Logging/Entities/Log.cs
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.Logging.Entities;
@@ -23,7 +22,6 @@ public class Log
     
     public string ObjectType { get; set; } = string.Empty;
     
-    // Навигационные свойства
     public virtual EventType EventType { get; set; } = null!;
     public virtual ApplicationUser User { get; set; } = null!;
 }

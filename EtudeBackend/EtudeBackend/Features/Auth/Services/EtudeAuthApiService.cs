@@ -15,7 +15,6 @@ public class EtudeAuthApiService
         _configuration = configuration;
         _logger = logger;
         
-        // Настраиваем базовый URL для EtudeAuth API
         _httpClient.BaseAddress = new Uri(_configuration["OAuth:AuthServerUrl"]);
     }
 

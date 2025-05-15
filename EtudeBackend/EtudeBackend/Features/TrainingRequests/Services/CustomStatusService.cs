@@ -28,10 +28,8 @@ public class CustomStatusService : ICustomStatusService
         var statuses = await _statusRepository.GetAllAsync();
         var statusDtos = _mapper.Map<List<StatusDto>>(statuses);
         
-        // Для каждого статуса получаем количество заявок с этим статусом
         foreach (var statusDto in statusDtos)
         {
-            // Преобразуем int в Guid для сравнения
             var statusGuid = new Guid(statusDto.Id.ToString());
             var applicationCount = await _applicationRepository.GetAllQuery()
                 .CountAsync(a => a.StatusId == statusGuid);
@@ -50,7 +48,6 @@ public class CustomStatusService : ICustomStatusService
             
         var statusDto = _mapper.Map<StatusDto>(status);
         
-        // Получаем количество заявок с этим статусом
         var statusGuid = new Guid(statusDto.Id.ToString());
         statusDto.ApplicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == statusGuid);
@@ -66,7 +63,6 @@ public class CustomStatusService : ICustomStatusService
             
         var statusDto = _mapper.Map<StatusDto>(status);
         
-        // Получаем количество заявок с этим статусом
         var statusGuid = new Guid(statusDto.Id.ToString());
         statusDto.ApplicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == statusGuid);
@@ -76,7 +72,6 @@ public class CustomStatusService : ICustomStatusService
 
     public async Task<StatusDto> CreateStatusAsync(CreateStatusDto statusDto)
     {
-        // Проверяем, что статус с таким именем еще не существует
         var existingStatus = await _statusRepository.GetByNameAsync(statusDto.Name);
         if (existingStatus != null)
             throw new ApiException($"Статус с именем '{statusDto.Name}' уже существует", 400);
@@ -93,7 +88,6 @@ public class CustomStatusService : ICustomStatusService
         var createdStatus = await _statusRepository.AddAsync(status);
         var resultDto = _mapper.Map<StatusDto>(createdStatus);
         
-        // Для нового статуса количество заявок равно 0
         resultDto.ApplicationCount = 0;
         
         return resultDto;
@@ -104,12 +98,10 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByIdAsync(id);
         if (status == null)
             return null;
-            
-        // Проверяем, защищен ли статус от изменений
+        
         if (status.IsProtected)
             throw new ApiException("Защищенный статус нельзя изменить", 400);
-            
-        // Если предоставлено новое имя, проверяем, что такого имени еще нет
+        
         if (statusDto.Name != null && statusDto.Name != status.Name)
         {
             var existingStatus = await _statusRepository.GetByNameAsync(statusDto.Name);
@@ -132,7 +124,6 @@ public class CustomStatusService : ICustomStatusService
         
         var result = _mapper.Map<StatusDto>(status);
         
-        // Получаем количество заявок с этим статусом
         result.ApplicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == result.Id);
             

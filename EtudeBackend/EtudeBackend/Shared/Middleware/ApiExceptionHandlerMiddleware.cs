@@ -87,7 +87,6 @@ public class ApiExceptionHandlerMiddleware
     }
 }
 
-// Extension method для добавления middleware
 public static class ApiExceptionHandlerMiddlewareExtensions
 {
     public static IApplicationBuilder UseApiExceptionHandler(this IApplicationBuilder builder)

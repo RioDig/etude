@@ -31,22 +31,19 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
     {
-        // Проверяем существование пользователя
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
         {
             _logger.LogWarning("Неудачная попытка входа: пользователь с email {Email} не найден", request.Email);
             throw new ArgumentException("Неверный email или пароль");
         }
-
-        // Проверяем активность аккаунта
+        
         if (!user.IsActive)
         {
             _logger.LogWarning("Попытка входа в деактивированный аккаунт: {Email}", request.Email);
             throw new InvalidOperationException("Аккаунт деактивирован");
         }
-
-        // Проверяем пароль
+        
         var signInResult = await _signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, false);
         if (!signInResult.Succeeded)
         {
@@ -55,20 +52,17 @@ public class AuthService : IAuthService
         }
 
         _logger.LogInformation("Пользователь {Email} успешно авторизован", request.Email);
-
-        // Генерируем уникальный идентификатор для токена
+        
         var identityToken = GenerateSecureToken();
         
-        // Находим срок действия куки аутентификации
         var httpContext = _httpContextAccessor.HttpContext;
         var authProperties = await httpContext.AuthenticateAsync();
         var expiresAt = authProperties?.Properties?.ExpiresUtc ?? DateTimeOffset.UtcNow.AddDays(30);
-
-        // Сохраняем информацию о токене в Redis
+        
         await _tokenStorageService.StoreTokensAsync(
             user.Id,
             identityToken,
-            null, // Нет OAuth токенов
+            null,
             new UserInfo
             {
                 Id = user.Id,
@@ -81,8 +75,7 @@ public class AuthService : IAuthService
                 RoleId = user.RoleId
             },
             expiresAt);
-
-        // Возвращаем информацию о пользователе
+        
         return new LoginResponse
         {
             Id = user.Id,
@@ -105,7 +98,6 @@ public class AuthService : IAuthService
             var userId = httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!string.IsNullOrEmpty(userId))
             {
-                // Отзываем все токены пользователя из Redis
                 await _tokenStorageService.RevokeAllUserTokensAsync(userId);
             }
         }
@@ -119,7 +111,7 @@ public class AuthService : IAuthService
     /// </summary>
     private static string GenerateSecureToken()
     {
-        var randomBytes = new byte[32]; // 256 бит
+        var randomBytes = new byte[32];
         using (var rng = RandomNumberGenerator.Create())
         {
             rng.GetBytes(randomBytes);

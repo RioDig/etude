@@ -40,16 +40,16 @@ public class Course
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset? UpdatedAt { get; set; }
     
-    // Навигационные свойства
     public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
     public virtual ICollection<UserStatistics> Statistics { get; set; } = new List<UserStatistics>();
 }
 
 public enum CourseType
 {
-    Training,
-    Conference,
-    Certification,
+    Training, // Курс
+    Conference, // Конференция
+    Certification, // Сертификация
+    Workshop, // Мастер-класс
     NotImplemented
 }
 

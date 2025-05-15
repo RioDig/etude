@@ -22,14 +22,14 @@ namespace EtudeBackend.Features.TrainingRequests.Repositories
                 .ToListAsync();
         }
 
-        public Task<List<UserStatistics>> GetByUserIdAsync(string userId) // Изменяем тип на string
+        public Task<List<UserStatistics>> GetByUserIdAsync(string userId)
         {
             return _dbSet
                 .Where(us => us.UserId == userId)
                 .ToListAsync();
         }
 
-        public Task<UserStatistics?> GetByUserAndCourseIdAsync(string userId, Guid courseId) // Изменяем тип на string
+        public Task<UserStatistics?> GetByUserAndCourseIdAsync(string userId, Guid courseId)
         {
             return _dbSet
                 .Where(us => us.UserId == userId && us.CourseId == courseId)

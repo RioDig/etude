@@ -30,17 +30,14 @@ public class OAuthService : IOAuthService
         _tokenStorageService = tokenStorageService;
         _userManager = userManager;
     }
-
-    // Реализация GetAuthorizationUrl
+    
     public string GetAuthorizationUrl(string redirectUri, string state = null)
     {
         var clientId = _configuration["OAuth:ClientId"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
-
-        // Формируем базовый URL авторизации
+        
         var authUrl = $"{baseUrl}/oauth/authorize";
         
-        // Создаем словарь с параметрами запроса
         var queryParams = new Dictionary<string, string>
         {
             ["response_type"] = "code",
@@ -48,15 +45,13 @@ public class OAuthService : IOAuthService
             ["redirect_uri"] = redirectUri,
             ["scope"] = "profile documents"
         };
-
-        // Добавляем state, если он предоставлен
+        
         if (!string.IsNullOrEmpty(state))
         {
             queryParams["state"] = state;
             _logger.LogInformation("Добавлен state параметр: {State}", state);
         }
-
-        // Формируем строку запроса с корректным кодированием параметров
+        
         var queryString = string.Join("&", queryParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
         var fullUrl = $"{authUrl}?{queryString}";
         
@@ -64,8 +59,7 @@ public class OAuthService : IOAuthService
         
         return fullUrl;
     }
-
-    // Реализация ExchangeCodeForTokenAsync
+    
     public async Task<TokenResponse> ExchangeCodeForTokenAsync(string code, string redirectUri)
     {
         var clientId = _configuration["OAuth:ClientId"];
@@ -115,21 +109,16 @@ public class OAuthService : IOAuthService
             throw new ApiException("Failed to authenticate with OAuth server", 500);
         }
     }
-
-    // Реализация ValidateTokenAsync
+    
     public async Task<bool> ValidateTokenAsync(string token, string[] requiredScopes = null)
     {
-        // Проверяем наличие токена в Redis
         var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(token);
         if (tokenInfo != null)
         {
-            // Проверяем срок действия токена
             if (tokenInfo.ExpiresAt > DateTimeOffset.UtcNow)
             {
-                // Если токен валиден, проверяем scopes
                 if (requiredScopes != null && requiredScopes.Length > 0 && tokenInfo.OAuthTokens != null)
                 {
-                    // Проверяем, включает ли scope токена все необходимые scopes
                     var tokenScopes = tokenInfo.OAuthTokens.Scope.Split(' ');
                     if (requiredScopes.All(scope => tokenScopes.Contains(scope)))
                     {
@@ -150,8 +139,7 @@ public class OAuthService : IOAuthService
                 return false;
             }
         }
-
-        // Если токен не найден в Redis, проверяем его на сервере OAuth
+        
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
@@ -193,15 +181,12 @@ public class OAuthService : IOAuthService
             return false;
         }
     }
-
-    // Реализация GetUserInfoAsync - уже была приведена в вашем предыдущем коде
+    
     public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
     {
-        // Проверяем, есть ли информация о токене в Redis
         var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(accessToken);
         if (tokenInfo != null && tokenInfo.UserInfo != null)
         {
-            // Возвращаем кэшированную информацию о пользователе
             return new UserInfoResponse
             {
                 UserId = tokenInfo.UserInfo.SoloUserId,
@@ -212,8 +197,7 @@ public class OAuthService : IOAuthService
                 Position = tokenInfo.UserInfo.Position
             };
         }
-
-        // Если информации нет в Redis, запрашиваем с сервера OAuth
+        
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
         var userInfoUrl = $"{baseUrl}/api/user/me";
 
@@ -248,22 +232,18 @@ public class OAuthService : IOAuthService
         }
         finally
         {
-            // Очищаем заголовок авторизации после запроса
             _httpClient.DefaultRequestHeaders.Authorization = null;
         }
     }
-
-    // Реализация RevokeTokenAsync
+    
     public async Task<bool> RevokeTokenAsync(string token)
     {
-        // Сначала отзываем токен из Redis
         var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(token);
         if (tokenInfo != null)
         {
             await _tokenStorageService.RevokeTokenAsync(tokenInfo.IdentityToken);
         }
         
-        // Затем отзываем токен на сервере OAuth
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
@@ -285,7 +265,6 @@ public class OAuthService : IOAuthService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Exception occurred while revoking token on OAuth server");
-            // Возвращаем true, если токен был успешно отозван из Redis, даже если запрос к OAuth серверу не удался
             return tokenInfo != null;
         }
     }

@@ -68,8 +68,7 @@ public class CourseTemplateService : ICourseTemplateService
         var template = await _repository.GetByIdAsync(id);
         if (template == null)
             return null;
-            
-        // Обновляем только те поля, которые предоставлены в DTO
+        
         if (templateDto.Name != null)
             template.Name = templateDto.Name;
             

@@ -1,105 +1,116 @@
-﻿using EtudeBackend.Features.Reports.DTOs;
-using EtudeBackend.Features.Templates.Repositories;
-using EtudeBackend.Features.TrainingRequests.Repositories;
-using EtudeBackend.Shared.Exceptions;
+﻿using System.Text;
+using EtudeBackend.Features.Reports.DTOs;
+using EtudeBackend.Shared.Data;
+using Microsoft.EntityFrameworkCore;
 
-namespace EtudeBackend.Features.Reports.Services;
+namespace EtudeBackend.Features.Reports.Service;
 
 public class ReportService : IReportService
 {
-    private readonly IReportTemplateRepository _reportTemplateRepository;
-    private readonly IApplicationRepository _applicationRepository;
-    private readonly ICourseRepository _courseRepository;
-    
+    private readonly ApplicationDbContext _context;
+    private readonly ILogger<ReportService> _logger;
+    private readonly string _reportsPath;
+
     public ReportService(
-        IReportTemplateRepository reportTemplateRepository,
-        IApplicationRepository applicationRepository,
-        ICourseRepository courseRepository)
+        ApplicationDbContext context,
+        ILogger<ReportService> logger,
+        IWebHostEnvironment environment)
     {
-        _reportTemplateRepository = reportTemplateRepository;
-        _applicationRepository = applicationRepository;
-        _courseRepository = courseRepository;
-    }
-
-    public async Task<List<ReportInfoDto>> GetAllReportsAsync()
-    {
-        var reportTemplates = await _reportTemplateRepository.GetAllAsync();
+        _context = context;
+        _logger = logger;
+        _reportsPath = Path.Combine(environment.ContentRootPath, "Reports");
         
-        return reportTemplates.Select(t => new ReportInfoDto
+        if (!Directory.Exists(_reportsPath))
         {
-            Id = t.Id,
-            Name = t.Name
-        }).ToList();
-    }
-
-    public async Task<ReportResultDto?> ExecuteReportAsync(Guid reportId)
-    {
-        var reportTemplate = await _reportTemplateRepository.GetByIdAsync(reportId);
-        if (reportTemplate == null)
-            return null;
-        
-        // В зависимости от типа шаблона отчета, вызываем соответствующий метод генерации
-        switch (reportTemplate.TemplateType.ToLower())
-        {
-            case "applications":
-                return await GenerateApplicationsReportAsync(reportTemplate.Name, reportTemplate.Attributes);
-            
-            case "courses":
-                return await GenerateCoursesReportAsync(reportTemplate.Name, reportTemplate.Attributes);
-            
-            case "statistics":
-                return await GenerateStatisticsReportAsync(reportTemplate.Name, reportTemplate.Attributes);
-            
-            default:
-                throw new ApiException($"Неподдерживаемый тип отчета: {reportTemplate.TemplateType}", 400);
+            Directory.CreateDirectory(_reportsPath);
         }
     }
     
-    // Методы для генерации конкретных отчетов
-    private async Task<ReportResultDto> GenerateApplicationsReportAsync(string reportName, string attributes)
+    public async Task<List<ReportInfoDto>> GetAllReportsAsync(List<ReportFilterDto>? filters = null)
     {
-        // Здесь должна быть реальная логика генерации отчета
-        // Для демонстрации просто создаем пустой отчет
+        IQueryable<Report> query = _context.Reports.OrderByDescending(r => r.CreatedAt);
         
-        var applications = await _applicationRepository.GetAllAsync();
-        
-        // Генерация XLSX файла
-        // В реальном приложении здесь был бы код для формирования Excel-файла
-        var fileContent = new byte[0]; // Заглушка
-        
-        return new ReportResultDto
+        if (filters != null && filters.Count > 0)
         {
-            FileName = $"{reportName}_{DateTime.Now:yyyyMMdd}.xlsx",
-            FileContent = fileContent
-        };
+            foreach (var filter in filters)
+            {
+                switch (filter.Name.ToLower())
+                {
+                    case "filter_type":
+                        query = query.Where(r => r.ReportType == filter.Value);
+                        break;
+                    case "date":
+                        if (DateOnly.TryParse(filter.Value, out var filterDate))
+                        {
+                            var startDate = new DateTimeOffset(filterDate.Year, filterDate.Month, filterDate.Day, 0, 0, 0, TimeSpan.Zero);
+                            var endDate = startDate.AddDays(1);
+                            
+                            query = query.Where(r => r.CreatedAt >= startDate && r.CreatedAt < endDate);
+                        }
+                        break;
+                }
+            }
+        }
+        
+        var reports = await query.Select(r => new ReportInfoDto
+        {
+            Id = r.Id,
+            ReportType = r.ReportType,
+            ReportCreateDate = r.CreatedAt
+        }).ToListAsync();
+            
+        return reports;
     }
     
-    private async Task<ReportResultDto> GenerateCoursesReportAsync(string reportName, string attributes)
+    public async Task<byte[]> DownloadReportAsync(Guid reportId)
     {
-        // Аналогично для отчета по курсам
-        var courses = await _courseRepository.GetAllAsync();
-        
-        // Генерация XLSX файла
-        var fileContent = new byte[0]; // Заглушка
-        
-        return new ReportResultDto
+        var report = await _context.Reports.FindAsync(reportId);
+        if (report == null)
         {
-            FileName = $"{reportName}_{DateTime.Now:yyyyMMdd}.xlsx",
-            FileContent = fileContent
-        };
+            throw new KeyNotFoundException($"Отчет с ID {reportId} не найден");
+        }
+        
+        var filePath = report.FilePath;
+        if (!File.Exists(filePath))
+        {
+            _logger.LogError("Файл отчета не найден: {FilePath}", filePath);
+            throw new KeyNotFoundException($"Файл отчета не найден");
+        }
+        
+        return await File.ReadAllBytesAsync(filePath);
     }
-    
-    private async Task<ReportResultDto> GenerateStatisticsReportAsync(string reportName, string attributes)
+
+    public async Task<byte[]> GenerateReportAsync()
     {
-        // Аналогично для отчета со статистикой
+        string reportType = "CompletedTraining";
+
+        var reportId = Guid.NewGuid();
+        var createdAt = DateTimeOffset.UtcNow;
+
+        var fileName = $"{reportId}-{createdAt:yyyyMMdd}.txt";
+        var filePath = Path.Combine(_reportsPath, fileName);
+
+        string reportContent = $"Отчет по завершенным обучениям\r\n" +
+                              $"ID: {reportId}\r\n" +
+                              $"Дата создания: {createdAt:dd.MM.yyyy HH:mm:ss}\r\n\r\n" +
+                              $"Это текстовый файл отчета.\r\n" +
+                              $"В реальной реализации здесь будут данные отчета.";
         
-        // Генерация XLSX файла
-        var fileContent = new byte[0]; // Заглушка
+        byte[] fileContent = Encoding.UTF8.GetBytes(reportContent);
         
-        return new ReportResultDto
+        await File.WriteAllBytesAsync(filePath, fileContent);
+        
+        var report = new Report
         {
-            FileName = $"{reportName}_{DateTime.Now:yyyyMMdd}.xlsx",
-            FileContent = fileContent
+            Id = reportId,
+            ReportType = reportType,
+            CreatedAt = createdAt,
+            FilePath = filePath
         };
+        
+        _context.Reports.Add(report);
+        await _context.SaveChangesAsync();
+        
+        return fileContent;
     }
 }

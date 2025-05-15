@@ -55,7 +55,6 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
             .HasForeignKey(a => a.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);
         
-        // Индексы
         builder.HasIndex(a => a.CourseId);
         builder.HasIndex(a => a.AuthorId);
         builder.HasIndex(a => a.StatusId);

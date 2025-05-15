@@ -49,30 +49,24 @@ public class ApplicationService : IApplicationService
         if (perPage < 1) perPage = 10;
         if (perPage > 100) perPage = 100;
         
-        // Создаем базовый запрос
         IQueryable<Application> query = _applicationRepository.GetAllQuery()
             .Include(a => a.Status)
             .Include(a => a.Course);
         
-        // Применяем фильтры, если они указаны
         if (filters != null && filters.Count > 0)
         {
             query = ApplyFilters(query, filters);
         }
         
-        // Получаем общее количество элементов после фильтрации
         var totalCount = await query.CountAsync();
         
-        // Применяем сортировку
         query = ApplySorting(query, sortBy, orderBy);
-        
-        // Применяем пагинацию
+
         var items = await query
             .Skip((page - 1) * perPage)
             .Take(perPage)
             .ToListAsync();
-        
-        // Маппим результаты в DTO
+
         var applicationDtos = _mapper.Map<List<ApplicationDto>>(items);
         
         return new PagedResult<ApplicationDto>(applicationDtos, totalCount, page, perPage);
@@ -89,12 +83,10 @@ public class ApplicationService : IApplicationService
 
     public async Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto, string userId)
 {
-    // Используем TransactionScope для обеспечения атомарности операции
     using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
     
     try 
     {
-        // Создаем новый курс
         var course = new Course
         {
             Id = Guid.NewGuid(),
@@ -113,22 +105,17 @@ public class ApplicationService : IApplicationService
             CreatedAt = DateTimeOffset.UtcNow
         };
         
-        // Сохраняем курс
         await _courseRepository.AddAsync(course);
         
-        // Получаем статус "Новая заявка"
         var newStatus = await _statusRepository.GetByNameAsync("Новая") 
             ?? throw new ApiException("Статус 'Новая' не найден", 500);
         
-        // Преобразуем идентификаторы согласующих в строку JSON
-        // Проверяем, что ApproverIds - это список строк, если нет - конвертируем в строковый формат
         var approverIdStrings = applicationDto.ApproverIds
             .Select(id => id.ToString())
             .ToList();
             
         string approversJson = System.Text.Json.JsonSerializer.Serialize(approverIdStrings);
         
-        // Создаем новую заявку с полем Approvers
         var application = new Application
         {
             Id = Guid.NewGuid(),
@@ -136,23 +123,19 @@ public class ApplicationService : IApplicationService
             AuthorId = userId,
             StatusId = newStatus.Id,
             ApprovalHistory = string.Empty,
-            Approvers = approversJson, // Добавляем список согласующих в JSON формате
+            Approvers = approversJson,
             CreatedAt = DateTimeOffset.UtcNow,
-            SoloDocId = Guid.NewGuid() // Генерируем временный ID для документа Solo
+            SoloDocId = Guid.NewGuid() 
         };
         
-        // Сохраняем заявку
         await _applicationRepository.AddAsync(application);
-        
-        // Проверяем, что заявка была успешно создана
+
         var createdApplication = await GetApplicationByIdAsync(application.Id);
         if (createdApplication == null)
             throw new ApiException("Ошибка при создании заявки", 500);
-            
-        // Если всё прошло успешно, завершаем транзакцию
+        
         transaction.Complete();
         
-        // Для логирования
         _logger.LogInformation("Создана новая заявка с ID {ApplicationId} пользователем {UserId}", 
             application.Id, userId);
         
@@ -162,7 +145,7 @@ public class ApplicationService : IApplicationService
     {
         _logger.LogError(ex, "Ошибка при создании заявки пользователем {UserId}", userId);
         
-        throw; // Пробрасываем исключение дальше
+        throw;
     }
 }
 
@@ -176,7 +159,6 @@ public class ApplicationService : IApplicationService
         if (course == null)
             throw new ApiException("Связанный курс не найден", 404);
         
-        // Обновляем поля курса
         if (applicationDto.Name != null)
             course.Name = applicationDto.Name;
             
@@ -207,11 +189,9 @@ public class ApplicationService : IApplicationService
         course.UpdatedAt = DateTimeOffset.UtcNow;
         await _courseRepository.UpdateAsync(course);
         
-        // Обновляем поле согласующих в заявке, если оно предоставлено
         if (applicationDto.ApproverIds != null)
         {
             string approversJson = System.Text.Json.JsonSerializer.Serialize(applicationDto.ApproverIds);
-            // Здесь должна быть логика обновления согласующих
         }
         
         application.UpdatedAt = DateTimeOffset.UtcNow;
@@ -230,10 +210,8 @@ public class ApplicationService : IApplicationService
         if (newStatus == null)
             throw new ApiException("Указанный статус не найден", 404);
         
-        // Обновляем статус заявки
         application.StatusId = statusDto.StatusId;
         
-        // Добавляем запись в историю обработки заявки
         if (!string.IsNullOrEmpty(statusDto.Comment))
         {
             var historyEntry = new
@@ -244,7 +222,6 @@ public class ApplicationService : IApplicationService
                 Comment = statusDto.Comment
             };
             
-            // Добавляем запись в историю
             string historyJson = System.Text.Json.JsonSerializer.Serialize(historyEntry);
             application.ApprovalHistory += (string.IsNullOrEmpty(application.ApprovalHistory) ? "" : "\n") + historyJson;
         }
@@ -277,7 +254,6 @@ public class ApplicationService : IApplicationService
         return true;
     }
     
-
     
     private IQueryable<Application> ApplyFilters(IQueryable<Application> query, Dictionary<string, string> filters)
     {

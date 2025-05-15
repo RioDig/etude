@@ -44,10 +44,8 @@ public class UserService : IUserService
     
     public async Task<(List<EmployeeDto> employees, bool hasMoreItems)> GetAutocompleteEmployeesAsync(string? term, string[]? idsToRemove = null)
     {
-        // Начинаем с запроса всех активных пользователей
         IQueryable<ApplicationUser> query = _userManager.Users.Where(u => u.IsActive);
         
-        // Фильтруем по поисковому запросу, если он предоставлен
         if (!string.IsNullOrEmpty(term))
         {
             string searchTerm = term.Trim().ToLower();
@@ -58,26 +56,21 @@ public class UserService : IUserService
             );
         }
         
-        // Исключаем пользователей из списка idsToRemove
         if (idsToRemove != null && idsToRemove.Length > 0)
         {
             query = query.Where(u => !idsToRemove.Contains(u.Id));
         }
         
-        // Получаем общее количество результатов для определения hasMoreItems
         int totalCount = await query.CountAsync();
-        
-        // Проверяем, есть ли больше элементов, чем мы собираемся вернуть
+
         bool hasMore = totalCount > MaxAutocompleteResults;
         
-        // Ограничиваем результаты до MaxAutocompleteResults
         var users = await query
             .OrderBy(u => u.Surname)
             .ThenBy(u => u.Name)
             .Take(MaxAutocompleteResults)
             .ToListAsync();
         
-        // Преобразуем в DTO
         var employees = users.Select(u => new EmployeeDto
         {
             Id = u.Id,

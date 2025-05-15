@@ -35,29 +35,24 @@ public class AutocompleteController : ControllerBase
     {
         try
         {
-            // Получаем структуру организации из EtudeAuth
             var structure = await _etudeAuthApiService.GetOrganizationStructureAsync();
-
-            // Создаем список всех сотрудников из всех департаментов
+            
             var allEmployees = new List<EmployeeDto>();
 
             foreach (var department in structure.Company.Departments)
             {
-                // Добавляем менеджера
                 var manager = new EmployeeDto
                 {
-                    // Используем Email как Id, так как это уникальный идентификатор
                     Id = department.Manager.Email,
                     Name = ExtractFirstName(department.Manager.Name),
                     Surname = ExtractLastName(department.Manager.Name),
                     Patronymic = ExtractMiddleName(department.Manager.Name),
                     Position = department.Manager.Position,
-                    Department = department.Name, // Добавляем название отдела
-                    IsLeader = true // Устанавливаем флаг руководителя
+                    Department = department.Name,
+                    IsLeader = true
                 };
                 allEmployees.Add(manager);
-
-                // Добавляем обычных сотрудников
+                
                 foreach (var employee in department.Employees)
                 {
                     allEmployees.Add(new EmployeeDto
@@ -67,16 +62,14 @@ public class AutocompleteController : ControllerBase
                         Surname = ExtractLastName(employee.Name),
                         Patronymic = ExtractMiddleName(employee.Name),
                         Position = employee.Position,
-                        Department = department.Name, // Добавляем название отдела
-                        IsLeader = false // Обычные сотрудники не являются руководителями
+                        Department = department.Name,
+                        IsLeader = false
                     });
                 }
             }
-
-            // Фильтруем сотрудников
+            
             var filteredEmployees = allEmployees;
-
-            // Применяем поисковый запрос, если он указан
+            
             if (!string.IsNullOrEmpty(term))
             {
                 string searchTerm = term.Trim().ToLower();
@@ -85,17 +78,15 @@ public class AutocompleteController : ControllerBase
                         e.Surname.ToLower().Contains(searchTerm) ||
                         (e.Patronymic != null && e.Patronymic.ToLower().Contains(searchTerm)) ||
                         e.Position.ToLower().Contains(searchTerm) ||
-                        e.Department.ToLower().Contains(searchTerm) // Добавляем поиск по отделу
+                        e.Department.ToLower().Contains(searchTerm)
                 ).ToList();
             }
-
-            // Исключаем сотрудников из списка idsToRemove
+            
             if (idsToRemove != null && idsToRemove.Length > 0)
             {
                 filteredEmployees = filteredEmployees.Where(e => !idsToRemove.Contains(e.Id)).ToList();
             }
-
-            // Ограничиваем количество результатов
+            
             const int maxResults = 8;
             bool hasMoreItems = filteredEmployees.Count > maxResults;
             var result = filteredEmployees
@@ -117,8 +108,7 @@ public class AutocompleteController : ControllerBase
                 new { message = "Ошибка при получении списка сотрудников" });
         }
     }
-
-// Вспомогательные методы для разделения полного имени на части
+    
     private string ExtractLastName(string fullName)
     {
         var parts = fullName.Split(' ');

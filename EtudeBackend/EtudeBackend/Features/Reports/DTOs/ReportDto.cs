@@ -1,13 +1,22 @@
 ﻿namespace EtudeBackend.Features.Reports.DTOs;
 
+public class ReportFilterDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+}
+
 public class ReportInfoDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public string ReportType { get; set; } = string.Empty;
+    public DateTimeOffset ReportCreateDate { get; set; }
 }
 
-public class ReportResultDto
+public class Report
 {
-    public string FileName { get; set; } = string.Empty;
-    public byte[] FileContent { get; set; } = Array.Empty<byte>();
+    public Guid Id { get; set; }
+    public string ReportType { get; set; } = string.Empty;
+    public DateTimeOffset CreatedAt { get; set; }
+    public string FilePath { get; set; } = string.Empty;
 }

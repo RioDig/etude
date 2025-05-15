@@ -10,9 +10,8 @@ public class ReportTemplateConfiguration : IEntityTypeConfiguration<ReportTempla
     {
         builder.HasKey(rt => rt.Id);
         
-        // Настройка GUID как первичного ключа
         builder.Property(rt => rt.Id)
-            .HasDefaultValueSql("gen_random_uuid()");  // Для PostgreSQL
+            .HasDefaultValueSql("gen_random_uuid()");
             
         builder.Property(rt => rt.Name)
             .IsRequired()
@@ -26,8 +25,7 @@ public class ReportTemplateConfiguration : IEntityTypeConfiguration<ReportTempla
             
         builder.Property(rt => rt.TemplateType)
             .HasMaxLength(50);
-            
-        // Настройки для timestamp полей
+        
         builder.Property(rt => rt.CreatedAt)
             .IsRequired()
             .HasColumnType("timestamp with time zone")
@@ -35,8 +33,7 @@ public class ReportTemplateConfiguration : IEntityTypeConfiguration<ReportTempla
             
         builder.Property(rt => rt.UpdatedAt)
             .HasColumnType("timestamp with time zone");
-            
-        // Уникальный индекс для имени шаблона
+        
         builder.HasIndex(rt => rt.Name)
             .IsUnique();
     }

@@ -1,5 +1,5 @@
 ﻿using EtudeBackend.Features.Reports.DTOs;
-using EtudeBackend.Features.Reports.Services;
+using EtudeBackend.Features.Reports.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,34 +18,57 @@ public class ReportController : ControllerBase
     }
     
     /// <summary>
-    /// Получает список всех доступных отчетов
+    /// Получает список всех отчетов с возможностью фильтрации
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllReports()
+    [ProducesResponseType(typeof(List<ReportInfoDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReports([FromQuery] List<ReportFilterDto>? filter = null)
     {
-        var reports = await _reportService.GetAllReportsAsync();
+        var reports = await _reportService.GetAllReportsAsync(filter);
         return Ok(reports);
     }
     
     /// <summary>
-    /// Выполняет отчет и возвращает файл XLSX
+    /// Скачивает готовый отчет
     /// </summary>
-    [HttpGet("execute")]
+    [HttpGet("download")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DownloadReport([FromQuery] Guid id)
+    {
+        try
+        {
+            var fileContent = await _reportService.DownloadReportAsync(id);
+            return File(
+                fileContent, 
+                "text/plain",
+                $"report-{id}.txt");
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+    
+    /// <summary>
+    /// Генерирует новый отчет
+    /// </summary>
+    [HttpGet("generate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> ExecuteReport([FromQuery] Guid id)
+    public async Task<IActionResult> GenerateReport()
     {
-        var reportResult = await _reportService.ExecuteReportAsync(id);
-        
-        if (reportResult == null)
-            return NotFound();
-            
-        // Возвращаем файл XLSX
-        return File(
-            reportResult.FileContent, 
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            reportResult.FileName);
+        try
+        {
+            var fileContent = await _reportService.GenerateReportAsync();
+            return File(
+                fileContent, 
+                "text/plain",
+                $"report-{DateTime.Now:yyyyMMdd}.txt");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

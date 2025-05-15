@@ -10,9 +10,8 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
     {
         builder.HasKey(ct => ct.Id);
         
-        // Настройка GUID как первичного ключа
         builder.Property(ct => ct.Id)
-            .HasDefaultValueSql("gen_random_uuid()");  // Для PostgreSQL
+            .HasDefaultValueSql("gen_random_uuid()");
             
         builder.Property(ct => ct.Name)
             .IsRequired()
@@ -20,11 +19,10 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
             
         builder.Property(ct => ct.Description)
             .HasColumnType("text");
-            
-        // Конфигурация для перечислений
+        
         builder.Property(ct => ct.Type)
             .IsRequired()
-            .HasConversion<string>();  // Преобразование enum в строку для хранения в БД
+            .HasConversion<string>();
             
         builder.Property(ct => ct.Track)
             .IsRequired()
@@ -36,8 +34,7 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
             
         builder.Property(ct => ct.TrainingCenter)
             .HasMaxLength(100);
-            
-        // Настройки для timestamp полей
+        
         builder.Property(ct => ct.CreatedAt)
             .IsRequired()
             .HasColumnType("timestamp with time zone")
@@ -45,12 +42,10 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
             
         builder.Property(ct => ct.UpdatedAt)
             .HasColumnType("timestamp with time zone");
-            
-        // Уникальный индекс для имени шаблона
+        
         builder.HasIndex(ct => ct.Name)
             .IsUnique();
-            
-        // Индексы для оптимизации запросов
+        
         builder.HasIndex(ct => ct.Type);
         builder.HasIndex(ct => ct.Track);
         builder.HasIndex(ct => ct.Format);

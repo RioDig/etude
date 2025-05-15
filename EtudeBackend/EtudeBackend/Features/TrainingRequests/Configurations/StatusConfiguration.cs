@@ -10,9 +10,8 @@ public class StatusConfiguration : IEntityTypeConfiguration<Status>
     {
         builder.HasKey(s => s.Id);
         
-        // Заменяем UseIdentityColumn на HasDefaultValueSql для Guid
         builder.Property(s => s.Id)
-            .HasDefaultValueSql("gen_random_uuid()");  // Для PostgreSQL
+            .HasDefaultValueSql("gen_random_uuid()");
         
         builder.Property(s => s.Name)
             .IsRequired()
@@ -28,8 +27,7 @@ public class StatusConfiguration : IEntityTypeConfiguration<Status>
         builder.Property(s => s.IsTerminal)
             .IsRequired()
             .HasDefaultValue(false);
-            
-        // Уникальный индекс для имени статуса
+        
         builder.HasIndex(s => s.Name)
             .IsUnique();
     }

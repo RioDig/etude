@@ -30,14 +30,12 @@ namespace EtudeBackend.Features.TrainingRequests.Services
 
     public async Task<List<CompetencyDto>> GetCompetenciesAsync()
     {
-    // Получаем текущего пользователя
     var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
     if (string.IsNullOrEmpty(userId))
     {
         throw new UnauthorizedAccessException("Пользователь не авторизован");
     }
-
-    // Расширенный список компетенций
+    
     var allCompetencies = new List<CompetencyDto>
     {
         new CompetencyDto { Id = Guid.NewGuid(), Name = "Разработка на C#" },
@@ -56,12 +54,10 @@ namespace EtudeBackend.Features.TrainingRequests.Services
         new CompetencyDto { Id = Guid.NewGuid(), Name = "Непрерывная интеграция (CI/CD)" },
         new CompetencyDto { Id = Guid.NewGuid(), Name = "Функциональное программирование" }
     };
-
-    // Случайное число компетенций от 3 до 6
+    
     var random = new Random();
-    int count = random.Next(3, 7); // Верхняя граница не включается, поэтому 7
+    int count = random.Next(3, 7);
 
-    // Перемешиваем список и берем первые count элементов
     var shuffledCompetencies = allCompetencies.OrderBy(c => random.Next()).Take(count).ToList();
 
     return shuffledCompetencies;
@@ -69,33 +65,27 @@ namespace EtudeBackend.Features.TrainingRequests.Services
 
         public async Task<List<PastEventDto>> GetPastEventsAsync()
         {
-            // Получаем текущего пользователя
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
             {
                 throw new UnauthorizedAccessException("Пользователь не авторизован");
             }
-
-            // Получаем пользователя из БД, чтобы узнать его SoloUserId
+            
             var user = await _userManager.FindByIdAsync(userId);
             if (user is not { SoloUserId: not null })
             {
-                return new List<PastEventDto>(); // Возвращаем пустой список, если у пользователя нет SoloUserId
+                return new List<PastEventDto>();
             }
-
-            // Создаем Guid из идентификатора пользователя для поиска в репозитории
+            
             var employeeId = Guid.Parse(userId);
-    
-            // Получаем курсы, где пользователь указан как обучающийся (EmployeeId)
+            
             var userCourses = await _courseRepository.GetByEmployeeIdAsync(employeeId);
-    
-            // Фильтруем по дате окончания (прошедшие мероприятия)
+            
             var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
             var pastCourses = userCourses
                 .Where(c => c.EndDate < currentDate)
                 .ToList();
-
-            // Маппим в DTO
+            
             var pastEvents = pastCourses.Select(course => new PastEventDto
             {
                 Id = course.Id,
