@@ -1,29 +1,29 @@
-import React from 'react';
-import clsx from 'clsx';
+import React from 'react'
+import clsx from 'clsx'
 
-type TagSize = 'small' | 'medium';
+type TagSize = 'small' | 'medium'
 
 export interface TagProps {
   /**
    * Содержимое тега
    */
-  children: React.ReactNode;
+  children: React.ReactNode
 
   /**
    * Размер тега
    * @default 'medium'
    */
-  size?: TagSize;
+  size?: TagSize
 
   /**
    * Дополнительные CSS классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }
 
 /**
@@ -34,12 +34,12 @@ export const Tag: React.FC<TagProps> = ({
   children,
   size = 'medium',
   className,
-  testId = 'tag',
+  testId = 'tag'
 }) => {
   const sizeClasses = {
     medium: 'min-h-[26px] py-1 px-2 text-b4-regular',
-    small: 'min-h-[22px]  py-0.5 px-2 text-b5',
-  };
+    small: 'min-h-[22px]  py-0.5 px-2 text-b5'
+  }
 
   return (
     <div
@@ -51,11 +51,9 @@ export const Tag: React.FC<TagProps> = ({
       )}
       data-testid={testId}
     >
-      <span className="font-normal">
-        {children}
-      </span>
+      <span className="font-normal">{children}</span>
     </div>
-  );
-};
+  )
+}
 
-export default Tag;
+export default Tag

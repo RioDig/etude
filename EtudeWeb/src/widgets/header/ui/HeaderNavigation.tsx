@@ -7,16 +7,7 @@ interface HeaderNavigationProps {
   onItemClick?: (item: NavItem) => void
 }
 
-export const HeaderNavigation: React.FC<HeaderNavigationProps> = ({
-  items,
-  // onItemClick
-}) => {
-  // const handleClick = (item: NavItem) => {
-  //   if (onItemClick) {
-  //     onItemClick(item)
-  //   }
-  // }
-
+export const HeaderNavigation: React.FC<HeaderNavigationProps> = ({ items }) => {
   return (
     <nav className="flex gap-1">
       {items.map((item) => {

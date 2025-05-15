@@ -71,7 +71,7 @@ export interface SidebarProps {
 /**
  * Компонент Sidebar - боковая панель, открывающаяся справа
  */
-// Компонент для контейнера с кнопками действий в хедере
+
 interface HeaderActionsContainerProps {
   actions: SidebarAction[]
 }
@@ -82,17 +82,15 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
   const actionsContainerRef = useRef<HTMLDivElement>(null)
   const [moreButtonRef, setMoreButtonRef] = useState<HTMLButtonElement | null>(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const moreButtonWidth = 48 // Ширина кнопки "Еще"
-  const buttonMargin = 16 // Отступ между кнопками
+  const moreButtonWidth = 48
+  const buttonMargin = 16
 
-  // Функция для определения видимых и скрытых действий
   const updateVisibleActions = useCallback(() => {
     if (!actionsContainerRef.current) return
 
     const container = actionsContainerRef.current
     const containerWidth = container.clientWidth
 
-    // Сначала проверим, умещаются ли все кнопки без кнопки "Еще"
     const tempDiv = document.createElement('div')
     tempDiv.style.position = 'absolute'
     tempDiv.style.visibility = 'hidden'
@@ -102,7 +100,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
     let totalWidth = 0
     let allFit = true
 
-    // Измеряем ширину всех кнопок
     actions.forEach((action) => {
       const tempButton = document.createElement('button')
       tempButton.innerText = action.label
@@ -112,7 +109,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
       totalWidth += tempButton.offsetWidth + buttonMargin
       tempDiv.removeChild(tempButton)
 
-      // Если общая ширина превысила ширину контейнера, не все кнопки помещаются
       if (totalWidth > containerWidth) {
         allFit = false
       }
@@ -120,15 +116,12 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
 
     document.body.removeChild(tempDiv)
 
-    // Если все кнопки помещаются, показываем их все
     if (allFit) {
       setVisibleActions(actions)
       setHiddenActions([])
       return
     }
 
-    // Если не все помещаются, нужно выбрать, какие показывать
-    // Резервируем место для кнопки "Еще"
     const reservedSpace = moreButtonWidth + buttonMargin
     const availableWidth = containerWidth - reservedSpace
 
@@ -136,7 +129,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
     const visible: SidebarAction[] = []
     const hidden: SidebarAction[] = []
 
-    // Создаем новый временный контейнер для повторного измерения
     const tempDiv2 = document.createElement('div')
     tempDiv2.style.position = 'absolute'
     tempDiv2.style.visibility = 'hidden'
@@ -152,19 +144,16 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
       const buttonWidth = tempButton.offsetWidth + buttonMargin
       tempDiv2.removeChild(tempButton)
 
-      // Если кнопка помещается, добавляем ее в видимые
       if (currentWidth + buttonWidth <= availableWidth) {
         currentWidth += buttonWidth
         visible.push(action)
       } else {
-        // Иначе добавляем в скрытые
         hidden.push(action)
       }
     })
 
     document.body.removeChild(tempDiv2)
 
-    // Гарантируем, что у нас всегда есть хотя бы одно видимое действие
     if (visible.length === 0 && hidden.length > 0) {
       const firstAction = hidden.shift()
       if (firstAction) {
@@ -176,7 +165,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
     setHiddenActions(hidden || [])
   }, [actions, buttonMargin, moreButtonWidth])
 
-  // Обновляем список видимых действий при изменении размера
   useEffect(() => {
     updateVisibleActions()
 
@@ -190,15 +178,13 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
     }
   }, [updateVisibleActions])
 
-  // Инициализация при первом рендере
   useEffect(() => {
     updateVisibleActions()
   }, [updateVisibleActions])
 
-  // Функция открытия/закрытия дропдауна
   const toggleDropdown = () => {
-    setIsDropdownOpen(prev => !prev);
-  };
+    setIsDropdownOpen((prev) => !prev)
+  }
 
   return (
     <div className="mt-4">
@@ -206,7 +192,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
         ref={actionsContainerRef}
         className="flex items-center gap-4 flex-nowrap overflow-hidden"
       >
-        {/* Видимые кнопки */}
         {visibleActions.map((action, index) => (
           <Button
             key={`visible-${index}`}
@@ -219,7 +204,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
           </Button>
         ))}
 
-        {/* Кнопка "Еще", если есть скрытые действия */}
         {hiddenActions.length > 0 && (
           <Button
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -235,26 +219,27 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
         )}
       </div>
 
-      {/* Рендерим DropdownMenu через Portal, чтобы избежать проблем с трансформацией */}
-      {hiddenActions.length > 0 && isDropdownOpen && createPortal(
-        <DropdownMenu
-          open={isDropdownOpen}
-          onClose={() => setIsDropdownOpen(false)}
-          anchorEl={moreButtonRef}
-          position="bottom-right"
-          defaultItems={hiddenActions.map(action => ({
-            label: action.label,
-            onClick: () => {
-              action.onClick();
-              setIsDropdownOpen(false);
-            },
-            disabled: action.disabled
-          }))}
-        />,
-        document.body
-      )}
+      {hiddenActions.length > 0 &&
+        isDropdownOpen &&
+        createPortal(
+          <DropdownMenu
+            open={isDropdownOpen}
+            onClose={() => setIsDropdownOpen(false)}
+            anchorEl={moreButtonRef}
+            position="bottom-right"
+            defaultItems={hiddenActions.map((action) => ({
+              label: action.label,
+              onClick: () => {
+                action.onClick()
+                setIsDropdownOpen(false)
+              },
+              disabled: action.disabled
+            }))}
+          />,
+          document.body
+        )}
     </div>
-  );
+  )
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -269,25 +254,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
   className,
   testId = 'sidebar'
 }) => {
-  // Состояние для анимации
   const [isVisible, setIsVisible] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
 
-  // Обработка открытия/закрытия сайдбара
   useEffect(() => {
     if (open) {
-      // При открытии сайдбара сначала делаем его видимым, потом анимируем
       setIsVisible(true)
-      // Используем requestAnimationFrame, чтобы анимация началась после рендера
+
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
           setIsAnimating(true)
         })
       })
     } else {
-      // При закрытии сначала запускаем анимацию закрытия
       setIsAnimating(false)
-      // Затем после завершения анимации скрываем сайдбар полностью
       const timer = setTimeout(() => {
         setIsVisible(false)
       }, 0) // Должно совпадать с длительностью анимации
@@ -296,42 +276,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [open])
 
-  // Блокировка скролла body при открытии сайдбара
   useEffect(() => {
     if (open) {
-      // Сохраняем текущую ширину скроллбара
       const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
 
-      // Блокируем прокрутку
       document.body.style.overflow = 'hidden'
 
-      // Добавляем паддинг, равный ширине скроллбара
       if (scrollbarWidth > 0) {
         document.body.style.paddingRight = `${scrollbarWidth}px`
       }
     } else {
-      // Возвращаем все стили в исходное состояние
       document.body.style.overflow = ''
       document.body.style.paddingRight = ''
     }
 
     return () => {
-      // Очистка при размонтировании компонента
       document.body.style.overflow = ''
       document.body.style.paddingRight = ''
     }
   }, [open])
 
-  // Функция плавного закрытия сайдбара
   const handleClose = useCallback(() => {
     setIsAnimating(false)
-    // Задержка вызова onClose, чтобы анимация закрытия успела проиграться
     setTimeout(() => {
       onClose()
-    }, 300) // Должно совпадать с длительностью анимации
+    }, 300)
   }, [onClose])
 
-  // Обработчик клавиши Escape
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape' && open) {
@@ -345,12 +316,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   }, [open, handleClose])
 
-  // Если сайдбар не видим, не рендерим его совсем
   if (!isVisible && !open) return null
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end" data-testid={testId}>
-      {/* Затемненный фон */}
       <div
         className="absolute inset-0 transition-all duration-300 ease-in-out"
         style={{
@@ -372,9 +341,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         onClick={(e) => e.stopPropagation()}
         data-testid={`${testId}-container`}
       >
-        {/* Хедер сайдбара */}
         <div className="p-[32px_24px] border-b border-mono-300" data-testid={`${testId}-header`}>
-          {/* Первый контейнер: заголовок, описание и кнопка закрытия */}
           <div className="flex items-start justify-between">
             <div className="w-[508px]">
               <h2 className="text-h2 text-mono-900">{title}</h2>
@@ -391,20 +358,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
 
-          {/* Второй контейнер: сначала бейдж */}
           {badge && (
             <div className="mt-4">
               <Badge variant={badge.variant || 'default'}>{badge.text}</Badge>
             </div>
           )}
 
-          {/* Третий контейнер: кнопки действий */}
           {headerActions && headerActions.length > 0 && (
             <HeaderActionsContainer actions={headerActions} />
           )}
         </div>
 
-        {/* Тело сайдбара */}
         <div
           className="flex-1 overflow-y-auto p-6 bg-mono-25 overflow-x-hidden"
           data-testid={`${testId}-body`}
@@ -412,14 +376,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {children}
         </div>
 
-        {/* Футер сайдбара */}
         {footerActions && footerActions.length > 0 && (
           <div className="p-8 border-t border-mono-300 bg-mono-25" data-testid={`${testId}-footer`}>
             <div className="flex items-center gap-4">
               {footerActions.map((action, index) => {
-                // Создаем обертку для действий футера с возможностью закрытия сайдбара
                 const handleAction = () => {
-                  // Если это действие закрытия, используем анимированное закрытие
                   if (
                     action.label.toLowerCase().includes('закрыть') ||
                     action.label.toLowerCase().includes('отмен') ||

@@ -9,7 +9,6 @@ export const HeaderProfile: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  // Используем хук для получения данных о пользователе
   const { user, isAuthenticated } = useAuth()
   const { defaultItems, warningItems } = useProfileMenuActions()
 

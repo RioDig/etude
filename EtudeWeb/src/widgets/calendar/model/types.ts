@@ -1,27 +1,18 @@
-// src/widgets/calendar/model/types.ts
-
-// Режимы отображения календаря
 export type CalendarViewMode = 'month' | 'week' | 'half-year'
 
-// Статусы карточек/событий
 export type CardStatus = 'pending' | 'approved' | 'rejected' | 'completed'
 
-// Тип для тегов на карточке
 export interface CalendarCardTag {
   id: string
   label: string
 }
 
-// Формат обучения
 export type TrainingFormat = 'offline' | 'online' | 'mixed'
 
-// Категория обучения
 export type TrainingCategory = 'hard-skills' | 'soft-skills' | 'management'
 
-// Тип обучения
 export type TrainingType = 'course' | 'conference' | 'webinar' | 'training'
 
-// Основная модель карточки/события в календаре
 export interface CalendarCard {
   id: string
   title: string
@@ -35,7 +26,6 @@ export interface CalendarCard {
   type: TrainingType
 }
 
-// Пропсы для основного компонента календаря
 export interface CalendarProps {
   cards: CalendarCard[]
   initialViewMode?: CalendarViewMode

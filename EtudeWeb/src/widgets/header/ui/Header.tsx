@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       <div className="flex items-center gap-4">
-        <HeaderNotifications count={notificationsCount} onClick={onNotificationsClick} />
+        {/*<HeaderNotifications count={notificationsCount} onClick={onNotificationsClick} />*/}
         <HeaderProfile />
       </div>
     </header>

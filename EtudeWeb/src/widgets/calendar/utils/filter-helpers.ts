@@ -1,4 +1,3 @@
-// src/widgets/calendar/utils/filter-helpers.ts
 import { CalendarCard } from '../model/types'
 
 /**
@@ -9,35 +8,27 @@ import { CalendarCard } from '../model/types'
  */
 export const applyFilters = (
   cards: CalendarCard[],
-  filters: Record<string, any> | null | undefined
+  filters: Record<string, unknown> | null | undefined
 ): CalendarCard[] => {
-  // Если фильтры не определены или пусты, возвращаем все карточки
   if (!filters) return cards
 
-  // Проверяем, есть ли активные фильтры
   const hasActiveFilters = Object.values(filters).some(
     (value) => value !== null && value !== '' && value !== undefined
   )
 
   if (!hasActiveFilters) return cards
 
-  // Применяем фильтры
   return cards.filter((card) => {
-    // Проверяем каждый фильтр
     for (const [key, value] of Object.entries(filters)) {
-      // Пропускаем пустые фильтры
       if (value === null || value === '' || value === undefined) {
         continue
       }
 
-      // Проверяем свойство карточки
       if (key in card) {
-        // Особая обработка для даты
         if (key === 'date' && value instanceof Date) {
           const cardDate = new Date(card.startDate)
           const filterDate = new Date(value)
 
-          // Сравниваем только даты без времени
           if (
             cardDate.getFullYear() !== filterDate.getFullYear() ||
             cardDate.getMonth() !== filterDate.getMonth() ||
@@ -48,14 +39,12 @@ export const applyFilters = (
           continue
         }
 
-        // Обычное сравнение для других свойств
         if (card[key as keyof CalendarCard] !== value) {
           return false
         }
       }
     }
 
-    // Если карточка прошла все фильтры, включаем её
     return true
   })
 }
@@ -71,10 +60,6 @@ export const isCardInDateRange = (card: CalendarCard, startDate: Date, endDate: 
   const cardStart = new Date(card.startDate)
   const cardEnd = new Date(card.endDate)
 
-  // Карточка видима, если:
-  // 1. Начало карточки находится в диапазоне
-  // 2. Конец карточки находится в диапазоне
-  // 3. Карточка охватывает весь диапазон
   return (
     (cardStart >= startDate && cardStart <= endDate) ||
     (cardEnd >= startDate && cardEnd <= endDate) ||
@@ -87,9 +72,10 @@ export const isCardInDateRange = (card: CalendarCard, startDate: Date, endDate: 
  * @param filters Объект с фильтрами
  * @returns true, если есть хотя бы один активный фильтр
  */
-export const hasActiveFilters = (filters: Record<string, any> | null | undefined): boolean => {
+export const hasActiveFilters = (filters: Record<string, unknown> | null | undefined): boolean => {
   if (!filters) return false
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   return Object.entries(filters).some(([_, value]) => {
     return value !== null && value !== '' && value !== undefined
   })

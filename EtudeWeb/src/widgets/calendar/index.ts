@@ -1,4 +1,3 @@
-// src/widgets/calendar/index.ts
 export { Calendar } from './ui/Calendar'
 export { CalendarContainer } from './ui/CalendarContainer'
 export { CalendarGrid } from './ui/CalendarGrid'

@@ -22,7 +22,6 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
   emptyComponent,
   errorComponent
 }) => {
-  // Хук для управления навигацией
   const {
     viewMode,
     currentDate,
@@ -30,7 +29,6 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
     datePickerAnchor,
     handlePrevPeriod,
     handleNextPeriod,
-    handleGoToToday,
     handleOpenDatePicker,
     handleDateSelect,
     formatHeaderTitle,
@@ -40,7 +38,6 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Заголовок календаря */}
       <CalendarHeader
         title={formatHeaderTitle()}
         viewMode={viewMode}
@@ -49,26 +46,20 @@ export const CalendarContainer: React.FC<CalendarContainerProps> = ({
         currentDate={currentDate}
         onPrevPeriod={handlePrevPeriod}
         onNextPeriod={handleNextPeriod}
-        onGoToToday={handleGoToToday}
         onOpenDatePicker={handleOpenDatePicker}
         onDateSelect={handleDateSelect}
         onViewModeChange={handleViewModeChange}
         setIsDatePickerOpen={setIsDatePickerOpen}
       />
 
-      {/* Содержимое календаря */}
       <div className="flex-1 overflow-hidden">
         {isLoading ? (
-          // Если загрузка - показываем индикатор
           <div className="h-full"></div>
         ) : errorComponent ? (
-          // Если ошибка - показываем ошибку
           errorComponent
         ) : emptyComponent && cards.length === 0 ? (
-          // Если нет данных - показываем пустое состояние
           emptyComponent
         ) : (
-          // Если есть данные - показываем календарь
           <Calendar
             cards={cards}
             initialViewMode={viewMode}

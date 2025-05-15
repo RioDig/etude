@@ -1,4 +1,3 @@
-// src/widgets/calendar/ui/CalendarHeader.tsx
 import React from 'react'
 import { createPortal } from 'react-dom'
 import { CalendarTodayOutlined, ChevronLeft, ChevronRight } from '@mui/icons-material'

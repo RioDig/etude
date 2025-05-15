@@ -1,4 +1,3 @@
-// src/widgets/calendar/ui/CalendarCardItem.tsx
 import React from 'react'
 import clsx from 'clsx'
 import { AccessTime } from '@mui/icons-material'
@@ -37,12 +36,10 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
   style,
   onClick
 }) => {
-  // Определяем, что показывать в зависимости от размера
   const isMinSize = colSpan === 1 && viewMode !== 'week'
   const showBadge = (colSpan > 1 || viewMode === 'week') && colWidth * colSpan > 350
   const showDates = colWidth * colSpan > 250
 
-  // Содержимое хинта для карточки
   const hintContent = (
     <div className="max-w-[300px]">
       <div className="mb-2">
@@ -75,7 +72,7 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
           className={clsx(
             'border w-full h-[77px] flex flex-col cursor-pointer transition-colors',
             getStatusColor(card.status),
-            // Применяем скругление углов только для тех сторон, которые не выходят за границы
+
             'rounded-none',
             !isStartExtending ? 'rounded-l-[8px]' : '',
             !isEndExtending ? 'rounded-r-[8px]' : '',

@@ -1,7 +1,5 @@
-// src/widgets/calendar/utils/calendar-helpers.ts
 import { CardStatus } from '../model/types'
 
-// Функция для форматирования даты
 export const formatDate = (date: Date): string => {
   return date.toLocaleDateString('ru-RU', {
     day: '2-digit',
@@ -10,7 +8,6 @@ export const formatDate = (date: Date): string => {
   })
 }
 
-// Генерация дней для календаря
 export const generateCalendarDays = (startDate: Date, days: number): Date[] => {
   const result = []
   const currentDate = new Date(startDate)
@@ -23,7 +20,6 @@ export const generateCalendarDays = (startDate: Date, days: number): Date[] => {
   return result
 }
 
-// Получение человеко-читаемых названий для свойств карточки
 export const getFormatLabel = (format: string) => {
   switch (format) {
     case 'offline':
@@ -65,7 +61,6 @@ export const getTypeLabel = (type: string) => {
   }
 }
 
-// Функция для определения цвета статуса карточки
 export const getStatusColor = (status: CardStatus): string => {
   switch (status) {
     case 'pending':
@@ -98,7 +93,6 @@ export const getStatusBadgeVariant = (
   }
 }
 
-// Функция для определения текста статуса карточки
 export const getStatusText = (status: CardStatus): string => {
   switch (status) {
     case 'pending':

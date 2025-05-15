@@ -43,7 +43,6 @@ const TableContext = createContext<TableContextType>({
   scrollable: true
 })
 
-// Пропсы для таблицы
 export interface TableProps<T> {
   /**
    * Данные для отображения (для API на основе пропсов)
@@ -138,45 +137,39 @@ export interface TableProps<T> {
   onRowClick?: (item: T, index: number) => void
 }
 
-// Пропсы для Header
 export interface TableHeaderProps {
   children?: React.ReactNode
   className?: string
   testId?: string
 }
 
-// Пропсы для HeaderCell
 export interface TableHeaderCellProps {
   children?: React.ReactNode
   className?: string
   sortable?: boolean
   sortField?: string
-  width?: string // может быть в px (для фиксированных колонок) или процентах % (для растягивающихся)
+  width?: string
   testId?: string
 }
 
-// Пропсы для Body
 export interface TableBodyProps {
   children?: React.ReactNode
   className?: string
   testId?: string
 }
 
-// Пропсы для Row
 export interface TableRowProps {
   children?: React.ReactNode
   className?: string
   testId?: string
 }
 
-// Пропсы для Cell
 export interface TableCellProps {
   children?: React.ReactNode
   className?: string
   testId?: string
 }
 
-// Компонент индикатора загрузки
 const LoadingIndicator = () => (
   <tr>
     <td colSpan={100} className="text-center py-4">
@@ -211,21 +204,16 @@ export function Table<T>({
   testId = 'table',
   onRowClick
 }: TableProps<T>) {
-  // Локальное состояние сортировки, если внешнее не предоставлено
   const [localSortState, setLocalSortState] = useState<SortState>({
     field: '',
     direction: null
   })
 
-  // Используем внешнее состояние сортировки, если оно предоставлено, иначе используем локальное
   const currentSortState = externalSortState || localSortState
 
-  // Реф для контейнера таблицы
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Обработчик нажатия на заголовок для сортировки
   const handleSort = (field: string) => {
-    // Определяем новое направление сортировки
     let newDirection: SortDirection = 'asc'
 
     if (currentSortState.field === field) {
@@ -241,16 +229,13 @@ export function Table<T>({
       direction: newDirection
     }
 
-    // Если предоставлен внешний обработчик, используем его
     if (onSort) {
       onSort(newSortState)
     } else {
-      // Иначе обновляем локальное состояние
       setLocalSortState(newSortState)
     }
   }
 
-  // Функция для обработки прокрутки
   const handleScroll = useCallback(() => {
     if (!infiniteScroll || !onLoadMore || !hasMore || loading || !containerRef.current) {
       return
@@ -259,13 +244,11 @@ export function Table<T>({
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current
     const scrollBottom = scrollHeight - scrollTop - clientHeight
 
-    // Если достигли порога загрузки, вызываем onLoadMore
     if (scrollBottom < threshold) {
       onLoadMore()
     }
   }, [infiniteScroll, onLoadMore, hasMore, loading, threshold])
 
-  // Эффект для добавления/удаления обработчика прокрутки
   useEffect(() => {
     const currentContainer = containerRef.current
     if (infiniteScroll && currentContainer) {
@@ -276,65 +259,52 @@ export function Table<T>({
     }
   }, [infiniteScroll, handleScroll])
 
-  // Значение контекста для обмена состоянием между компонентами
   const contextValue = {
     sortState: currentSortState,
     onSort: handleSort,
     scrollable
   }
 
-  // Проверяем, есть ли колонки с процентной шириной
-  // const hasPercentageWidths = useMemo(() => {
-  //   return !scrollable && columns.some((column) => column.width && column.width.endsWith('%'))
-  // }, [scrollable, columns])
-
-  // Сортировка данных, если используется локальная сортировка и нет декларативных дочерних элементов
   const sortedData = useMemo(() => {
-    // Если используется декларативный подход или нет данных для сортировки
     if (children || !data.length) {
       return data
     }
 
-    // Если нет активной сортировки, возвращаем данные как есть
     if (!currentSortState?.direction || !currentSortState?.field) {
       return data
     }
 
-    // Если предоставлен внешний обработчик сортировки, но нет внешнего состояния сортировки,
-    // всё равно выполняем сортировку локально
     if (onSort && !externalSortState) {
-      return data // Ожидаем, что данные уже будут отсортированы извне
+      return data
     }
 
-    // Иначе выполняем локальную сортировку
     return [...data].sort((a, b) => {
       const fieldA = a[currentSortState.field as keyof T]
       const fieldB = b[currentSortState.field as keyof T]
 
-      // Если значения равны, не меняем порядок
       if (fieldA === fieldB) {
         return 0
       }
 
-      // Для строк используем localeCompare
       if (typeof fieldA === 'string' && typeof fieldB === 'string') {
         return currentSortState.direction === 'asc'
           ? fieldA.localeCompare(fieldB)
           : fieldB.localeCompare(fieldA)
       }
 
-      // Для чисел используем обычное сравнение
       return currentSortState.direction === 'asc'
         ? (fieldA as number) - (fieldB as number)
         : (fieldB as number) - (fieldA as number)
     })
   }, [data, currentSortState, onSort, externalSortState, children])
 
-  // Если нет данных и нет декларативных дочерних элементов, показываем пустое состояние
   if (!children && !data.length && !loading) {
     return (
       <div
-        className={clsx('rounded-[4px] border border-mono-200 overflow-hidden flex-col flex h-full', className)}
+        className={clsx(
+          'rounded-[4px] border border-mono-200 overflow-hidden flex-col flex h-full',
+          className
+        )}
         data-testid={testId}
       >
         {emptyComponent || (
@@ -350,9 +320,7 @@ export function Table<T>({
     )
   }
 
-  // Рендер на основе API с пропсами
   const renderPropBasedTable = () => {
-    // Определяем настройки таблицы в зависимости от режима
     const tableStyles = scrollable
       ? { tableLayout: 'fixed' }
       : { width: '100%', tableLayout: 'auto' }
@@ -372,7 +340,6 @@ export function Table<T>({
           // @ts-ignore
           style={tableStyles}
         >
-          {/* Для фиксированных ширин используем colgroup */}
           {scrollable && (
             <colgroup>
               {columns.map((column) => (
@@ -438,8 +405,8 @@ export function Table<T>({
                 key={rowIndex}
                 className={clsx('bg-mono-25 hover:bg-mono-100 transition-colors', rowClassName)}
                 data-testid={`${testId}-row-${rowIndex}`}
-                onClick={() => onRowClick?.(item, rowIndex)} // Добавить обработчик клика
-                style={{ cursor: onRowClick ? 'pointer' : 'auto' }} // Изменить курсор
+                onClick={() => onRowClick?.(item, rowIndex)}
+                style={{ cursor: onRowClick ? 'pointer' : 'auto' }}
               >
                 {columns.map((column) => (
                   <td
@@ -466,18 +433,14 @@ export function Table<T>({
     )
   }
 
-  // Декларативный вариант таблицы с бесконечным скроллом
   const renderDeclarativeTableWithInfiniteScroll = () => {
-    // Вычисляем классы для контейнера таблицы с учетом бесконечного скролла
     const tableContainerClass = clsx(
       scrollable ? 'overflow-x-auto w-full' : 'w-full',
       infiniteScroll && 'max-h-[600px] overflow-y-auto'
     )
 
-    // Адаптируем стили для таблицы
     const tableClass = scrollable ? 'min-w-full border-collapse' : 'w-full border-collapse'
 
-    // Возвращаем таблицу с контейнером, который отслеживает скролл
     return (
       <div className={tableContainerClass} ref={containerRef}>
         <table className={tableClass}>
@@ -504,7 +467,6 @@ export function Table<T>({
   )
 }
 
-// Компонент Header для декларативного подхода
 const TableHeader: React.FC<TableHeaderProps> = ({
   children,
   className,
@@ -519,7 +481,6 @@ const TableHeader: React.FC<TableHeaderProps> = ({
   )
 }
 
-// Компонент HeaderCell для декларативного подхода
 const TableHeaderCell: React.FC<TableHeaderCellProps> = ({
   children,
   className,
@@ -537,7 +498,6 @@ const TableHeaderCell: React.FC<TableHeaderCellProps> = ({
     }
   }
 
-  // Определяем стили в зависимости от режима таблицы
   const widthStyle = scrollable
     ? {
         width: width || 'auto',
@@ -582,7 +542,6 @@ const TableHeaderCell: React.FC<TableHeaderCellProps> = ({
   )
 }
 
-// Компонент Body для декларативного подхода
 const TableBody: React.FC<TableBodyProps> = ({ children, className, testId = 'table-body' }) => {
   return (
     <tbody className={className} data-testid={testId}>
@@ -591,7 +550,6 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className, testId = 'ta
   )
 }
 
-// Компонент Row для декларативного подхода
 const TableRow: React.FC<TableRowProps> = ({ children, className, testId = 'table-row' }) => {
   return (
     <tr
@@ -603,7 +561,6 @@ const TableRow: React.FC<TableRowProps> = ({ children, className, testId = 'tabl
   )
 }
 
-// Компонент Cell для декларативного подхода
 const TableCell: React.FC<TableCellProps> = ({ children, className, testId = 'table-cell' }) => {
   return (
     <td
@@ -618,7 +575,6 @@ const TableCell: React.FC<TableCellProps> = ({ children, className, testId = 'ta
   )
 }
 
-// Текстовая ячейка
 export interface TableTextCellProps {
   value: string | number
   className?: string
@@ -637,7 +593,6 @@ export const TableTextCell: React.FC<TableTextCellProps> = ({
   )
 }
 
-// Декларативный компонент Table с подкомпонентами
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const DeclarativeTable = Object.assign(Table, {
   Header: TableHeader,

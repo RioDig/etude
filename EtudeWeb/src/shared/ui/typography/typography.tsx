@@ -21,19 +21,19 @@ export const typography = {
   b4: 'text-b4',
   b4Regular: 'text-b4-regular',
   b4Light: 'text-b4-light',
-  b5: 'text-b5',
-};
+  b5: 'text-b5'
+}
 
 /**
  * Компоненты типографики для использования в React
  */
-export type TypographyVariant = keyof typeof typography;
+export type TypographyVariant = keyof typeof typography
 
 interface TypographyProps {
-  variant: TypographyVariant;
-  children: React.ReactNode;
-  className?: string;
-  as?: React.ElementType;
+  variant: TypographyVariant
+  children: React.ReactNode
+  className?: string
+  as?: React.ElementType
 }
 
 /**
@@ -48,14 +48,10 @@ export const Typography: React.FC<TypographyProps> = ({
   variant,
   children,
   className = '',
-  as: Component = 'div',
+  as: Component = 'div'
 }) => {
-  return (
-    <Component className={`${typography[variant]} ${className}`}>
-      {children}
-    </Component>
-  );
-};
+  return <Component className={`${typography[variant]} ${className}`}>{children}</Component>
+}
 
 /**
  * Пример использования классов напрямую:

@@ -1,4 +1,3 @@
-// src/widgets/calendar/ui/CalendarGrid.tsx
 import React, { useCallback, useState } from 'react'
 import clsx from 'clsx'
 import { CalendarCardItem } from './CalendarCardItem'
@@ -28,14 +27,13 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
     setElement(node)
   }, [])
 
-  // Получаем текущую дату для подсветки текущего дня
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
   return (
     <div className="border border-mono-200 rounded-[8px] overflow-auto bg-white h-full">
       <div
-        className='h-full'
+        className="h-full"
         style={{
           width: 'fit-content',
           minWidth: '100%'
@@ -51,7 +49,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           ref={ref}
         >
           {days.map((day, index) => {
-            // Проверяем, является ли день текущим
             const isToday = day.toDateString() === today.toDateString()
 
             return (
@@ -60,7 +57,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 className={clsx(
                   'h-[50px] flex items-center px-[16px] py-[12px] text-b1 text-mono-950 justify-center',
                   '[&:not(:nth-last-child(-n+1))]:border-r-[1px] border-r-mono-200',
-                  isToday && 'bg-mono-200' // Добавляем подсветку для текущего дня
+                  isToday && 'bg-mono-200'
                 )}
               >
                 {day.getDate()}
@@ -69,19 +66,16 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           })}
         </div>
 
-        {/* Сетка календаря */}
         <div
           className="relative"
           style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${days.length}, minmax(50px, 1fr))`,
             gridTemplateRows: `repeat(${Math.max(1, maxRows)}, 100px) auto`,
-            height: 'calc(100% - 51px)',
+            height: 'calc(100% - 51px)'
           }}
         >
-          {/* Вертикальные разделители */}
           {Array.from({ length: days.length }).map((_, index) => {
-            // Проверяем, является ли колонка текущим днем
             const isToday = days[index] && days[index].toDateString() === today.toDateString()
 
             return (
@@ -89,7 +83,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 key={`divider-${index}`}
                 className={clsx(
                   index !== days.length - 1 ? 'border-r border-mono-200' : '',
-                  isToday ? 'bg-mono-200' : '' // Добавляем подсветку для колонки текущего дня
+                  isToday ? 'bg-mono-200' : ''
                 )}
                 style={{
                   gridColumn: index + 1,
@@ -99,7 +93,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
             )
           })}
 
-          {/* Карточки */}
           {distributedCards.flatMap((row, rowIndex) =>
             row.map(({ card, startCol, endCol, isStartExtending, isEndExtending }) => {
               const colSpan = endCol - startCol + 1
