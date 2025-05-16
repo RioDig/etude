@@ -34,6 +34,9 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
             
         builder.Property(ct => ct.TrainingCenter)
             .HasMaxLength(100);
+            
+        builder.Property(ct => ct.Link)
+            .HasMaxLength(500);
         
         builder.Property(ct => ct.CreatedAt)
             .IsRequired()
@@ -49,5 +52,7 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
         builder.HasIndex(ct => ct.Type);
         builder.HasIndex(ct => ct.Track);
         builder.HasIndex(ct => ct.Format);
+        builder.HasIndex(ct => ct.StartDate);
+        builder.HasIndex(ct => ct.EndDate);
     }
 }

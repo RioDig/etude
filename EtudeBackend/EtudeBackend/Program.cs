@@ -1,5 +1,3 @@
-using System.Net;
-using EtudeBackend.Shared.Data;
 using EtudeBackend.Shared.Extensions;
 using EtudeBackend.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
