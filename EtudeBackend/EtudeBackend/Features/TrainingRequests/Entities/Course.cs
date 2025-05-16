@@ -19,6 +19,7 @@ public class Course
     
     public string TrainingCenter { get; set; } = string.Empty;
     
+    public string Link { get; set; } = string.Empty;
 
     public Guid EmployeeId { get; set; }
     

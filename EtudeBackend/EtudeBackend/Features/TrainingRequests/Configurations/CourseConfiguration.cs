@@ -22,6 +22,8 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.Property(c => c.TrainingCenter)
             .HasMaxLength(100);
         
+        builder.Property(c => c.Link)
+            .HasMaxLength(500);
 
         builder.Property(c => c.EducationGoal)
             .HasColumnType("text");
@@ -31,14 +33,16 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         
         builder.Property(c => c.Type)
             .IsRequired()
-            .HasConversion<string>();  
+            .HasConversion<string>();
+            
         builder.Property(c => c.Track)
             .IsRequired()
             .HasConversion<string>();
+            
         builder.Property(c => c.Format)
             .IsRequired()
             .HasConversion<string>();
-        // Настройки для timestamp полей
+        
         builder.Property(c => c.CreatedAt)
             .IsRequired()
             .HasColumnType("timestamp with time zone")

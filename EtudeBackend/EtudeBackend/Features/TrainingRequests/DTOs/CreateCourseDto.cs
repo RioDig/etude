@@ -10,6 +10,7 @@ public class CreateCourseDto
     public CourseTrack Track { get; set; } = CourseTrack.NotImplemented;
     public CourseFormat Format { get; set; } = CourseFormat.NotImplemented;
     public string TrainingCenter { get; set; } = string.Empty;
+    public string Link { get; set; } = string.Empty;
     public string Employees { get; set; } = string.Empty;
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
