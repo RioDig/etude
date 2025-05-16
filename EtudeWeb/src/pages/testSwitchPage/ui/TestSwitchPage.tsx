@@ -7,22 +7,23 @@ import {
   FormatListBulletedOutlined,
   AppsOutlined,
   DashboardOutlined
-} from '@mui/icons-material';
-import { Switch } from '@/shared/ui/switch';
-import { Typography } from '@/shared/ui/typography';
+} from '@mui/icons-material'
+import { Switch } from '@/shared/ui/switch'
+import { Typography } from '@/shared/ui/typography'
 
 const TestSwitchPage = () => {
-  const [viewMode, setViewMode] = useState('grid');
-  const [calendarView, setCalendarView] = useState('month');
-  const [displayMode, setDisplayMode] = useState('list');
-  const [textOnlyMode, setTextOnlyMode] = useState('new');
-  const [iconOnlyMode, setIconOnlyMode] = useState('apps');
+  const [viewMode, setViewMode] = useState('grid')
+  const [calendarView, setCalendarView] = useState('month')
+  const [displayMode, setDisplayMode] = useState('list')
+  const [textOnlyMode, setTextOnlyMode] = useState('new')
+  const [iconOnlyMode, setIconOnlyMode] = useState('apps')
 
   return (
     <div className="p-8 flex flex-col gap-8">
-      <Typography variant="h1" className="mb-6">Примеры компонента Switch</Typography>
+      <Typography variant="h1" className="mb-6">
+        Примеры компонента Switch
+      </Typography>
 
-      {/* Пример 1: Medium с иконками и текстом */}
       <div className="flex flex-col gap-4">
         <Typography variant="h2">Medium с иконками и текстом</Typography>
         <div className="flex items-center gap-4">
@@ -41,7 +42,6 @@ const TestSwitchPage = () => {
         </div>
       </div>
 
-      {/* Пример 2: Small с иконками и текстом */}
       <div className="flex flex-col gap-4">
         <Typography variant="h2">Small с иконками и текстом</Typography>
         <div className="flex items-center gap-4">
@@ -55,13 +55,10 @@ const TestSwitchPage = () => {
             onChange={setCalendarView}
             size="small"
           />
-          <Typography variant="b3Regular">
-            Выбрано: {calendarView}
-          </Typography>
+          <Typography variant="b3Regular">Выбрано: {calendarView}</Typography>
         </div>
       </div>
 
-      {/* Пример 3: Medium с несколькими опциями */}
       <div className="flex flex-col gap-4">
         <Typography variant="h2">Medium с несколькими опциями</Typography>
         <div className="flex items-center gap-4">
@@ -75,13 +72,10 @@ const TestSwitchPage = () => {
             onChange={setDisplayMode}
             size="medium"
           />
-          <Typography variant="b3Regular">
-            Выбрано: {displayMode}
-          </Typography>
+          <Typography variant="b3Regular">Выбрано: {displayMode}</Typography>
         </div>
       </div>
 
-      {/* Пример 4: Только текст */}
       <div className="flex flex-col gap-4">
         <Typography variant="h2">Только текст</Typography>
         <div className="flex items-center gap-4">
@@ -95,13 +89,10 @@ const TestSwitchPage = () => {
             onChange={setTextOnlyMode}
             size="medium"
           />
-          <Typography variant="b3Regular">
-            Выбрано: {textOnlyMode}
-          </Typography>
+          <Typography variant="b3Regular">Выбрано: {textOnlyMode}</Typography>
         </div>
       </div>
 
-      {/* Пример 5: Только иконки */}
       <div className="flex flex-col gap-4">
         <Typography variant="h2">Только иконки</Typography>
         <div className="flex items-center gap-4">
@@ -115,13 +106,10 @@ const TestSwitchPage = () => {
             onChange={setIconOnlyMode}
             size="small"
           />
-          <Typography variant="b3Regular">
-            Выбрано: {iconOnlyMode}
-          </Typography>
+          <Typography variant="b3Regular">Выбрано: {iconOnlyMode}</Typography>
         </div>
       </div>
 
-      {/* Пример 6: Отключенные опции */}
       <div className="flex flex-col gap-4">
         <Typography variant="h2">С отключенными опциями</Typography>
         <div className="flex items-center gap-4">
@@ -138,7 +126,7 @@ const TestSwitchPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TestSwitchPage;
+export default TestSwitchPage

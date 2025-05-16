@@ -1,3 +1,3 @@
-import TestCheckboxPage from "@/pages/testCheckboxPage/ui/TestCheckboxPage.tsx";
+import TestCheckboxPage from '@/pages/testCheckboxPage/ui/TestCheckboxPage.tsx'
 
-export { TestCheckboxPage };
+export { TestCheckboxPage }

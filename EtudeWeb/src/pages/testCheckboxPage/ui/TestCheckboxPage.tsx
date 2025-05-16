@@ -1,10 +1,10 @@
-import { Checkbox } from "@/shared/ui/checkbox";
-import { Typography } from "@/shared/ui/typography";
-import { useState } from "react";
+import { Checkbox } from '@/shared/ui/checkbox'
+import { Typography } from '@/shared/ui/typography'
+import { useState } from 'react'
 
 const TestCheckboxPage = () => {
-  const [checkedDefault, setCheckedDefault] = useState(false);
-  const [checkedSelected, setCheckedSelected] = useState(true);
+  const [checkedDefault, setCheckedDefault] = useState(false)
+  const [checkedSelected, setCheckedSelected] = useState(true)
 
   return (
     <div className="p-8 space-y-8 bg-white">
@@ -29,12 +29,7 @@ const TestCheckboxPage = () => {
 
         <div className="flex items-center space-x-4">
           <Checkbox label="Disabled Selected" disabled checked />
-          <Checkbox
-            label="Disabled Selected с Hint"
-            disabled
-            checked
-            hint="Это подсказка"
-          />
+          <Checkbox label="Disabled Selected с Hint" disabled checked hint="Это подсказка" />
         </div>
 
         <div className="flex items-center space-x-4">
@@ -100,7 +95,7 @@ const TestCheckboxPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TestCheckboxPage;
+export default TestCheckboxPage

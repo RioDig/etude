@@ -6,13 +6,11 @@ import { Typography } from '@/shared/ui/typography'
 import { Info } from '@mui/icons-material'
 
 const TestModalPage = () => {
-  // Состояния для обычных модальных окон
   const [isBasicModalOpen, setBasicModalOpen] = useState(false)
   const [isModalWithActionsOpen, setModalWithActionsOpen] = useState(false)
   const [isModalWithLinkOpen, setModalWithLinkOpen] = useState(false)
   const [isModalWithAllOpen, setModalWithAllOpen] = useState(false)
 
-  // Состояния для минимодальных окон
   const [isMiniModalBasicOpen, setMiniModalBasicOpen] = useState(false)
   const [isMiniModalOneButtonOpen, setMiniModalOneButtonOpen] = useState(false)
   const [isMiniModalTwoButtonsOpen, setMiniModalTwoButtonsOpen] = useState(false)
@@ -76,7 +74,6 @@ const TestModalPage = () => {
           Примеры модальных окон
         </Typography>
 
-        {/* Секция с обычными модальными окнами */}
         <div className="mb-16">
           <Typography variant="h2" className="mb-6">
             Modal
@@ -92,7 +89,6 @@ const TestModalPage = () => {
             <Button onClick={() => setModalWithAllOpen(true)}>Со всеми элементами</Button>
           </div>
 
-          {/* Базовое модальное окно */}
           <Modal
             isOpen={isBasicModalOpen}
             onClose={() => setBasicModalOpen(false)}
@@ -109,7 +105,6 @@ const TestModalPage = () => {
             </div>
           </Modal>
 
-          {/* Модальное окно с кнопками действий */}
           <Modal
             isOpen={isModalWithActionsOpen}
             onClose={() => setModalWithActionsOpen(false)}
@@ -131,7 +126,6 @@ const TestModalPage = () => {
             </div>
           </Modal>
 
-          {/* Модальное окно с кнопкой-ссылкой */}
           <Modal
             isOpen={isModalWithLinkOpen}
             onClose={() => setModalWithLinkOpen(false)}
@@ -153,7 +147,6 @@ const TestModalPage = () => {
             </div>
           </Modal>
 
-          {/* Модальное окно со всеми элементами */}
           <Modal
             isOpen={isModalWithAllOpen}
             onClose={() => setModalWithAllOpen(false)}
@@ -185,7 +178,6 @@ const TestModalPage = () => {
           </Modal>
         </div>
 
-        {/* Секция с минимодальными окнами */}
         <div>
           <Typography variant="h2" className="mb-6">
             MiniModal
@@ -201,7 +193,6 @@ const TestModalPage = () => {
             <Button onClick={() => setMiniModalCustomIconOpen(true)}>С другой иконкой</Button>
           </div>
 
-          {/* Базовое минимодальное окно */}
           <MiniModal
             isOpen={isMiniModalBasicOpen}
             onClose={() => setMiniModalBasicOpen(false)}
@@ -210,7 +201,6 @@ const TestModalPage = () => {
             buttons={[<Button onClick={() => setMiniModalBasicOpen(false)}>Закрыть</Button>]}
           />
 
-          {/* Минимодальное окно с одной кнопкой */}
           <MiniModal
             isOpen={isMiniModalOneButtonOpen}
             onClose={() => setMiniModalOneButtonOpen(false)}
@@ -219,7 +209,6 @@ const TestModalPage = () => {
             buttons={[<Button onClick={() => setMiniModalOneButtonOpen(false)}>Удалить</Button>]}
           />
 
-          {/* Минимодальное окно с двумя кнопками */}
           <MiniModal
             isOpen={isMiniModalTwoButtonsOpen}
             onClose={() => setMiniModalTwoButtonsOpen(false)}
@@ -239,7 +228,6 @@ const TestModalPage = () => {
             ]}
           />
 
-          {/* Минимодальное окно с другой иконкой */}
           <MiniModal
             isOpen={isMiniModalCustomIconOpen}
             onClose={() => setMiniModalCustomIconOpen(false)}

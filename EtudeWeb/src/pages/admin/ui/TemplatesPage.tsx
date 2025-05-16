@@ -5,33 +5,50 @@ import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
-import { useTemplates, Template } from '@/entities/template'
+import {
+  CourseTemplate,
+  useCourseTemplates,
+  useDeleteCourseTemplate
+} from '@/entities/courseTemplate'
 import { MoreHoriz, Edit, Delete, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { Typography } from '@/shared/ui/typography'
+import { Modal } from '@/shared/ui/modal'
+import { notification } from '@/shared/lib/notification'
+import { CourseTemplateForm } from './CourseTemplateForm'
 
 export const TemplatesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
-    field: 'name',
+    field: 'course_template_name',
     direction: 'asc'
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedTemplate, setSelectedTemplate] = useState<CourseTemplate | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   // Используем хук для загрузки данных
-  const { data: templates, isLoading, error } = useTemplates()
+  const { data: templates, isLoading, error } = useCourseTemplates()
+  const deleteTemplateMutation = useDeleteCourseTemplate()
 
   // Опции для фильтров
   const filterOptions: FilterOption[] = [
+    {
+      id: 'name',
+      label: 'Наименование',
+      type: 'dropdown',
+      options: [{ value: '', label: 'Все курсы' }]
+    },
     {
       id: 'type',
       label: 'Тип',
       type: 'dropdown',
       options: [
         { value: '', label: 'Все типы' },
-        { value: 'Курс', label: 'Курс' },
-        { value: 'Конференция', label: 'Конференция' },
-        { value: 'Вебинар', label: 'Вебинар' },
-        { value: 'Тренинг', label: 'Тренинг' }
+        { value: 'Course', label: 'Курс' },
+        { value: 'Conference', label: 'Конференция' },
+        { value: 'Certification', label: 'Сертификация' },
+        { value: 'Workshop', label: 'Мастер-класс' }
       ]
     },
     {
@@ -40,20 +57,19 @@ export const TemplatesPage: React.FC = () => {
       type: 'dropdown',
       options: [
         { value: '', label: 'Все форматы' },
-        { value: 'Онлайн', label: 'Онлайн' },
-        { value: 'Очно', label: 'Очно' },
-        { value: 'Смешанный', label: 'Смешанный' }
+        { value: 'Online', label: 'Онлайн' },
+        { value: 'Offline', label: 'Очно' }
       ]
     },
     {
-      id: 'category',
+      id: 'track',
       label: 'Направление',
       type: 'dropdown',
       options: [
         { value: '', label: 'Все направления' },
         { value: 'Hard Skills', label: 'Hard Skills' },
         { value: 'Soft Skills', label: 'Soft Skills' },
-        { value: 'Management', label: 'Management' }
+        { value: 'Management Skills', label: 'Management Skills' }
       ]
     }
   ]
@@ -63,105 +79,144 @@ export const TemplatesPage: React.FC = () => {
     setSortState(newSortState)
   }
 
-  // Обработчик действий
-  const handleAction = (action: string, template: Template) => {
-    setOpenDropdownId(null)
+  // Обработчик добавления нового шаблона
+  const handleAddTemplate = () => {
+    setSelectedTemplate(null)
+    setIsModalOpen(true)
+  }
 
-    switch (action) {
-      case 'edit':
-        console.log('Edit template:', template)
-        // Здесь будет логика редактирования
-        break
-      case 'delete':
-        console.log('Delete template:', template)
-        // Здесь будет логика удаления
-        break
+  // Обработчик редактирования шаблона
+  const handleEditTemplate = (template: CourseTemplate) => {
+    setSelectedTemplate(template)
+    setIsModalOpen(true)
+    setOpenDropdownId(null)
+  }
+
+  // Обработчик открытия модального окна удаления
+  const handleOpenDeleteModal = (template: CourseTemplate) => {
+    setSelectedTemplate(template)
+    setIsDeleteModalOpen(true)
+    setOpenDropdownId(null)
+  }
+
+  // Обработчик удаления шаблона
+  const handleDeleteTemplate = () => {
+    if (selectedTemplate) {
+      deleteTemplateMutation.mutate(selectedTemplate.course_template_id, {
+        onSuccess: () => {
+          notification.success({
+            title: 'Успешно',
+            description: 'Шаблон курса успешно удален'
+          })
+          setIsDeleteModalOpen(false)
+        },
+        onError: () => {
+          notification.error({
+            title: 'Ошибка',
+            description: 'Не удалось удалить шаблон курса'
+          })
+        }
+      })
     }
   }
 
-  const handleAddTemplate = () => {
-    console.log('Add new template')
-    // Здесь будет логика добавления шаблона
+  // Закрытие модального окна
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
+  // Закрытие модального окна удаления
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false)
   }
 
   // Колонки таблицы
   const columns = [
     {
-      id: 'type',
+      id: 'course_template_type',
       header: 'Тип',
-      accessor: 'type',
+      accessor: 'course_template_type',
       sortable: true,
-      width: '10%'
+      width: '10%',
+      render: (template: CourseTemplate) => {
+        const typeMap: Record<string, string> = {
+          Course: 'Курс',
+          Conference: 'Конференция',
+          Certification: 'Сертификация',
+          Workshop: 'Мастер-класс'
+        }
+        return typeMap[template.course_template_type] || template.course_template_type
+      }
     },
     {
-      id: 'name',
+      id: 'course_template_name',
       header: 'Наименование',
-      accessor: 'name',
+      accessor: 'course_template_name',
       sortable: true,
       width: '25%'
     },
     {
-      id: 'duration',
-      header: 'Длительность',
-      sortable: true,
-      width: '10%',
-      render: (template: Template) => template.duration || '—'
-    },
-    {
-      id: 'format',
+      id: 'course_template_format',
       header: 'Формат',
-      accessor: 'format',
-      sortable: true,
-      width: '10%'
-    },
-    {
-      id: 'category',
-      header: 'Направление',
-      accessor: 'category',
-      sortable: true,
-      width: '10%'
-    },
-    {
-      id: 'trainingCenter',
-      header: 'Центр обучения',
-      sortable: true,
-      width: '20%',
-      render: (template: Template) => template.trainingCenter || '—'
-    },
-    {
-      id: 'startDate',
-      header: 'Дата начала',
+      accessor: 'course_template_format',
       sortable: true,
       width: '10%',
-      render: (template: Template) => {
-        if (!template.startDate) return '—'
-        return new Date(template.startDate).toLocaleDateString('ru-RU')
+      render: (template: CourseTemplate) => {
+        const formatMap: Record<string, string> = {
+          Online: 'Онлайн',
+          Offline: 'Очно'
+        }
+        return formatMap[template.course_template_format] || template.course_template_format
       }
     },
     {
-      id: 'endDate',
+      id: 'course_template_track',
+      header: 'Направление',
+      accessor: 'course_template_track',
+      sortable: true,
+      width: '15%'
+    },
+    {
+      id: 'course_template_trainingCenter',
+      header: 'Центр обучения',
+      sortable: true,
+      width: '20%',
+      render: (template: CourseTemplate) => template.course_template_trainingCenter || '—'
+    },
+    {
+      id: 'course_template_startDate',
+      header: 'Дата начала',
+      sortable: true,
+      width: '10%',
+      render: (template: CourseTemplate) => {
+        if (!template.course_template_startDate) return '—'
+        return new Date(template.course_template_startDate).toLocaleDateString('ru-RU')
+      }
+    },
+    {
+      id: 'course_template_endDate',
       header: 'Дата окончания',
       sortable: true,
       width: '10%',
-      render: (template: Template) => {
-        if (!template.endDate) return '—'
-        return new Date(template.endDate).toLocaleDateString('ru-RU')
+      render: (template: CourseTemplate) => {
+        if (!template.course_template_endDate) return '—'
+        return new Date(template.course_template_endDate).toLocaleDateString('ru-RU')
       }
     },
     {
       id: 'actions',
       header: '',
       width: '5%',
-      render: (template: Template) => {
-        const isOpen = openDropdownId === template.id
+      render: (template: CourseTemplate) => {
+        const isOpen = openDropdownId === template.course_template_id
 
         return (
           <div className="relative">
             <Button
               variant="third"
-              onClick={() => setOpenDropdownId(isOpen ? null : template.id)}
+              onClick={() => setOpenDropdownId(isOpen ? null : template.course_template_id)}
               className="!p-2"
-              id={`template-actions-${template.id}`}
+              id={`template-actions-${template.course_template_id}`}
             >
               <MoreHoriz />
             </Button>
@@ -169,20 +224,20 @@ export const TemplatesPage: React.FC = () => {
             <DropdownMenu
               open={isOpen}
               onClose={() => setOpenDropdownId(null)}
-              anchorEl={document.getElementById(`template-actions-${template.id}`)}
+              anchorEl={document.getElementById(`template-actions-${template.course_template_id}`)}
               position="bottom-right"
               defaultItems={[
                 {
                   label: 'Редактировать',
                   icon: <Edit />,
-                  onClick: () => handleAction('edit', template)
+                  onClick: () => handleEditTemplate(template)
                 }
               ]}
               warningItems={[
                 {
                   label: 'Удалить',
                   icon: <Delete />,
-                  onClick: () => handleAction('delete', template)
+                  onClick: () => handleOpenDeleteModal(template)
                 }
               ]}
             />
@@ -235,6 +290,58 @@ export const TemplatesPage: React.FC = () => {
           emptyComponent={isLoading ? loadingComponent : emptyComponent}
         />
       </div>
+
+      {/* Модальное окно добавления/редактирования шаблона */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={selectedTemplate ? 'Редактирование шаблона курса' : 'Добавление шаблона курса'}
+        actions={
+          <>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Отмена
+            </Button>
+            <Button variant="primary" type="submit" form="templateForm">
+              {selectedTemplate ? 'Сохранить' : 'Создать'}
+            </Button>
+          </>
+        }
+      >
+        <CourseTemplateForm initialData={selectedTemplate} onSuccess={handleCloseModal} />
+      </Modal>
+
+      {/* Модальное окно подтверждения удаления */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        title="Удаление шаблона курса"
+        actions={
+          <>
+            <Button variant="secondary" onClick={handleCloseDeleteModal}>
+              Отмена
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDeleteTemplate}
+              disabled={deleteTemplateMutation.isPending}
+            >
+              {deleteTemplateMutation.isPending ? (
+                <>
+                  <Spinner size="small" variant="white" className="mr-2" />
+                  <span>Удаление...</span>
+                </>
+              ) : (
+                'Удалить'
+              )}
+            </Button>
+          </>
+        }
+      >
+        <Typography variant="b3Regular">
+          Вы действительно хотите удалить шаблон курса "{selectedTemplate?.course_template_name}"?
+          Это действие нельзя отменить.
+        </Typography>
+      </Modal>
     </div>
   )
 }

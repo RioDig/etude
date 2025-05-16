@@ -1,3 +1,3 @@
-import TestDropdownMenuPage from "@/pages/testDropdownmenuPage/ui/TestDropdownMenuPage.tsx";
+import TestDropdownMenuPage from '@/pages/testDropdownmenuPage/ui/TestDropdownMenuPage.tsx'
 
-export { TestDropdownMenuPage };
+export { TestDropdownMenuPage }

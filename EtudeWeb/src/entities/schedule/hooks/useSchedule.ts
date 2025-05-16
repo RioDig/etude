@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { scheduleApi } from '../api/scheduleApi'
 import { usePageFilters } from '@/entities/filter'
 import { CalendarCard } from '@/widgets/calendar/model/types'
-import { Template } from '@/entities/template'
+import { Template } from '../../courseTemplate'
 
 /**
  * Хук для получения данных расписания с учетом фильтров

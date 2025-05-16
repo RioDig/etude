@@ -1,4 +1,3 @@
-// src/pages/testCalendarPage/ui/TestCalendarPage.tsx
 import React, { useState } from 'react'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
@@ -7,14 +6,11 @@ import { notification } from '@/shared/lib/notification'
 import { Sidebar } from '@/widgets/sidebar'
 import { CalendarCard, CalendarContainer } from '@/widgets/calendar'
 
-// Вспомогательная функция для создания даты
 const createDate = (year: number, month: number, day: number): Date => {
   return new Date(year, month - 1, day)
 }
 
-// Функция для создания случайной карточки курса
 const createRandomCard = (id: string): CalendarCard => {
-  // Случайные статусы
   const statuses: Array<'pending' | 'approved' | 'rejected' | 'completed'> = [
     'pending',
     'approved',
@@ -22,17 +18,14 @@ const createRandomCard = (id: string): CalendarCard => {
     'completed'
   ]
 
-  // Случайные форматы обучения
   const formats: Array<'offline' | 'online' | 'mixed'> = ['offline', 'online', 'mixed']
 
-  // Случайные категории
   const categories: Array<'hard-skills' | 'soft-skills' | 'management'> = [
     'hard-skills',
     'soft-skills',
     'management'
   ]
 
-  // Случайные типы
   const types: Array<'course' | 'conference' | 'webinar' | 'training'> = [
     'course',
     'conference',
@@ -40,7 +33,6 @@ const createRandomCard = (id: string): CalendarCard => {
     'training'
   ]
 
-  // Случайные названия курсов
   const titles = [
     'UX/UI дизайн для начинающих',
     'Продвинутый JavaScript',
@@ -54,7 +46,6 @@ const createRandomCard = (id: string): CalendarCard => {
     'Базы данных и SQL'
   ]
 
-  // Случайные имена сотрудников
   const employees = [
     'Иванов Иван',
     'Петров Петр',
@@ -65,7 +56,6 @@ const createRandomCard = (id: string): CalendarCard => {
     'Морозов Владимир'
   ]
 
-  // Генерируем случайную дату начала и конца (январь-март 2025)
   const startMonth = Math.floor(Math.random() * 3) + 1 // 1-3 (январь-март)
   const startDay = Math.floor(Math.random() * 28) + 1 // 1-28
   const duration = Math.floor(Math.random() * 14) + 1 // 1-14 дней
@@ -88,7 +78,6 @@ const createRandomCard = (id: string): CalendarCard => {
   }
 }
 
-// Моковые данные для демонстрации
 const mockCards: CalendarCard[] = [
   {
     id: '1',
@@ -218,13 +207,11 @@ export const TestCalendarPage: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState<CalendarCard | null>(null)
 
-  // Функция для добавления нового случайного курса
   const handleAddCard = () => {
     setIsSidebarOpen(true)
     setSelectedCard(null)
   }
 
-  // Функция для создания нового курса
   const handleCreateCourse = () => {
     const newId = `card-${cards.length + 1}`
     const newCard = createRandomCard(newId)
@@ -238,16 +225,14 @@ export const TestCalendarPage: React.FC = () => {
     })
   }
 
-  // Обработчик клика по карточке
   const handleCardClick = (card: CalendarCard) => {
     setSelectedCard(card)
     setIsSidebarOpen(true)
   }
 
-  // Генерация нескольких случайных курсов
   const handleGenerateRandomCards = () => {
     const newCards: CalendarCard[] = []
-    const count = 5 // Количество генерируемых карточек
+    const count = 5
 
     for (let i = 0; i < count; i++) {
       const newId = `random-${cards.length + i + 1}`
@@ -262,7 +247,6 @@ export const TestCalendarPage: React.FC = () => {
     })
   }
 
-  // Сброс к начальным данным
   const handleResetCards = () => {
     setCards(mockCards)
 
@@ -272,7 +256,6 @@ export const TestCalendarPage: React.FC = () => {
     })
   }
 
-  // Удаление всех курсов для демонстрации пустого состояния
   const handleRemoveAllCards = () => {
     setCards([])
 
@@ -282,10 +265,8 @@ export const TestCalendarPage: React.FC = () => {
     })
   }
 
-  // Формирование контента сайдбара на основе выбранной карточки или режима добавления
   const renderSidebarContent = () => {
     if (selectedCard) {
-      // Сайдбар с информацией о карточке
       return (
         <>
           <div className="mb-6">
@@ -340,7 +321,6 @@ export const TestCalendarPage: React.FC = () => {
         </>
       )
     } else {
-      // Сайдбар с формой добавления нового курса
       return (
         <div className="text-center my-10">
           <Typography variant="b3Regular" className="mb-4">
@@ -364,7 +344,6 @@ export const TestCalendarPage: React.FC = () => {
     }
   }
 
-  // Формирование заголовка и футера сайдбара на основе выбранной карточки
   const getSidebarProps = () => {
     if (selectedCard) {
       return {
@@ -387,7 +366,7 @@ export const TestCalendarPage: React.FC = () => {
                 : selectedCard.status === 'rejected'
                   ? 'Отклонено'
                   : 'Пройдено',
-        variant:
+          variant:
             selectedCard.status === 'approved'
               ? 'success'
               : selectedCard.status === 'pending'

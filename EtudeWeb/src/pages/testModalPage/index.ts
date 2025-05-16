@@ -1,3 +1,3 @@
-import TestModalPage from "@/pages/testModalPage/ui/TestModalPage.tsx";
+import TestModalPage from '@/pages/testModalPage/ui/TestModalPage.tsx'
 
-export { TestModalPage };
+export { TestModalPage }

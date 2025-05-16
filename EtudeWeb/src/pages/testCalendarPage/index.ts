@@ -1,3 +1,3 @@
-import TestCalendarPage from "./ui/TestCalendarPage.tsx";
+import TestCalendarPage from './ui/TestCalendarPage.tsx'
 
-export { TestCalendarPage };
+export { TestCalendarPage }

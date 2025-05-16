@@ -1,17 +1,17 @@
-// src/pages/admin/ui/StatusesPage.tsx
 import React, { useState } from 'react'
 import { Table, SortState } from '@/widgets/table'
-import { Filter, FilterOption } from '@/shared/ui/filter'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
-import { useStatuses, AdditionalStatus } from '@/entities/status'
+import { CustomStatus, useCustomStatuses, useDeleteCustomStatus } from '@/entities/customStatus'
 import { MoreHoriz, Edit, Delete, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
-import { Container } from '@/shared/ui/container'
-import { Control } from '@/shared/ui/controls'
 import { Typography } from '@/shared/ui/typography'
+import { Control } from '@/shared/ui/controls'
+import { Modal } from '@/shared/ui/modal'
+import { notification } from '@/shared/lib/notification'
+import { StatusForm } from './StatusForm'
 
 export const StatusesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -20,25 +20,13 @@ export const StatusesPage: React.FC = () => {
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedStatus, setSelectedStatus] = useState<CustomStatus | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   // Используем хук для загрузки данных
-  const { data: statuses, isLoading, error } = useStatuses()
-
-  // Опции для фильтров
-  const filterOptions: FilterOption[] = [
-    {
-      id: 'name',
-      label: 'Название',
-      type: 'dropdown',
-      options: [
-        { value: '', label: 'Все статусы' },
-        ...(statuses?.map((status) => ({
-          value: status.name,
-          label: status.name
-        })) || [])
-      ]
-    }
-  ]
+  const { data: statuses, isLoading, error } = useCustomStatuses()
+  const deleteStatusMutation = useDeleteCustomStatus()
 
   // Обработчик сортировки
   const handleSort = (newSortState: SortState) => {
@@ -52,24 +40,53 @@ export const StatusesPage: React.FC = () => {
 
   // Обработчик добавления статуса
   const handleAddStatus = () => {
-    console.log('Add new status')
-    // Здесь будет логика добавления статуса
+    setSelectedStatus(null)
+    setIsModalOpen(true)
   }
 
-  // Обработчик действий
-  const handleAction = (action: string, status: AdditionalStatus) => {
+  // Обработчик редактирования статуса
+  const handleEditStatus = (status: CustomStatus) => {
+    setSelectedStatus(status)
+    setIsModalOpen(true)
     setOpenDropdownId(null)
+  }
 
-    switch (action) {
-      case 'edit':
-        console.log('Edit status:', status)
-        // Здесь будет логика редактирования
-        break
-      case 'delete':
-        console.log('Delete status:', status)
-        // Здесь будет логика удаления
-        break
+  // Обработчик открытия модального окна удаления
+  const handleOpenDeleteModal = (status: CustomStatus) => {
+    setSelectedStatus(status)
+    setIsDeleteModalOpen(true)
+    setOpenDropdownId(null)
+  }
+
+  // Обработчик удаления статуса
+  const handleDeleteStatus = () => {
+    if (selectedStatus) {
+      deleteStatusMutation.mutate(selectedStatus.id, {
+        onSuccess: () => {
+          notification.success({
+            title: 'Успешно',
+            description: 'Статус успешно удален'
+          })
+          setIsDeleteModalOpen(false)
+        },
+        onError: () => {
+          notification.error({
+            title: 'Ошибка',
+            description: 'Не удалось удалить статус'
+          })
+        }
+      })
     }
+  }
+
+  // Закрытие модального окна
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+  }
+
+  // Закрытие модального окна удаления
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false)
   }
 
   // Фильтрация статусов по поисковому запросу
@@ -98,7 +115,7 @@ export const StatusesPage: React.FC = () => {
       id: 'actions',
       header: '',
       width: '10%',
-      render: (status: AdditionalStatus) => {
+      render: (status: CustomStatus) => {
         const isOpen = openDropdownId === status.id
 
         return (
@@ -121,14 +138,14 @@ export const StatusesPage: React.FC = () => {
                 {
                   label: 'Редактировать',
                   icon: <Edit />,
-                  onClick: () => handleAction('edit', status)
+                  onClick: () => handleEditStatus(status)
                 }
               ]}
               warningItems={[
                 {
                   label: 'Удалить',
                   icon: <Delete />,
-                  onClick: () => handleAction('delete', status)
+                  onClick: () => handleOpenDeleteModal(status)
                 }
               ]}
             />
@@ -179,9 +196,6 @@ export const StatusesPage: React.FC = () => {
         />
       </div>
 
-      {/* Фильтры */}
-      {/*<Filter filters={filterOptions} pageId="admin-statuses" />*/}
-
       {/* Таблица */}
       <div className="flex-1 overflow-hidden">
         <Table
@@ -193,6 +207,58 @@ export const StatusesPage: React.FC = () => {
           emptyComponent={isLoading ? loadingComponent : emptyComponent}
         />
       </div>
+
+      {/* Модальное окно добавления/редактирования статуса */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={selectedStatus ? 'Редактирование статуса' : 'Добавление статуса'}
+        actions={
+          <>
+            <Button variant="secondary" onClick={handleCloseModal}>
+              Отмена
+            </Button>
+            <Button variant="primary" type="submit" form="statusForm">
+              {selectedStatus ? 'Сохранить' : 'Создать'}
+            </Button>
+          </>
+        }
+      >
+        <StatusForm initialData={selectedStatus} onSuccess={handleCloseModal} />
+      </Modal>
+
+      {/* Модальное окно подтверждения удаления */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        title="Удаление статуса"
+        actions={
+          <>
+            <Button variant="secondary" onClick={handleCloseDeleteModal}>
+              Отмена
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDeleteStatus}
+              disabled={deleteStatusMutation.isPending}
+            >
+              {deleteStatusMutation.isPending ? (
+                <>
+                  <Spinner size="small" variant="white" className="mr-2" />
+                  <span>Удаление...</span>
+                </>
+              ) : (
+                'Удалить'
+              )}
+            </Button>
+          </>
+        }
+      >
+        <Typography variant="b3Regular">
+          Вы действительно хотите удалить статус "{selectedStatus?.name}"? Это действие нельзя
+          отменить.
+        </Typography>
+      </Modal>
     </div>
   )
 }

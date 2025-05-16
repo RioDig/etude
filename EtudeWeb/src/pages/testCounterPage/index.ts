@@ -1,3 +1,3 @@
-import TestCounterPage from "@/pages/testCounterPage/ui/TestCounterPage.tsx";
+import TestCounterPage from '@/pages/testCounterPage/ui/TestCounterPage.tsx'
 
-export { TestCounterPage };
+export { TestCounterPage }

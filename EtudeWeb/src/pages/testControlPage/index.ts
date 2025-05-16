@@ -1,1 +1,1 @@
-export { TestControlPage } from "@/pages/testControlPage/ui/TestControlPage"
+export { TestControlPage } from '@/pages/testControlPage/ui/TestControlPage'

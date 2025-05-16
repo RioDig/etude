@@ -5,46 +5,40 @@ import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
-import { useReports, useDownloadReport, Report } from '@/entities/report'
+import { useReports, useDownloadReport, useGenerateReport, Report } from '@/entities/report'
 import { MoreHoriz, Download, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { notification } from '@/shared/lib/notification'
 import { Typography } from '@/shared/ui/typography'
+import { Modal } from '@/shared/ui/modal'
 
 export const ReportsPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
-    field: 'formationDate',
+    field: 'report_createDate',
     direction: 'desc'
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
+  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
 
-  // Используем хуки для загрузки данных и скачивания отчетов
+  // Используем хуки для загрузки отчетов и операций с ними
   const { data: reports, isLoading, error } = useReports()
   const { mutate: downloadReport, isPending: isDownloading } = useDownloadReport()
+  const { mutate: generateReport, isPending: isGenerating } = useGenerateReport()
 
   // Опции для фильтров
   const filterOptions: FilterOption[] = [
     {
-      id: 'type',
+      id: 'filter_type',
       label: 'Тип отчета',
       type: 'dropdown',
       options: [
         { value: '', label: 'Все типы' },
-        { value: 'Отчет по завершенным обучениям', label: 'По завершенным обучениям' },
-        { value: 'Отчет по текущим заявкам', label: 'По текущим заявкам' },
-        { value: 'Отчет по бюджету на обучение', label: 'По бюджету на обучение' },
-        { value: 'Отчет по статусам заявок', label: 'По статусам заявок' },
-        { value: 'Отчет по эффективности обучений', label: 'По эффективности обучений' },
-        { value: 'Отчет по затратам на обучение', label: 'По затратам на обучение' },
-        { value: 'Отчет по участникам обучений', label: 'По участникам обучений' },
-        { value: 'Отчет по согласованиям', label: 'По согласованиям' },
-        { value: 'Отчет по центрам обучения', label: 'По центрам обучения' },
-        { value: 'Отчет по направлениям', label: 'По направлениям' }
+        { value: 'CompletedTraining', label: 'По завершенным обучениям' }
       ]
     },
     {
-      id: 'formationDate',
-      label: 'Дата формирования',
+      id: 'date',
+      label: 'Дата создания',
       type: 'date'
     }
   ]
@@ -54,16 +48,11 @@ export const ReportsPage: React.FC = () => {
     setSortState(newSortState)
   }
 
-  const handleAddReport = () => {
-    console.log('Generate new report')
-    // Здесь будет логика генерации отчета
-  }
-
   // Обработчик скачивания отчета
   const handleDownloadReport = (report: Report) => {
     setOpenDropdownId(null)
 
-    downloadReport(report.id, {
+    downloadReport(report.report_id, {
       onSuccess: () => {
         notification.success({
           title: 'Успешно',
@@ -79,36 +68,81 @@ export const ReportsPage: React.FC = () => {
     })
   }
 
+  // Обработчик открытия модального окна генерации отчета
+  const handleOpenGenerateModal = () => {
+    setIsGenerateModalOpen(true)
+  }
+
+  // Обработчик закрытия модального окна генерации отчета
+  const handleCloseGenerateModal = () => {
+    setIsGenerateModalOpen(false)
+  }
+
+  // Обработчик генерации нового отчета
+  const handleGenerateReport = () => {
+    generateReport(undefined, {
+      onSuccess: () => {
+        notification.success({
+          title: 'Успешно',
+          description: 'Отчет успешно сгенерирован и скачан'
+        })
+        setIsGenerateModalOpen(false)
+      },
+      onError: () => {
+        notification.error({
+          title: 'Ошибка',
+          description: 'Не удалось сгенерировать отчет'
+        })
+      }
+    })
+  }
+
   // Колонки таблицы
   const columns = [
     {
-      id: 'formationDate',
+      id: 'report_createDate',
       header: 'Дата формирования',
-      accessor: 'formationDate',
+      accessor: 'report_createDate',
       sortable: true,
-      width: '20%'
+      width: '30%',
+      render: (report: Report) => {
+        const date = new Date(report.report_createDate)
+        return date.toLocaleString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      }
     },
     {
-      id: 'type',
+      id: 'report_type',
       header: 'Тип',
-      accessor: 'type',
+      accessor: 'report_type',
       sortable: true,
-      width: '70%'
+      width: '60%',
+      render: (report: Report) => {
+        const typeMap: Record<string, string> = {
+          CompletedTraining: 'Отчет по завершенным обучениям'
+        }
+        return typeMap[report.report_type] || report.report_type
+      }
     },
     {
       id: 'actions',
       header: '',
       width: '10%',
       render: (report: Report) => {
-        const isOpen = openDropdownId === report.id
+        const isOpen = openDropdownId === report.report_id
 
         return (
           <div className="relative">
             <Button
               variant="third"
-              onClick={() => setOpenDropdownId(isOpen ? null : report.id)}
+              onClick={() => setOpenDropdownId(isOpen ? null : report.report_id)}
               className="!p-2"
-              id={`report-actions-${report.id}`}
+              id={`report-actions-${report.report_id}`}
             >
               <MoreHoriz />
             </Button>
@@ -116,7 +150,7 @@ export const ReportsPage: React.FC = () => {
             <DropdownMenu
               open={isOpen}
               onClose={() => setOpenDropdownId(null)}
-              anchorEl={document.getElementById(`report-actions-${report.id}`)}
+              anchorEl={document.getElementById(`report-actions-${report.report_id}`)}
               position="bottom-right"
               defaultItems={[
                 {
@@ -157,7 +191,7 @@ export const ReportsPage: React.FC = () => {
     <div className="flex flex-col gap-6 h-full">
       <div className="flex justify-between items-center">
         <Typography variant={'h1'}>Отчетность</Typography>
-        <Button variant="primary" leftIcon={<Add />} onClick={handleAddReport}>
+        <Button variant="primary" leftIcon={<Add />} onClick={handleOpenGenerateModal}>
           Сформировать отчет
         </Button>
       </div>
@@ -177,6 +211,35 @@ export const ReportsPage: React.FC = () => {
           infiniteScroll={true}
         />
       </div>
+
+      {/* Модальное окно генерации отчета */}
+      <Modal
+        isOpen={isGenerateModalOpen}
+        onClose={handleCloseGenerateModal}
+        title="Сформировать отчет"
+        actions={
+          <>
+            <Button variant="secondary" onClick={handleCloseGenerateModal}>
+              Отмена
+            </Button>
+            <Button variant="primary" onClick={handleGenerateReport} disabled={isGenerating}>
+              {isGenerating ? (
+                <>
+                  <Spinner size="small" variant="white" className="mr-2" />
+                  <span>Создание отчета...</span>
+                </>
+              ) : (
+                'Создать и скачать'
+              )}
+            </Button>
+          </>
+        }
+      >
+        <Typography variant="b3Regular">
+          Вы собираетесь сформировать отчет по завершенным обучениям. Отчет будет автоматически
+          скачан после формирования.
+        </Typography>
+      </Modal>
     </div>
   )
 }

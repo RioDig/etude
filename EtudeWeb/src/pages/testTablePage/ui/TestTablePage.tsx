@@ -6,7 +6,7 @@ import { Button } from '@/shared/ui/button'
 import { Edit, Delete, TableChart } from '@mui/icons-material'
 import { useInfiniteQuery } from '@tanstack/react-query'
 
-// Тип для данных
+
 interface Product {
   id: string
   code: string
@@ -18,7 +18,7 @@ interface Product {
   status: 'in-stock' | 'low-stock' | 'out-of-stock'
 }
 
-// Мок-данные для примера (будет использоваться только часть из них на каждой странице)
+
 const allMockProducts: Product[] = Array.from({ length: 100 }, (_, index) => {
   const categories = ['Компьютеры', 'Телефоны', 'Планшеты', 'Мониторы', 'Периферия']
   const manufacturers = ['HP', 'Samsung', 'Apple', 'Dell', 'Logitech', 'Asus', 'LG', 'Acer']
@@ -44,7 +44,7 @@ const allMockProducts: Product[] = Array.from({ length: 100 }, (_, index) => {
   }
 })
 
-// Имитация функции API для получения данных с мок-данными и пагинацией
+
 const fetchProducts = async ({
   pageParam = 1,
   pageSize = 10,
@@ -56,13 +56,13 @@ const fetchProducts = async ({
   sortField?: string
   sortOrder?: 'asc' | 'desc' | null
 }) => {
-  // Эмулируем задержку сети
+
   await new Promise((resolve) => setTimeout(resolve, 500))
 
-  // Копируем данные, чтобы не изменять оригинал
+
   let filteredProducts = [...allMockProducts]
 
-  // Применяем сортировку, если указана
+
   if (sortField && sortOrder) {
     filteredProducts.sort((a, b) => {
       const valueA = a[sortField as keyof Product]
@@ -70,12 +70,12 @@ const fetchProducts = async ({
 
       if (valueA === valueB) return 0
 
-      // Сортировка в зависимости от типа данных
+
       if (typeof valueA === 'string' && typeof valueB === 'string') {
         return sortOrder === 'asc' ? valueA.localeCompare(valueB) : valueB.localeCompare(valueA)
       }
 
-      // Для числовых значений
+
       if (typeof valueA === 'number' && typeof valueB === 'number') {
         return sortOrder === 'asc' ? valueA - valueB : valueB - valueA
       }
@@ -84,14 +84,14 @@ const fetchProducts = async ({
     })
   }
 
-  // Вычисляем начальный и конечный индексы для пагинации
+
   const startIndex = (pageParam - 1) * pageSize
   const endIndex = startIndex + pageSize
 
-  // Получаем срез данных для текущей страницы
+
   const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
 
-  // Возвращаем результат в формате, ожидаемом useInfiniteQuery
+
   return {
     data: paginatedProducts,
     currentPage: pageParam,
@@ -101,7 +101,7 @@ const fetchProducts = async ({
   }
 }
 
-// Компонент для рендеринга статуса
+
 const StatusBadge: React.FC<{ status: Product['status'] }> = ({ status }) => {
   switch (status) {
     case 'in-stock':
@@ -115,7 +115,7 @@ const StatusBadge: React.FC<{ status: Product['status'] }> = ({ status }) => {
   }
 }
 
-// Компонент для рендеринга цены
+
 const PriceCell: React.FC<{ price: number }> = ({ price }) => (
   <div className="font-medium">
     {new Intl.NumberFormat('ru-RU', {
@@ -127,19 +127,19 @@ const PriceCell: React.FC<{ price: number }> = ({ price }) => (
 )
 
 const TestTablePage: React.FC = () => {
-  // Состояние для сортировки
+
   const [sortState, setSortState] = useState<SortState>({
     field: '',
     direction: null
   })
 
-  // Состояние для переключения между режимами таблицы
+
   const [scrollable, setScrollable] = useState<boolean>(true)
 
-  // Количество элементов на странице
+
   const PAGE_SIZE = 10
 
-  // Функция запроса данных для React Query
+
   const fetchProductsPage = async ({ pageParam = 1 }) => {
     return fetchProducts({
       pageParam,
@@ -149,7 +149,7 @@ const TestTablePage: React.FC = () => {
     })
   }
 
-  // Использование useInfiniteQuery для запроса с бесконечным скроллом
+
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, refetch } =
     useInfiniteQuery({
       queryKey: ['products', sortState],
@@ -160,17 +160,17 @@ const TestTablePage: React.FC = () => {
       initialPageParam: 1
     })
 
-  // Обработчик сортировки
+
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
-    // При изменении сортировки перезапрашиваем данные
+
     refetch()
   }
 
-  // Получаем все продукты из всех загруженных страниц
+
   const allProducts = data?.pages.flatMap((page) => page.data) || []
 
-  // Обработчики действий
+
   const handleEdit = (id: string) => {
     console.log(`Редактирование товара с ID: ${id}`)
   }
@@ -179,7 +179,7 @@ const TestTablePage: React.FC = () => {
     console.log(`Удаление товара с ID: ${id}`)
   }
 
-  // Определение колонок для скроллируемого режима (фиксированные ширины в px)
+
   const scrollableColumns: TableColumn<Product>[] = [
     {
       id: 'code',
@@ -260,7 +260,7 @@ const TestTablePage: React.FC = () => {
     }
   ]
 
-  // Определение колонок для режима растягивающихся колонок (ширины в %)
+
   const autoWidthColumns: TableColumn<Product>[] = [
     {
       id: 'code',
@@ -333,10 +333,10 @@ const TestTablePage: React.FC = () => {
     }
   ]
 
-  // Выбираем колонки в зависимости от режима
+
   const columns = scrollable ? scrollableColumns : autoWidthColumns
 
-  // Обработчик для загрузки следующей страницы при бесконечном скролле
+
   const loadMoreData = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) {
       fetchNextPage()
@@ -403,7 +403,7 @@ const TestTablePage: React.FC = () => {
 
         <h3 className="text-h2 mt-8 mb-4">Код для использования с React Query</h3>
         <pre className="bg-mono-100 p-4 rounded text-mono-800 overflow-auto text-sm">
-          {`// Запрос данных с использованием React Query для бесконечного скролла
+          {`
 let {
   data,
   fetchNextPage,
@@ -425,17 +425,17 @@ let {
   initialPageParam: 1
 })
 
-// Получаем все продукты из всех загруженных страниц
+
 const allProducts = data?.pages.flatMap(page => page.data) || []
 
-// Обработчик для загрузки следующей страницы
+
 const loadMoreData = useCallback(() => {
   if (hasNextPage && !isFetchingNextPage) {
     fetchNextPage()
   }
 }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
-// Использование компонента Table с бесконечным скроллом
+
 <Table
   data={allProducts}
   columns={columns}

@@ -3,7 +3,6 @@ import { Control } from '@/shared/ui/controls'
 import { Person, Email, Phone, Lock } from '@mui/icons-material'
 
 export const TestControlPage: React.FC = () => {
-  // Состояния для всех контролов
   const [inputValue, setInputValue] = useState<string>('')
   const [emailValue, setEmailValue] = useState<string>('')
   const [passwordValue, setPasswordValue] = useState<string>('')
@@ -14,7 +13,6 @@ export const TestControlPage: React.FC = () => {
   const [dateValue, setDateValue] = useState<Date | null>(null)
   const [phoneValue, setPhoneValue] = useState<string>('')
 
-  // Варианты для выпадающих списков
   const selectOptions = [
     { value: 'option1', label: 'Опция 1', description: 'Описание опции 1' },
     { value: 'option2', label: 'Опция 2', description: 'Описание опции 2' },
@@ -23,7 +21,6 @@ export const TestControlPage: React.FC = () => {
     { value: 'option5', label: 'Опция 5', description: 'Описание опции 5' }
   ]
 
-  // Города для выбора
   const cityOptions = [
     { value: 'moscow', label: 'Москва' },
     { value: 'spb', label: 'Санкт-Петербург' },
@@ -35,7 +32,6 @@ export const TestControlPage: React.FC = () => {
     { value: 'rostov', label: 'Ростов-на-Дону' }
   ]
 
-  // Навыки для мультиселекта
   const skillOptions = [
     { value: 'js', label: 'JavaScript', description: 'Описание опции 5', disabled: true },
     { value: 'react', label: 'React' },
@@ -47,7 +43,6 @@ export const TestControlPage: React.FC = () => {
     { value: 'java', label: 'Java' }
   ]
 
-  // Подсказка для поля Email
   const emailHint = (
     <div>
       <p>Формат: username@example.com</p>
@@ -55,7 +50,6 @@ export const TestControlPage: React.FC = () => {
     </div>
   )
 
-  // Очистка всех полей
   const handleClearAll = () => {
     setInputValue('')
     setEmailValue('')
@@ -197,7 +191,6 @@ export const TestControlPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Демонстрация разных состояний контролов */}
       <div className="bg-white p-6 rounded-lg shadow-sm mb-8">
         <h2 className="text-h2 mb-6">Состояния контролов</h2>
 
@@ -255,9 +248,7 @@ export const TestControlPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Формы ввода */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Все типы полей ввода */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <h2 className="text-h2 mb-6">Типы полей ввода</h2>
 
@@ -276,7 +267,6 @@ export const TestControlPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Селекты и дата */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           <h2 className="text-h2 mb-6">Выпадающие списки и дата</h2>
 

@@ -1,3 +1,3 @@
-import TestBadgePage from "@/pages/testBadgePage/ui/TestBadgePage.tsx";
+import TestBadgePage from '@/pages/testBadgePage/ui/TestBadgePage.tsx'
 
-export { TestBadgePage };
+export { TestBadgePage }

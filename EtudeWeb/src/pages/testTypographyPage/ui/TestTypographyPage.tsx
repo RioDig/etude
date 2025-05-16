@@ -1,5 +1,5 @@
-import { Typography } from "@/shared/ui/typography";
-import { typography } from "@/shared/ui/typography/typography";
+import { Typography } from '@/shared/ui/typography'
+import { typography } from '@/shared/ui/typography/typography'
 
 export const TestTypographyPage = () => {
   return (
@@ -20,20 +20,26 @@ export const TestTypographyPage = () => {
         <div className="space-y-4 border p-4 rounded-md">
           <div>
             <Typography variant="b1">B1 - 20px Medium (20/130)</Typography>
-            <div className="mt-1 text-mono-800">Примеры использования: крупные блоки текста, заголовки секций</div>
+            <div className="mt-1 text-mono-800">
+              Примеры использования: крупные блоки текста, заголовки секций
+            </div>
           </div>
 
           <div>
             <Typography variant="b2">B2 - 18px Medium (18/130)</Typography>
             <Typography variant="b2Regular">B2 - 18px Regular (18/130)</Typography>
-            <div className="mt-1 text-mono-800">Примеры использования: подзаголовки, важные блоки информации</div>
+            <div className="mt-1 text-mono-800">
+              Примеры использования: подзаголовки, важные блоки информации
+            </div>
           </div>
 
           <div>
             <Typography variant="b3Semibold">B3 - 16px Semibold (16/130)</Typography>
             <Typography variant="b3">B3 - 16px Medium (16/130)</Typography>
             <Typography variant="b3Regular">B3 - 16px Regular (16/130)</Typography>
-            <div className="mt-1 text-mono-800">Примеры использования: основной текст интерфейса, кнопки</div>
+            <div className="mt-1 text-mono-800">
+              Примеры использования: основной текст интерфейса, кнопки
+            </div>
           </div>
 
           <div>
@@ -41,12 +47,16 @@ export const TestTypographyPage = () => {
             <Typography variant="b4">B4 - 14px Medium (14/130)</Typography>
             <Typography variant="b4Regular">B4 - 14px Regular (14/130)</Typography>
             <Typography variant="b4Light">B4 - 14px Light (14/130)</Typography>
-            <div className="mt-1 text-mono-800">Примеры использования: вспомогательный текст, подписи, метки</div>
+            <div className="mt-1 text-mono-800">
+              Примеры использования: вспомогательный текст, подписи, метки
+            </div>
           </div>
 
           <div>
             <Typography variant="b5">B5 - 12px Regular (12/130)</Typography>
-            <div className="mt-1 text-mono-800">Примеры использования: мелкий текст, сноски, копирайты</div>
+            <div className="mt-1 text-mono-800">
+              Примеры использования: мелкий текст, сноски, копирайты
+            </div>
           </div>
         </div>
       </section>
@@ -54,9 +64,7 @@ export const TestTypographyPage = () => {
       <section>
         <h2 className="text-h2 mb-4">Применение вместе с другими стилями</h2>
         <div className="space-y-4 border p-4 rounded-md">
-          <p className={`${typography.b3Regular} text-red-500`}>
-            Красный текст в стиле B3 Regular
-          </p>
+          <p className={`${typography.b3Regular} text-red-500`}>Красный текст в стиле B3 Regular</p>
 
           <p className={`${typography.b4} font-bold text-blue-500`}>
             Синий текст в стиле B4 Medium с дополнительным жирным начертанием
@@ -85,5 +93,5 @@ export const TestTypographyPage = () => {
         </div>
       </section>
     </div>
-  );
-};
+  )
+}

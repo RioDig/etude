@@ -1,41 +1,35 @@
-
-import { Button } from "@/shared/ui/button";
-import { notification } from "@/shared/lib/notification";
+import { Button } from '@/shared/ui/button'
+import { notification } from '@/shared/lib/notification'
 
 const TestNotificationPage = () => {
-  // Пример уведомления успешного выполнения
   const showSuccessNotification = () => {
     notification.success({
       title: 'Операция выполнена успешно',
       description: 'Все данные были сохранены'
-    });
-  };
+    })
+  }
 
-  // Пример уведомления с ошибкой
   const showErrorNotification = () => {
     notification.error({
       title: 'Ошибка',
       description: 'Не удалось загрузить данные. Пожалуйста, попробуйте еще раз.'
-    });
-  };
+    })
+  }
 
-  // Пример информационного уведомления
   const showInfoNotification = () => {
     notification.info({
       title: 'Внимание',
       description: 'Ваша сессия истечет через 5 минут. Сохраните все данные.'
-    });
-  };
+    })
+  }
 
-  // Пример базового уведомления
   const showBaseNotification = () => {
     notification.base({
       title: 'Уведомление системы',
       description: 'Система будет обновлена в 22:00'
-    });
-  };
+    })
+  }
 
-  // Пример уведомления с кнопкой действия
   const showActionNotification = () => {
     notification.success({
       title: 'Операция выполнена успешно',
@@ -50,52 +44,47 @@ const TestNotificationPage = () => {
           Подробнее
         </Button>
       )
-    });
-  };
+    })
+  }
 
-  // Пример для наглядной демонстрации анимации переполнения
   const showOverflowAnimation = () => {
-    // Сначала очистим все
-    notification.dismissAll();
+    notification.dismissAll()
 
-    // Затем покажем 3 уведомления с разными размерами
     setTimeout(() => {
       notification.success({
         title: 'Короткое уведомление',
         id: 'short'
-      });
-    }, 100);
+      })
+    }, 100)
 
     setTimeout(() => {
       notification.info({
         title: 'Среднее по размеру уведомление',
         description: 'С небольшим описанием',
         id: 'medium'
-      });
-    }, 400);
+      })
+    }, 400)
 
     setTimeout(() => {
       notification.error({
         title: 'Последнее уведомление - будет вытеснено',
         description: 'Это уведомление должно исчезнуть с анимацией при переполнении',
         id: 'long'
-      });
-    }, 700);
+      })
+    }, 700)
 
-    // Через 2 секунды добавим 4-е уведомление, чтобы увидеть анимацию вытеснения
     setTimeout(() => {
       notification.base({
         title: 'Новое уведомление',
         description: 'Это уведомление должно вытеснить последнее с анимацией',
         id: 'new'
-      });
-    }, 2000);
-  };
+      })
+    }, 2000)
+  }
 
-  // Закрытие всех уведомлений
   const closeAllNotifications = () => {
-    notification.dismissAll();
-  };
+    notification.dismissAll()
+  }
 
   return (
     <div className="p-6 space-y-8 bg-mono-100 min-h-screen">
@@ -136,8 +125,8 @@ const TestNotificationPage = () => {
             Показать анимацию переполнения
           </Button>
           <p className="text-b4-regular mt-2 text-mono-700">
-            Наглядно демонстрирует, как последнее уведомление исчезает с анимацией
-            при добавлении четвертого уведомления.
+            Наглядно демонстрирует, как последнее уведомление исчезает с анимацией при добавлении
+            четвертого уведомления.
           </p>
         </div>
 
@@ -149,7 +138,7 @@ const TestNotificationPage = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default TestNotificationPage;
+export default TestNotificationPage

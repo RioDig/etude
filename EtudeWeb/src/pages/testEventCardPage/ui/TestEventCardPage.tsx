@@ -3,7 +3,7 @@ import { EventCard } from '@/shared/ui/eventCard'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
 
-// Моковые данные для демонстрации
+
 const mockEvents = [
   {
     id: "event-1",
@@ -47,10 +47,10 @@ const mockEvents = [
 
 
 const TestEventCardPage: React.FC = () => {
-  // Состояние для отслеживания выбранного события
+
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
-  // Обработчик выбора события
+
   const handleEventSelect = (eventId: string) => {
     setSelectedEventId(prevId => prevId === eventId ? null : eventId);
   };
@@ -67,7 +67,7 @@ const TestEventCardPage: React.FC = () => {
         </Typography>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Default состояние */}
+
           <div>
             <Typography variant="b3Semibold" className="mb-2">Default</Typography>
             <EventCard
@@ -81,7 +81,7 @@ const TestEventCardPage: React.FC = () => {
             />
           </div>
 
-          {/* Hover состояние (имитация) */}
+
           <div>
             <Typography variant="b3Semibold" className="mb-2">Hover (имитация)</Typography>
             <div className="border border-mono-600 bg-mono-50 p-6 rounded-lg">
@@ -116,7 +116,7 @@ const TestEventCardPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Selected состояние */}
+
           <div>
             <Typography variant="b3Semibold" className="mb-2">Selected</Typography>
             <EventCard
@@ -133,7 +133,7 @@ const TestEventCardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Интерактивная демонстрация */}
+
       <div>
         <Typography variant="h2" className="mb-4">
           Интерактивная демонстрация
@@ -175,7 +175,7 @@ const TestEventCardPage: React.FC = () => {
         )}
       </div>
 
-      {/* Код компонента */}
+
       <div>
         <Typography variant="h2" className="mb-4">
           Пример использования компонента
@@ -184,7 +184,7 @@ const TestEventCardPage: React.FC = () => {
         <pre className="bg-mono-100 p-4 rounded-md overflow-auto text-sm">
           {`import { EventCard } from '@/shared/ui/eventCard';
 
-// В компоненте
+
 const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
 const handleEventSelect = (eventId: string) => {

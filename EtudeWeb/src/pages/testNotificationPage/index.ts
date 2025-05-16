@@ -1,3 +1,3 @@
-import TestNotificationPage from "@/pages/testNotificationPage/ui/TestNotificationPage.tsx";
+import TestNotificationPage from '@/pages/testNotificationPage/ui/TestNotificationPage.tsx'
 
-export { TestNotificationPage };
+export { TestNotificationPage }

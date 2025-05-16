@@ -1,3 +1,3 @@
-import TestEmptyMessagePage from "@/pages/testEmptyMessagePage/ui/TestEmptyMessagePage.tsx";
+import TestEmptyMessagePage from '@/pages/testEmptyMessagePage/ui/TestEmptyMessagePage.tsx'
 
-export { TestEmptyMessagePage };
+export { TestEmptyMessagePage }

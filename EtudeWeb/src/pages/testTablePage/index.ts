@@ -1,3 +1,3 @@
-import TestTablePage from "@/pages/testTablePage/ui/TestTablePage.tsx";
+import TestTablePage from '@/pages/testTablePage/ui/TestTablePage.tsx'
 
-export { TestTablePage };
+export { TestTablePage }

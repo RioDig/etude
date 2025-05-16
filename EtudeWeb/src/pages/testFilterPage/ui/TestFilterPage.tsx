@@ -6,7 +6,6 @@ import { Add } from '@mui/icons-material'
 import { usePageFilters } from '@/entities/filter'
 import { Typography } from '@/shared/ui/typography'
 
-// Тестовые данные
 const mockData = [
   {
     id: '1',
@@ -52,10 +51,8 @@ const mockData = [
   }
 ]
 
-// ID страницы для хранения фильтров
 const PAGE_ID = 'test-filter-page'
 
-// Опции для фильтров - вынесены за пределы компонента
 const FILTER_OPTIONS: FilterOption[] = [
   {
     id: 'status',
@@ -92,35 +89,28 @@ const FILTER_OPTIONS: FilterOption[] = [
   }
 ]
 
-// Компонент для примера использования фильтров
 const TestFilterPage: React.FC = () => {
   console.log('TestFilterPage render')
 
-  // Получаем состояние фильтров и функции для управления
   const {
-    filters,
+    filters
     // setFilter,
     // resetFilters
   } = usePageFilters(PAGE_ID)
 
-  // Вычисляем отфильтрованные данные напрямую при рендере
   const filteredData = useMemo(() => {
     let result = [...mockData]
 
-    // Применяем фильтр по статусу, если он выбран
     if (filters.status) {
       result = result.filter((item) => item.status === filters.status)
     }
 
-    // Применяем фильтр по категории, если он выбран
     if (filters.category) {
       result = result.filter((item) => item.category === filters.category)
     }
 
-    // Применяем фильтр по дате, если она выбрана
     if (filters.date instanceof Date) {
       result = result.filter((item) => {
-        // Сравниваем только даты без времени
         const filterDate = new Date(filters.date as Date)
         const itemDate = new Date(item.date)
 
@@ -135,17 +125,14 @@ const TestFilterPage: React.FC = () => {
     return result
   }, [filters])
 
-  // Обработчик изменения фильтра (не обязателен, но может быть полезен для логирования)
   const handleFilterChange = useCallback((filterId: string, value: unknown) => {
     console.log(`Фильтр ${filterId} изменен на:`, value)
   }, [])
 
-  // Обработчик сброса фильтров
   const handleResetFilters = useCallback(() => {
     console.log('Фильтры сброшены')
   }, [])
 
-  // Получение цвета бейджа в зависимости от статуса
   const getStatusBadgeVariant = useCallback(
     (status: string): 'default' | 'success' | 'warning' | 'error' => {
       switch (status) {
@@ -162,7 +149,6 @@ const TestFilterPage: React.FC = () => {
     []
   )
 
-  // Получение названия статуса на русском
   const getStatusName = useCallback((status: string): string => {
     switch (status) {
       case 'active':
@@ -176,7 +162,6 @@ const TestFilterPage: React.FC = () => {
     }
   }, [])
 
-  // Получение названия категории на русском
   const getCategoryName = useCallback((category: string): string => {
     switch (category) {
       case 'development':
@@ -196,7 +181,6 @@ const TestFilterPage: React.FC = () => {
         Проекты
       </Typography>
 
-      {/* Верхняя панель с фильтрами и кнопкой добавления */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
           <Filter
@@ -212,12 +196,10 @@ const TestFilterPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Счетчик результатов */}
       <div className="mb-4 text-b3-regular text-mono-700">
         Найдено: {filteredData.length} проектов
       </div>
 
-      {/* Таблица с результатами */}
       <div className="bg-white rounded-md shadow">
         <table className="w-full border-collapse">
           <thead>

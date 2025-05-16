@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { API_URL } from '@/shared/config'
-import { Template } from '@/entities/template/api/templateApi'
+import { Template } from '@/entities/courseTemplate/api/courseTemplateApi.ts'
 
 // Задержка для имитации запроса к серверу
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

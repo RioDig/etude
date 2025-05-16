@@ -7,12 +7,10 @@ import { Sidebar, SidebarRow } from '@/widgets/sidebar'
 import { notification } from '@/shared/lib/notification'
 
 const TestSidebarPage: React.FC = () => {
-  // Состояния для разных типов сайдбаров
   const [isInfoSidebarOpen, setIsInfoSidebarOpen] = useState(false)
   const [isFormSidebarOpen, setIsFormSidebarOpen] = useState(false)
   const [customSidebarOpen, setCustomSidebarOpen] = useState(false)
 
-  // Состояние формы
   const [formState, setFormState] = useState({
     name: '',
     email: '',
@@ -20,7 +18,6 @@ const TestSidebarPage: React.FC = () => {
     agree: false
   })
 
-  // Обработчики изменения формы
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormState((prev) => ({ ...prev, [name]: value }))
@@ -30,7 +27,6 @@ const TestSidebarPage: React.FC = () => {
     setFormState((prev) => ({ ...prev, agree: e.target.checked }))
   }
 
-  // Функция для очистки формы
   const resetForm = () => {
     setFormState({
       name: '',
@@ -40,9 +36,7 @@ const TestSidebarPage: React.FC = () => {
     })
   }
 
-  // Обработчик отправки формы
   const handleSubmit = () => {
-    // Проверка заполнения формы
     if (!formState.name || !formState.email || !formState.course) {
       notification.error({
         title: 'Ошибка',
@@ -59,13 +53,11 @@ const TestSidebarPage: React.FC = () => {
       return
     }
 
-    // Имитация отправки формы
     notification.success({
       title: 'Успешно',
       description: 'Заявка отправлена'
     })
 
-    // Закрытие сайдбара и сброс формы
     setIsFormSidebarOpen(false)
     resetForm()
   }
@@ -112,7 +104,6 @@ const TestSidebarPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Информационный сайдбар */}
       <Sidebar
         open={isInfoSidebarOpen}
         onClose={() => setIsInfoSidebarOpen(false)}
@@ -257,7 +248,6 @@ const TestSidebarPage: React.FC = () => {
         </div>
       </Sidebar>
 
-      {/* Сайдбар с только двумя кнопками действий */}
       <Sidebar
         open={customSidebarOpen}
         onClose={() => setCustomSidebarOpen(false)}
@@ -304,7 +294,6 @@ const TestSidebarPage: React.FC = () => {
         </div>
       </Sidebar>
 
-      {/* Сайдбар с формой */}
       <Sidebar
         open={isFormSidebarOpen}
         onClose={() => {

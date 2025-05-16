@@ -1,3 +1,3 @@
-import TestButtonPage from "@/pages/testButtonPage/ui/TestButtonPage.tsx";
+import TestButtonPage from '@/pages/testButtonPage/ui/TestButtonPage.tsx'
 
-export { TestButtonPage };
+export { TestButtonPage }

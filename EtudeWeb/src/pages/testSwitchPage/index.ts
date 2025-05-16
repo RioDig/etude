@@ -1,3 +1,3 @@
-import TestSwitchPage from "@/pages/testSwitchPage/ui/TestSwitchPage.tsx";
+import TestSwitchPage from '@/pages/testSwitchPage/ui/TestSwitchPage.tsx'
 
-export { TestSwitchPage };
+export { TestSwitchPage }

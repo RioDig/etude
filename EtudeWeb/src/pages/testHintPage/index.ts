@@ -1,3 +1,3 @@
-import TestHintPage from "@/pages/testHintPage/ui/TestHintPage.tsx";
+import TestHintPage from '@/pages/testHintPage/ui/TestHintPage.tsx'
 
-export { TestHintPage };
+export { TestHintPage }
