@@ -1,7 +1,6 @@
 import React from 'react'
 import { Navigate, Routes, Route, useLocation, Link } from 'react-router-dom'
-import { Container } from '@/shared/ui/container'
-import { Typography } from '@/shared/ui/typography'
+
 import { TemplatesPage } from './TemplatesPage'
 import { StatusesPage } from './StatusesPage'
 import { ReportsPage } from './ReportsPage'
@@ -11,10 +10,8 @@ import clsx from 'clsx'
 export const AdminPage: React.FC = () => {
   const location = useLocation()
 
-  // Определяем активную вкладку на основе пути
   const activePath = location.pathname.split('/admin/')[1] || 'templates'
 
-  // Навигационные элементы
   const navItems = [
     { path: 'templates', label: 'Шаблоны курсов' },
     { path: 'statuses', label: 'Дополнительные статусы' },
@@ -23,8 +20,6 @@ export const AdminPage: React.FC = () => {
 
   return (
     <div className="flex h-full bg-mono-25 flex-1 overflow-hidden">
-      {/* Боковое меню */}
-
       <div className="flex flex-col gap-2 p-4 border-r-[1px] border-mono-300 min-w-[280px]">
         {navItems.map((item) => (
           <Link
@@ -42,7 +37,6 @@ export const AdminPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Содержимое страницы */}
       <div className="flex flex-col flex-1 min-h-0">
         <div className="w-full !bg-mono-25 p-8 max-h-full h-full">
           <Routes>
@@ -50,7 +44,7 @@ export const AdminPage: React.FC = () => {
             <Route path="templates" element={<TemplatesPage />} />
             <Route path="statuses" element={<StatusesPage />} />
             <Route path="reports" element={<ReportsPage />} />
-            {/* Обработка несуществующих путей */}
+
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </div>

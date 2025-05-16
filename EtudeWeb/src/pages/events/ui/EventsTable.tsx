@@ -20,23 +20,15 @@ export const EventsTable: React.FC<EventsTableProps> = ({
   error,
   onEventSelect
 }) => {
-  // Состояние сортировки таблицы
   const [sortState, setSortState] = useState<SortState>({
     field: 'startDate',
     direction: 'desc'
   })
 
-  // Обработчик изменения сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
   }
 
-  // Обработчик клика по строке таблицы
-  const handleRowClick = (row: unknown) => {
-    onEventSelect(row as Event)
-  }
-
-  // Определение колонок таблицы
   const columns = [
     {
       id: 'status',
@@ -96,7 +88,6 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     }
   ]
 
-  // Вспомогательные функции для отображения данных
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'pending':
@@ -146,7 +137,6 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     return dateObj.toLocaleDateString('ru-RU')
   }
 
-  // Компонент пустого состояния
   const emptyComponent = (
     <div className="flex justify-center my-auto">
       <EmptyMessage
@@ -158,7 +148,6 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     </div>
   )
 
-  // Компонент загрузки
   const loadingComponent = (
     <div className="flex justify-center items-center p-8">
       <Spinner size="large" label="Загрузка мероприятий..." />

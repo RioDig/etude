@@ -16,6 +16,8 @@ import { Typography } from '@/shared/ui/typography'
 import { Modal } from '@/shared/ui/modal'
 import { notification } from '@/shared/lib/notification'
 import { CourseTemplateSidebar } from '@/features/admin/ui/CourseTemplateSidebar'
+import { useQueryClient } from '@tanstack/react-query'
+import { FilterValue } from '@/entities/filter'
 
 export const TemplatesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -29,6 +31,8 @@ export const TemplatesPage: React.FC = () => {
 
   const { data: templates, isLoading, error } = useCourseTemplates()
   const deleteTemplateMutation = useDeleteCourseTemplate()
+
+  const queryClient = useQueryClient()
 
   const filterOptions: FilterOption[] = [
     {
@@ -71,6 +75,16 @@ export const TemplatesPage: React.FC = () => {
       ]
     }
   ]
+
+  const handleFilterChange = (_filterId: string, value: FilterValue) => {
+    if (value === '') {
+      queryClient.invalidateQueries({ queryKey: ['courseTemplates'] })
+    }
+  }
+
+  const handleResetFilters = () => {
+    queryClient.invalidateQueries({ queryKey: ['courseTemplates'] })
+  }
 
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
@@ -254,7 +268,12 @@ export const TemplatesPage: React.FC = () => {
         </Button>
       </div>
 
-      <Filter filters={filterOptions} pageId="admin-templates" />
+      <Filter
+        filters={filterOptions}
+        pageId="admin-templates"
+        onChange={handleFilterChange}
+        onReset={handleResetFilters}
+      />
 
       <div className="flex-1 overflow-hidden">
         <Table

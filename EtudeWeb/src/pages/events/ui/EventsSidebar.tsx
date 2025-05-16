@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { Sidebar, SidebarAction } from '@/widgets/sidebar'
 import { Typography } from '@/shared/ui/typography'
 import { Tag } from '@/shared/ui/tag'
 import { Badge } from '@/shared/ui/badge'
-import { Button } from '@/shared/ui/button'
+
 import { Spinner } from '@/shared/ui/spinner'
 import { useEventDetails } from '@/entities/event'
 import { Event } from '@/entities/event/model/types'
-import { Edit, Delete, Close } from '@mui/icons-material'
 
 interface EventsSidebarProps {
   open: boolean
@@ -16,7 +15,6 @@ interface EventsSidebarProps {
 }
 
 export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, event }) => {
-  // Загрузка детальной информации о мероприятии
   const {
     data: eventDetails,
     isLoading,
@@ -25,7 +23,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     enabled: !!event && open
   })
 
-  // Действия для шапки сайдбара
   const headerActions: SidebarAction[] = [
     {
       label: 'Редактировать',
@@ -36,7 +33,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     }
   ]
 
-  // Действия для футера сайдбара
   const footerActions: SidebarAction[] = [
     {
       label: 'Закрыть',
@@ -45,7 +41,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     }
   ]
 
-  // Получение текста и цвета для статуса
   const getStatusInfo = (
     status: string
   ): { text: string; variant: 'default' | 'error' | 'warning' | 'success' | 'system' } => {
@@ -63,7 +58,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     }
   }
 
-  // Получение названия для типа мероприятия
   const getEventTypeName = (type: string): string => {
     switch (type) {
       case 'conference':
@@ -79,7 +73,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     }
   }
 
-  // Получение названия для формата мероприятия
   const getFormatName = (format: string): string => {
     switch (format) {
       case 'offline':
@@ -93,7 +86,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     }
   }
 
-  // Получение названия для категории мероприятия
   const getCategoryName = (category: string): string => {
     switch (category) {
       case 'hard-skills':
@@ -107,7 +99,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     }
   }
 
-  // Форматирование даты
   const formatDate = (date: Date | string): string => {
     if (!date) return ''
     const dateObj = typeof date === 'string' ? new Date(date) : date
@@ -143,7 +134,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
         </div>
       ) : (
         <div className="flex flex-col gap-6">
-          {/* Основная информация */}
           <div>
             <Typography variant="b3Semibold" className="mb-2">
               Основная информация
@@ -170,7 +160,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
             </div>
           </div>
 
-          {/* Описание */}
           {eventData.description && (
             <div>
               <Typography variant="b3Semibold" className="mb-2">
@@ -180,7 +169,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
             </div>
           )}
 
-          {/* Дополнительная информация */}
           {eventDetails && eventDetails.location && (
             <div>
               <Typography variant="b3Semibold" className="mb-2">
@@ -190,7 +178,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
             </div>
           )}
 
-          {/* Участники */}
           {eventDetails && eventDetails.participants && eventDetails.participants.length > 0 && (
             <div>
               <Typography variant="b3Semibold" className="mb-2">
@@ -209,7 +196,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
             </div>
           )}
 
-          {/* Согласующие */}
           {eventDetails && eventDetails.approvers && eventDetails.approvers.length > 0 && (
             <div>
               <Typography variant="b3Semibold" className="mb-2">

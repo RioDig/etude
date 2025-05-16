@@ -11,7 +11,6 @@ import { DatePicker } from '@/shared/ui/datepicker/Datepicker'
 import { CalendarTodayOutlined, KeyboardArrowLeft, KeyboardArrowRight } from '@mui/icons-material'
 import { createPortal } from 'react-dom'
 
-// Импорт сущностей и фич
 import { useSchedule } from '@/entities/schedule'
 import {
   useScheduleNavigation,
@@ -21,10 +20,8 @@ import {
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 
 export const SchedulePage: React.FC = () => {
-  // Получаем данные расписания
   const { data: calendarCards, isLoading, error } = useSchedule()
 
-  // Хук управления навигацией календаря
   const {
     currentDate,
     viewMode,
@@ -39,13 +36,10 @@ export const SchedulePage: React.FC = () => {
     setIsDatePickerOpen
   } = useScheduleNavigation()
 
-  // Обработчик клика по карточке
   const handleCardClick = useCallback((card: CalendarCard) => {
     console.log('Clicked card:', card)
-    // Здесь можно добавить логику для отображения деталей
   }, [])
 
-  // Компонент ошибки при загрузке
   const errorComponent = error ? (
     <EmptyMessage
       variant="small"
@@ -55,7 +49,6 @@ export const SchedulePage: React.FC = () => {
     />
   ) : null
 
-  // Компонент пустого состояния
   const emptyComponent =
     !error && calendarCards.length === 0 && !isLoading ? (
       <EmptyMessage
@@ -73,13 +66,11 @@ export const SchedulePage: React.FC = () => {
         <Typography variant="h2">Расписание мероприятий</Typography>
       </div>
 
-      {/* Блок с фильтрами и элементами управления календарем */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex-grow">
           <Filter filters={scheduleFilterOptions} pageId="schedule-page" className="flex-wrap" />
         </div>
 
-        {/* Элементы управления календарем */}
         <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
           <div className="flex items-center gap-2">
             <button
@@ -117,7 +108,6 @@ export const SchedulePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Календарь */}
       <div className="flex-1 overflow-hidden">
         {isLoading ? (
           <div className="flex justify-center items-center h-full">
@@ -133,12 +123,11 @@ export const SchedulePage: React.FC = () => {
             initialViewMode={viewMode}
             onDateChange={handleDateSelect}
             onViewModeChange={handleViewModeChange}
-            hideControls={true} // Скрываем встроенные элементы управления календаря
+            hideControls={true}
           />
         )}
       </div>
 
-      {/* DatePicker в портале */}
       {isDatePickerOpen &&
         datePickerAnchor &&
         createPortal(

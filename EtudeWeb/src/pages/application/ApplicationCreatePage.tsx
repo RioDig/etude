@@ -19,7 +19,6 @@ import { useApplicationSubmit } from '@/entities/application'
 export const ApplicationCreatePage: React.FC = () => {
   const navigate = useNavigate()
 
-  // Получаем состояние из глобального хранилища
   const {
     currentApplication,
     reset,
@@ -29,15 +28,12 @@ export const ApplicationCreatePage: React.FC = () => {
     activeStep: stepFromStore
   } = useApplicationStore()
 
-  // Хук для отправки заявления
   const { mutate: submitApplication, isPending: isSubmitting } = useApplicationSubmit()
 
-  // Локальное состояние страницы
   const [showForm, setShowForm] = useState(false)
   const [formIsValid, setFormIsValid] = useState(false)
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
 
-  // Сбрасываем данные заявления при размонтировании компонента
   useEffect(() => {
     return () => {
       reset()
@@ -46,44 +42,35 @@ export const ApplicationCreatePage: React.FC = () => {
 
   const steps = [{ label: 'О мероприятии' }, { label: 'О проведении' }, { label: 'Согласующие' }]
 
-  // Обработчик перехода к следующему шагу
   const handleNext = () => {
     if (!showForm && selectedEventId) {
-      // Если находимся в каталоге и выбрано мероприятие
       setShowForm(true)
       setActiveStep(0)
     } else if (stepFromStore < steps.length) {
-      // Переходим к следующему шагу
       setActiveStep(stepFromStore + 1)
     }
   }
 
-  // Обработчик возврата к предыдущему шагу
   const handleBack = () => {
     if (stepFromStore > 0) {
       setActiveStep(stepFromStore - 1)
     } else if (showForm) {
-      // Возврат от формы к каталогу
       setShowForm(false)
     }
   }
 
-  // Обработчик для возврата к каталогу с очисткой данных
   const handleGoToCatalog = () => {
-    // Сбрасываем состояние формы
     reset()
-    // Переходим обратно к каталогу
+
     setShowForm(false)
-    // Сбрасываем выбранное мероприятие
+
     setSelectedEventId(null)
   }
 
-  // Обработчик выбора мероприятия
   const handleSelectEvent = (event: ApplicationEvent) => {
     setSelectedEventId(event.id)
     selectEvent(event.id)
 
-    // Предзаполняем форму данными выбранного мероприятия
     updateApplicationData({
       type: event.type,
       title: event.title,
@@ -93,12 +80,11 @@ export const ApplicationCreatePage: React.FC = () => {
     })
   }
 
-  // Обработчик создания собственного мероприятия
   const handleCreateCustomEvent = () => {
     setShowForm(true)
     setActiveStep(0)
     setSelectedEventId(null)
-    // Сбрасываем данные формы при создании нового мероприятия
+
     updateApplicationData({
       type: '',
       title: '',
@@ -110,29 +96,23 @@ export const ApplicationCreatePage: React.FC = () => {
     selectEvent('')
   }
 
-  // Обработчик изменения валидности формы
   const handleFormValidChange = (isValid: boolean) => {
     setFormIsValid(isValid)
   }
 
-  // Обработчик отправки заявления
   const handleSubmit = () => {
     if (!currentApplication) return
 
-    // Отправляем заявление на сервер
     submitApplication(currentApplication, {
       onSuccess: () => {
-        // Показываем уведомление об успехе
         notification.success({
           title: 'Заявление отправлено',
           description: 'Ваше заявление успешно отправлено и находится на рассмотрении'
         })
 
-        // Перенаправляем на страницу заявлений
         navigate('/applications')
       },
       onError: () => {
-        // Показываем уведомление об ошибке
         notification.error({
           title: 'Ошибка отправки',
           description: 'Не удалось отправить заявление. Пожалуйста, попробуйте позже.'
@@ -141,7 +121,6 @@ export const ApplicationCreatePage: React.FC = () => {
     })
   }
 
-  // Получение заголовка на основе активного шага
   const getStepTitle = () => {
     if (!showForm) {
       return 'Каталог мероприятий'
@@ -154,9 +133,7 @@ export const ApplicationCreatePage: React.FC = () => {
     return steps[stepFromStore]?.label || 'Новое заявление'
   }
 
-  // Рендер содержимого на основе текущего шага
   const renderStepContent = () => {
-    // Показываем каталог, если не выбрано мероприятие
     if (!showForm) {
       return (
         <CatalogView
@@ -167,13 +144,11 @@ export const ApplicationCreatePage: React.FC = () => {
       )
     }
 
-    // Показываем соответствующую форму для текущего шага
     switch (stepFromStore) {
       case 0:
-        return <Step1Form
-          onValidChange={handleFormValidChange}
-          isEventSelected={!!selectedEventId} // Добавить этот проп
-        />
+        return (
+          <Step1Form onValidChange={handleFormValidChange} isEventSelected={!!selectedEventId} />
+        )
       case 1:
         return <Step2Form onValidChange={handleFormValidChange} />
       case 2:
@@ -187,7 +162,6 @@ export const ApplicationCreatePage: React.FC = () => {
 
   return (
     <Container className="flex flex-col gap-6 h-full max-w-[1200px] overflow-visible mx-auto">
-      {/* Верхний блок с заголовком и Stepper */}
       <div className="flex justify-between items-start">
         <div>
           <Typography variant="b3Regular" className="text-mono-600 mb-1">
@@ -196,7 +170,6 @@ export const ApplicationCreatePage: React.FC = () => {
           <Typography variant="h2">{getStepTitle()}</Typography>
         </div>
 
-        {/* Показываем степпер только для этапов формы (не для подтверждения) */}
         {showForm && stepFromStore < steps.length && (
           <div className="mt-2">
             <Stepper steps={steps} activeStep={stepFromStore} />
@@ -204,15 +177,12 @@ export const ApplicationCreatePage: React.FC = () => {
         )}
       </div>
 
-      {/* Основной блок с содержимым шага */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-auto pr-2 relative">{renderStepContent()}</div>
       </div>
 
-      {/* Нижний блок с кнопками навигации */}
       <div className="flex justify-between items-center pt-4 border-t border-mono-200">
         <div>
-          {/* Кнопка "Вернуться назад" с подсказкой, если на первом шаге */}
           {!showForm || stepFromStore === 0 ? (
             <Hint content="Вы уже на первом этапе" position="top-right">
               <Button variant="third" disabled={true}>
@@ -227,7 +197,6 @@ export const ApplicationCreatePage: React.FC = () => {
         </div>
 
         <div className="flex gap-4">
-          {/* Кнопки в правой части нижнего блока */}
           {!showForm ? (
             <>
               <Button variant="secondary" onClick={handleCreateCustomEvent}>

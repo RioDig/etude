@@ -1,12 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { courseTemplateApi } from '../api/courseTemplateApi'
-import { CourseTemplate, CourseTemplateFilterParam } from '@/shared/types'
+import { CourseTemplate } from '@/shared/types'
 import { usePageFilters } from '@/entities/filter'
 
 export const useCourseTemplates = () => {
   const { filters } = usePageFilters('admin-templates')
 
-  // Преобразуем фильтры в формат API
   const apiFilters = Object.entries(filters).reduce(
     (result, [key, value]) => {
       if (value !== null && value !== undefined && value !== '') {

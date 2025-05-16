@@ -25,10 +25,8 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
   onDateChange,
   viewMode = 'month'
 }) => {
-  // Сохраняем соответствие между карточками и строками
   useRef<Record<string, number>>({})
 
-  // Преобразуем данные Event в формат CalendarCard
   const transformEventsToCalendarCards = (events: Event[]): CalendarCard[] => {
     return events.map((event) => ({
       id: event.id,
@@ -44,23 +42,19 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
     }))
   }
 
-  // Обработчик клика по карточке
   const handleCardClick = (card: CalendarCard) => {
-    // Находим оригинальное событие по id
     const originalEvent = events.find((e) => e.id === card.id)
     if (originalEvent) {
       onEventSelect(originalEvent)
     }
   }
 
-  // Обработчик изменения даты в календаре
   const handleCalendarDateChange = (date: Date) => {
     if (onDateChange) {
       onDateChange(date)
     }
   }
 
-  // Подготавливаем компоненты для разных состояний
   const loadingComponent = (
     <div className="flex justify-center items-center h-full">
       <Spinner size="large" label="Загрузка календаря..." />
@@ -77,7 +71,6 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
     />
   )
 
-  // Преобразуем события в формат карточек календаря
   const calendarCards = events?.length > 0 ? transformEventsToCalendarCards(events) : []
 
   return (
@@ -93,7 +86,7 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
           initialDate={initialDate}
           initialViewMode={viewMode}
           onDateChange={handleCalendarDateChange}
-          hideControls={true} // Скрываем встроенные элементы управления календаря
+          hideControls={true}
         />
       )}
     </div>

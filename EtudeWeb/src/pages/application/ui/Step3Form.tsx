@@ -1,4 +1,3 @@
-// Обновляем Step3Form.tsx с использованием AutocompleteSelect
 import React, { useEffect, useState } from 'react'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
@@ -20,11 +19,9 @@ interface Approver {
 export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
-  // Локальное состояние для списка согласующих
   const [approvers, setApprovers] = useState<Approver[]>(() => {
     if (currentApplication?.approvers && currentApplication.approvers.length > 0) {
-      // Создаем массив с уже сохраненными данными
-      return currentApplication.approvers.map(approver => ({
+      return currentApplication.approvers.map((approver) => ({
         ...approver,
         employeeData: approver.employeeData || undefined
       }))
@@ -32,38 +29,32 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
     return [{ id: '1', userId: '' }]
   })
 
-  // Функция валидации формы
   const validateForm = () => {
     const isValid = approvers.length > 0 && approvers.every((approver) => approver.userId !== '')
     onValidChange(isValid)
     return isValid
   }
 
-  // Эффект для валидации при изменении списка согласующих
   useEffect(() => {
     validateForm()
-    // Обновляем данные в хранилище при изменении согласующих
+
     updateApplicationData({ approvers })
   }, [approvers, updateApplicationData])
 
-  // Получаем массив идентификаторов уже выбранных согласующих
   const getExcludeIds = (currentApproverId: string): string[] => {
     return approvers.filter((a) => a.id !== currentApproverId && a.userId).map((a) => a.userId)
   }
 
-  // Добавление нового согласующего
   const handleAddApprover = () => {
     setApprovers([...approvers, { id: Date.now().toString(), userId: '' }])
   }
 
-  // Удаление согласующего
   const handleRemoveApprover = (id: string) => {
     if (approvers.length > 1) {
       setApprovers(approvers.filter((approver) => approver.id !== id))
     }
   }
 
-  // Обновление значения согласующего
   const handleApproverChange = (id: string, value: string, employeeData?: Employee) => {
     setApprovers(
       approvers.map((approver) =>

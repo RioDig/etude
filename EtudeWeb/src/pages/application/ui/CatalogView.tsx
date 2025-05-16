@@ -26,10 +26,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   onCreateCustomEvent,
   selectedEventId
 }) => {
-  // Получение данных каталога мероприятий
   const { data: events, isLoading, error } = useApplicationCatalog()
 
-  // Опции для фильтров
   const filterOptions: FilterOption[] = [
     {
       id: 'type',
@@ -70,46 +68,40 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     }
   ]
 
-  // Обработчик выбора события
   const handleEventSelect = (event: ApplicationEvent) => {
     onSelectEvent(event)
   }
 
-  // Получение читаемого названия для типа мероприятия
   const getReadableType = (type: string): string => {
     return EVENT_TYPES[type as keyof typeof EVENT_TYPES] || type
   }
 
-  // Получение читаемого названия для категории
   const getReadableCategory = (category: string): string => {
     return EVENT_CATEGORIES[category as keyof typeof EVENT_CATEGORIES] || category
   }
 
-  // Получение читаемого названия для формата
   const getReadableFormat = (format: string): string => {
     return EVENT_FORMATS[format as keyof typeof EVENT_FORMATS] || format
   }
 
-  // Отображаем фильтры всегда, даже при загрузке
   const renderFilters = () => (
     <div className="mb-4">
       <Filter filters={filterOptions} pageId="application-catalog" className="flex-wrap" />
     </div>
   )
 
-  // Рендер содержимого каталога
   const renderCatalogContent = () => {
-    // Показываем загрузку, но оставляем фильтры
     if (isLoading) {
       return (
         <div className="flex justify-center items-center h-[400px]">
-          <Spinner size='medium' className="mr-2" />
-          <span className="text-mono-600 text-b4-regular leading-none">Загрузка каталога мероприятий...</span>
+          <Spinner size="medium" className="mr-2" />
+          <span className="text-mono-600 text-b4-regular leading-none">
+            Загрузка каталога мероприятий...
+          </span>
         </div>
       )
     }
 
-    // Показываем сообщение об ошибке
     if (error) {
       return (
         <EmptyMessage
@@ -126,7 +118,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       )
     }
 
-    // Если нет мероприятий
     if (!events || events.length === 0) {
       return (
         <EmptyMessage
@@ -143,7 +134,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       )
     }
 
-    // Рендер сетки с карточками мероприятий
     return (
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -166,7 +156,6 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           ))}
         </div>
 
-        {/* Информационная подсказка при выборе мероприятия */}
         {selectedEventId && (
           <div className="mt-4 text-center">
             <Typography variant="b3Regular" className="text-mono-600">
@@ -180,10 +169,8 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      {/* Фильтры вне области скролла */}
       {renderFilters()}
 
-      {/* Контент каталога в области скролла */}
       <div className="overflow-auto flex-1">{renderCatalogContent()}</div>
     </div>
   )

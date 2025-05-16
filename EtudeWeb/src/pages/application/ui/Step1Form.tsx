@@ -11,7 +11,6 @@ interface Step1FormProps {
 export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange, isEventSelected }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
-  // Локальные состояния для полей формы
   const [type, setType] = useState(currentApplication?.type || '')
   const [title, setTitle] = useState(currentApplication?.title || '')
   const [category, setCategory] = useState(currentApplication?.category || '')
@@ -19,11 +18,8 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange, isEventSele
   const [link, setLink] = useState(currentApplication?.link || '')
   const [description, setDescription] = useState(currentApplication?.description || '')
 
-  // Определяем, можно ли редактировать поля формы
-  // Если выбрано мероприятие из каталога - эти поля будут disabled
   const isFieldDisabled = isEventSelected
 
-  // Опции для выпадающих списков
   const typeOptions = [
     { value: 'conference', label: 'Конференция' },
     { value: 'course', label: 'Курс' },
@@ -43,19 +39,16 @@ export const Step1Form: React.FC<Step1FormProps> = ({ onValidChange, isEventSele
     { value: 'mixed', label: 'Смешанный' }
   ]
 
-  // Функция валидации формы
   const validateForm = () => {
     const isValid = !!type && !!title && !!category && !!format
     onValidChange(isValid)
     return isValid
   }
 
-  // Эффект для валидации при изменении состояния полей
   useEffect(() => {
     validateForm()
   }, [type, title, category, format])
 
-  // Обработчики изменения полей
   const handleTypeChange = (value: string) => {
     setType(value)
     updateApplicationData({ type: value })

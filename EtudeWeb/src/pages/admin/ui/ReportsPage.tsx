@@ -11,6 +11,7 @@ import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { notification } from '@/shared/lib/notification'
 import { Typography } from '@/shared/ui/typography'
 import { ReportGenerationSidebar } from '@/features/admin/ui/ReportGenerationSidebar'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const ReportsPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -20,6 +21,7 @@ export const ReportsPage: React.FC = () => {
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
+  const queryClient = useQueryClient()
   const { data: reports, isLoading, error } = useReports()
   const { mutate: downloadReport, isPending: isDownloading } = useDownloadReport()
 
@@ -39,6 +41,16 @@ export const ReportsPage: React.FC = () => {
       type: 'date'
     }
   ]
+
+  const handleFilterChange = (_filterId: string, value: string | Date | null) => {
+    if (value === '' || value === null) {
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
+    }
+  }
+
+  const handleResetFilters = () => {
+    queryClient.invalidateQueries({ queryKey: ['reports'] })
+  }
 
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
@@ -167,7 +179,12 @@ export const ReportsPage: React.FC = () => {
         </Button>
       </div>
 
-      <Filter filters={filterOptions} pageId="admin-reports" />
+      <Filter
+        filters={filterOptions}
+        pageId="admin-reports"
+        onChange={handleFilterChange}
+        onReset={handleResetFilters}
+      />
 
       <div className="flex-1 overflow-hidden">
         <Table

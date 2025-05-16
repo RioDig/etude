@@ -1,14 +1,9 @@
-// Обновим ConfirmationView.tsx, добавив логику отправки:
 import React from 'react'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
 import { Edit } from '@mui/icons-material'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
 import { Tag } from '@/shared/ui/tag'
-// import { useApplicationSubmit } from '@/entities/application'
-// import { Spinner } from '@/shared/ui/spinner'
-// import { notification } from '@/shared/lib/notification'
-// import { useNavigate } from 'react-router-dom'
 
 interface SectionProps {
   title: string
@@ -16,7 +11,6 @@ interface SectionProps {
   children: React.ReactNode
 }
 
-// Компонент секции данных с возможностью редактирования
 const Section: React.FC<SectionProps> = ({ title, onEdit, children }) => {
   return (
     <div className="border-b border-mono-200 pb-6 mb-6 last:border-b-0 last:mb-0 last:pb-0">
@@ -31,7 +25,6 @@ const Section: React.FC<SectionProps> = ({ title, onEdit, children }) => {
   )
 }
 
-// Компонент строки данных
 const DataRow: React.FC<{ label: string; value: string | React.ReactNode }> = ({
   label,
   value
@@ -50,38 +43,7 @@ const DataRow: React.FC<{ label: string; value: string | React.ReactNode }> = ({
 
 export const ConfirmationView: React.FC = () => {
   const { currentApplication, setActiveStep } = useApplicationStore()
-  // const navigate = useNavigate()
 
-  // Хук для отправки заявления
-  // const { mutate: submitApplication, isPending } = useApplicationSubmit()
-
-  // Обработчик отправки заявления
-  // const handleSubmit = () => {
-  //   if (!currentApplication) return
-  //
-  //   // Отправляем заявление на сервер
-  //   submitApplication(currentApplication, {
-  //     onSuccess: () => {
-  //       // Показываем уведомление об успехе
-  //       notification.success({
-  //         title: 'Заявление отправлено',
-  //         description: 'Ваше заявление успешно отправлено и находится на рассмотрении'
-  //       })
-  //
-  //       // Перенаправляем на страницу заявлений
-  //       navigate('/applications')
-  //     },
-  //     onError: () => {
-  //       // Показываем уведомление об ошибке
-  //       notification.error({
-  //         title: 'Ошибка отправки',
-  //         description: 'Не удалось отправить заявление. Пожалуйста, попробуйте позже.'
-  //       })
-  //     }
-  //   })
-  // }
-
-  // Форматирование типа мероприятия
   const getEventType = () => {
     switch (currentApplication?.type) {
       case 'conference':
@@ -97,7 +59,6 @@ export const ConfirmationView: React.FC = () => {
     }
   }
 
-  // Форматирование категории
   const getCategory = () => {
     switch (currentApplication?.category) {
       case 'hard-skills':
@@ -111,7 +72,6 @@ export const ConfirmationView: React.FC = () => {
     }
   }
 
-  // Форматирование формата
   const getFormat = () => {
     switch (currentApplication?.format) {
       case 'offline':
@@ -125,14 +85,11 @@ export const ConfirmationView: React.FC = () => {
     }
   }
 
-  // Форматирование участников
   const getParticipants = () => {
     if (!currentApplication?.participants || currentApplication.participants.length === 0) {
       return 'Не выбраны'
     }
 
-    // В реальном проекте здесь был бы запрос на получение данных пользователей
-    // Сейчас используем моковые данные
     const participantMap: Record<string, string> = {
       '1': 'Иванов Иван Иванович',
       '2': 'Петров Петр Петрович',
@@ -149,13 +106,11 @@ export const ConfirmationView: React.FC = () => {
     )
   }
 
-  // Форматирование согласующих
   const getApprovers = () => {
     if (!currentApplication?.approvers || currentApplication.approvers.length === 0) {
       return 'Не выбраны'
     }
 
-    // Аналогично, в реальном проекте здесь был бы запрос на получение данных пользователей
     const approverMap: Record<string, string> = {
       '1': 'Иванов Иван Иванович (Руководитель группы дизайна)',
       '2': 'Петров Петр Петрович (Руководитель отдела разработки)',
@@ -172,7 +127,6 @@ export const ConfirmationView: React.FC = () => {
     )
   }
 
-  // Теги для отображения типа, категории и формата
   const eventTags = (
     <div className="flex flex-wrap gap-2">
       <Tag>{getEventType()}</Tag>
@@ -181,7 +135,6 @@ export const ConfirmationView: React.FC = () => {
     </div>
   )
 
-  // Если нет данных заявления
   if (!currentApplication) {
     return (
       <div className="text-center py-6">
@@ -194,7 +147,6 @@ export const ConfirmationView: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Секция о мероприятии */}
       <Section title="О мероприятии" onEdit={() => setActiveStep(0)}>
         <DataRow label="Тип" value={getEventType()} />
         <DataRow label="Наименование" value={currentApplication.title || ''} />
@@ -219,7 +171,6 @@ export const ConfirmationView: React.FC = () => {
         </div>
       </Section>
 
-      {/* Секция о проведении */}
       <Section title="Данные о проведении" onEdit={() => setActiveStep(1)}>
         <DataRow
           label="Срок прохождения"
@@ -237,24 +188,9 @@ export const ConfirmationView: React.FC = () => {
         <DataRow label="Сотрудники" value={getParticipants()} />
       </Section>
 
-      {/* Секция согласующих */}
       <Section title="Согласующие" onEdit={() => setActiveStep(2)}>
         {getApprovers()}
       </Section>
-
-      {/* Кнопка отправки заявления */}
-      {/*<div className="mt-4 flex justify-center">*/}
-      {/*  <Button variant="primary" size="large" onClick={handleSubmit} disabled={isPending}>*/}
-      {/*    {isPending ? (*/}
-      {/*      <>*/}
-      {/*        <Spinner size="small" variant="white" className="mr-2" />*/}
-      {/*        <span>Отправка заявления...</span>*/}
-      {/*      </>*/}
-      {/*    ) : (*/}
-      {/*      'Подтвердить и отправить'*/}
-      {/*    )}*/}
-      {/*  </Button>*/}
-      {/*</div>*/}
     </div>
   )
 }
