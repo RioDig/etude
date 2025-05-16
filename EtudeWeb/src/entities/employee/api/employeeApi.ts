@@ -1,4 +1,3 @@
-// src/entities/employee/api/employeeApi.ts
 import axios from 'axios'
 import { API_URL } from '@/shared/config'
 
@@ -9,13 +8,11 @@ export interface Employee {
   department: string
 }
 
-// Создаем инстанс axios с базовыми настройками
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true
 })
 
-// Временные данные для теста
 const MOCK_EMPLOYEES: Employee[] = [
   {
     id: '1',
@@ -40,16 +37,12 @@ const MOCK_EMPLOYEES: Employee[] = [
 ]
 
 export const employeeApi = {
-  // Получение списка сотрудников
   getEmployees: async (excludeIds: string[] = []): Promise<Employee[]> => {
     try {
-      // В реальном проекте здесь будет реальный запрос
       // const { data } = await api.get('/employee', { params: { excludeIds } });
 
-      // Имитация запроса
       await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Фильтруем сотрудников
       return MOCK_EMPLOYEES.filter((emp) => !excludeIds.includes(emp.id))
     } catch (error) {
       console.error('Error fetching employees:', error)
@@ -57,13 +50,10 @@ export const employeeApi = {
     }
   },
 
-  // Получение сотрудника по ID
   getEmployeeById: async (id: string): Promise<Employee> => {
     try {
-      // В реальном проекте здесь будет реальный запрос
       // const { data } = await api.get(`/employee/${id}`);
 
-      // Имитация запроса
       await new Promise((resolve) => setTimeout(resolve, 300))
 
       const employee = MOCK_EMPLOYEES.find((emp) => emp.id === id)

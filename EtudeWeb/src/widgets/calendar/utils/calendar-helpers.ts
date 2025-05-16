@@ -20,47 +20,6 @@ export const generateCalendarDays = (startDate: Date, days: number): Date[] => {
   return result
 }
 
-export const getFormatLabel = (format: string) => {
-  switch (format) {
-    case 'offline':
-      return 'Очный'
-    case 'online':
-      return 'Дистанционный'
-    case 'mixed':
-      return 'Смешанный'
-    default:
-      return format
-  }
-}
-
-export const getCategoryLabel = (category: string) => {
-  switch (category) {
-    case 'hard-skills':
-      return 'Hard Skills'
-    case 'soft-skills':
-      return 'Soft Skills'
-    case 'management':
-      return 'Management'
-    default:
-      return category
-  }
-}
-
-export const getTypeLabel = (type: string) => {
-  switch (type) {
-    case 'course':
-      return 'Курс'
-    case 'conference':
-      return 'Конференция'
-    case 'webinar':
-      return 'Вебинар'
-    case 'training':
-      return 'Тренинг'
-    default:
-      return type
-  }
-}
-
 export const getStatusColor = (status: CardStatus): string => {
   switch (status) {
     case 'pending':

@@ -48,7 +48,7 @@ export const ReportGenerationSidebar: React.FC<ReportGenerationSidebarProps> = (
       label: 'Создать и скачать',
       onClick: handleGenerateReport,
       variant: 'primary',
-      disabled: generateReportMutation.isPending
+      disabled: generateReportMutation.isPending || !reportType
     }
   ]
 

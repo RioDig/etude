@@ -1,3 +1,3 @@
-import { withProviders } from "@/app/providers";
+import { withProviders } from '@/app/providers'
 
-export const AppWithProviders = withProviders();
+export const AppWithProviders = withProviders()

@@ -1,2 +1,2 @@
 export { scheduleApi } from './api/scheduleApi'
-export { useSchedule } from './hooks/useSchedule'
+export { useSchedule, useScheduleTemplate } from './hooks/useSchedule'

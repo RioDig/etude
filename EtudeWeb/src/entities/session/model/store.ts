@@ -43,18 +43,17 @@ export const useSessionStore = create<
       }),
       {
         name: 'session-storage',
-        // Храним все данные пользователя
+
         partialize: (state) => ({
           user: state.user,
           isAuthenticated: state.isAuthenticated,
           initialized: state.initialized
         }),
-        // Добавляем версионирование для возможности миграции при изменении структуры данных
+
         version: 1,
-        // Можно добавить миграции, если в будущем изменится структура
+
         migrate: (persistedState: any, version) => {
           if (version === 0) {
-            // миграция с версии 0 на версию 1
             return {
               ...persistedState,
               initialized: true

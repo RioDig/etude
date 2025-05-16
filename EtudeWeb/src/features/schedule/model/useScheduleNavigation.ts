@@ -16,7 +16,6 @@ export const useScheduleNavigation = (
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null)
 
-  // Обработчик перехода к предыдущему периоду
   const handlePrevPeriod = useCallback(() => {
     const newDate = new Date(currentDate)
     if (viewMode === 'week') {
@@ -31,7 +30,6 @@ export const useScheduleNavigation = (
     }
   }, [currentDate, viewMode, onDateChange])
 
-  // Обработчик перехода к следующему периоду
   const handleNextPeriod = useCallback(() => {
     const newDate = new Date(currentDate)
     if (viewMode === 'week') {
@@ -46,13 +44,11 @@ export const useScheduleNavigation = (
     }
   }, [currentDate, viewMode, onDateChange])
 
-  // Обработчик открытия DatePicker
   const handleOpenDatePicker = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
     setDatePickerAnchor(event.currentTarget)
     setIsDatePickerOpen(true)
   }, [])
 
-  // Обработчик выбора даты
   const handleDateSelect = useCallback(
     (date: Date) => {
       setCurrentDate(date)
@@ -65,7 +61,6 @@ export const useScheduleNavigation = (
     [onDateChange]
   )
 
-  // Обработчик смены режима просмотра
   const handleViewModeChange = useCallback(
     (mode: string) => {
       const newMode = mode as CalendarViewMode
@@ -78,22 +73,17 @@ export const useScheduleNavigation = (
     [onViewModeChange]
   )
 
-  // Форматирование заголовка
   const formatCalendarTitle = useCallback(() => {
     if (viewMode === 'week') {
-      // Для недели показываем диапазон дат
       const startOfWeek = new Date(currentDate)
       const day = startOfWeek.getDay() // 0-6 (0 - воскресенье)
 
-      // Находим понедельник текущей недели
       const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1)
       startOfWeek.setDate(diff)
 
-      // Находим воскресенье (конец недели)
       const endOfWeek = new Date(startOfWeek)
       endOfWeek.setDate(startOfWeek.getDate() + 6)
 
-      // Форматируем диапазон
       const startDateStr = startOfWeek.toLocaleDateString('ru-RU', {
         day: 'numeric',
         month: 'long'
@@ -107,7 +97,6 @@ export const useScheduleNavigation = (
 
       return `${startDateStr} - ${endDateStr}`
     } else {
-      // Для месяца показываем название месяца и год
       return currentDate.toLocaleDateString('ru-RU', {
         month: 'long',
         year: 'numeric'
@@ -115,7 +104,6 @@ export const useScheduleNavigation = (
     }
   }, [currentDate, viewMode])
 
-  // Эффект для закрытия DatePicker при клике вне компонента
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (

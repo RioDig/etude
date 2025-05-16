@@ -1,29 +1,19 @@
-export type CalendarViewMode = 'month' | 'week' | 'half-year'
+import { CourseFormat, CourseTrack, CourseType, StatusType } from '@/shared/types'
 
-export type CardStatus = 'pending' | 'approved' | 'rejected' | 'completed'
-
-export interface CalendarCardTag {
-  id: string
-  label: string
-}
-
-export type TrainingFormat = 'offline' | 'online' | 'mixed'
-
-export type TrainingCategory = 'hard-skills' | 'soft-skills' | 'management'
-
-export type TrainingType = 'course' | 'conference' | 'webinar' | 'training'
+export type CalendarViewMode = 'month' | 'week'
 
 export interface CalendarCard {
   id: string
   title: string
-  status: CardStatus
+  status: StatusType | undefined
   startDate: Date
   endDate: Date
   description: string
-  employee: string
-  format: TrainingFormat
-  category: TrainingCategory
-  type: TrainingType
+  employee?: string
+  format: CourseFormat
+  track: CourseTrack
+  type: CourseType
+  trainingCenter?: string
 }
 
 export interface CalendarProps {

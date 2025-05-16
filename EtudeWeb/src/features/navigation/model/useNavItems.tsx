@@ -9,12 +9,11 @@ export const useNavItems = (): NavItem[] => {
 
   const getNavItems = useCallback(() => {
     if (!isAuthenticated || !user) {
-      return [] // Если пользователь не авторизован, не показываем кнопки
+      return []
     }
 
     const items: NavItem[] = []
 
-    // Общие пункты для всех авторизованных пользователей
     items.push({
       id: 'new-application',
       label: 'Новое заявление',
@@ -39,7 +38,6 @@ export const useNavItems = (): NavItem[] => {
       variant: 'third'
     })
 
-    // Пункты только для администраторов
     if (user.role !== USER_ROLES.admin) {
       // TODO: не забыть вернуть равенство
       items.push({

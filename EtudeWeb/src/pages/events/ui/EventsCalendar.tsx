@@ -37,7 +37,7 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
       description: event.description || '',
       employee: event.employee || 'Не указан',
       format: event.format,
-      category: event.category,
+      track: event.category,
       type: event.type
     }))
   }

@@ -1,8 +1,7 @@
 import axios from 'axios'
 import { API_URL } from '@/shared/config'
-import { Event, EventDetails, Participant, Approver } from '../model/types'
+import { Event, EventDetails } from '../model/types'
 
-// Создаем инстанс axios для работы с API
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true
@@ -343,11 +342,9 @@ export const eventApi = {
    */
   getEvents: async (params?: Record<string, any>): Promise<Event[]> => {
     try {
-      // В реальном приложении используем реальное API
       // const { data } = await api.get<Event[]>('/application', { params });
       // return data;
 
-      // Для тестирования используем мок-данные
       await delay(1000)
       return filterEvents(MOCK_EVENTS, params)
     } catch (error) {
@@ -362,25 +359,20 @@ export const eventApi = {
    */
   getEventById: async (id: string): Promise<EventDetails> => {
     try {
-      // В реальном приложении используем реальное API
       // const { data } = await api.get<EventDetails>(`/application/${id}`);
       // return data;
 
-      // Для тестирования используем мок-данные
       await delay(800)
 
-      // Проверяем, есть ли детальная информация для этого мероприятия
       if (MOCK_EVENT_DETAILS[id]) {
         return MOCK_EVENT_DETAILS[id]
       }
 
-      // Если нет детальных данных, находим базовое мероприятие
       const event = MOCK_EVENTS.find((e) => e.id === id)
       if (!event) {
         throw new Error(`Мероприятие с ID ${id} не найдено`)
       }
 
-      // Создаем объект с детальной информацией на основе базового мероприятия
       return {
         ...event,
         location: undefined,
@@ -403,14 +395,11 @@ export const eventApi = {
    */
   createEvent: async (event: Partial<Event>): Promise<Event> => {
     try {
-      // В реальном приложении используем реальное API
       // const { data } = await api.post<Event>('/application', event);
       // return data;
 
-      // Для тестирования используем мок-данные
       await delay(1500)
 
-      // Создаем новое мероприятие с генерацией ID и дат
       const newEvent: Event = {
         id: `${Math.floor(Math.random() * 1000)}`,
         title: event.title || 'Новое мероприятие',
@@ -426,7 +415,6 @@ export const eventApi = {
         employee: event.employee
       }
 
-      // Для тестов добавляем мероприятие в мок-массив
       MOCK_EVENTS.push(newEvent)
 
       return newEvent
@@ -443,30 +431,24 @@ export const eventApi = {
    */
   updateEvent: async (id: string, event: Partial<Event>): Promise<Event> => {
     try {
-      // В реальном приложении используем реальное API
       // const { data } = await api.put<Event>(`/application/${id}`, event);
       // return data;
 
-      // Для тестирования используем мок-данные
       await delay(1200)
 
-      // Находим мероприятие в моках
       const eventIndex = MOCK_EVENTS.findIndex((e) => e.id === id)
       if (eventIndex === -1) {
         throw new Error(`Мероприятие с ID ${id} не найдено`)
       }
 
-      // Обновляем мероприятие
       const updatedEvent: Event = {
         ...MOCK_EVENTS[eventIndex],
         ...event,
         updatedAt: new Date().toISOString()
       }
 
-      // Обновляем мок-данные
       MOCK_EVENTS[eventIndex] = updatedEvent
 
-      // Если есть детальные данные, обновляем и их
       if (MOCK_EVENT_DETAILS[id]) {
         MOCK_EVENT_DETAILS[id] = {
           ...MOCK_EVENT_DETAILS[id],
@@ -488,22 +470,17 @@ export const eventApi = {
    */
   deleteEvent: async (id: string): Promise<void> => {
     try {
-      // В реальном приложении используем реальное API
       // await api.delete(`/application/${id}`);
 
-      // Для тестирования используем мок-данные
       await delay(800)
 
-      // Находим мероприятие в моках
       const eventIndex = MOCK_EVENTS.findIndex((e) => e.id === id)
       if (eventIndex === -1) {
         throw new Error(`Мероприятие с ID ${id} не найдено`)
       }
 
-      // Удаляем мероприятие из мок-данных
       MOCK_EVENTS.splice(eventIndex, 1)
 
-      // Удаляем детальные данные, если они есть
       if (MOCK_EVENT_DETAILS[id]) {
         delete MOCK_EVENT_DETAILS[id]
       }
@@ -519,38 +496,30 @@ export const eventApi = {
    */
   approveEvent: async (id: string): Promise<Event> => {
     try {
-      // В реальном приложении используем реальное API
       // const { data } = await api.post<Event>(`/application/${id}/approve`);
       // return data;
 
-      // Для тестирования используем мок-данные
       await delay(1000)
 
-      // Находим мероприятие в моках
       const eventIndex = MOCK_EVENTS.findIndex((e) => e.id === id)
       if (eventIndex === -1) {
         throw new Error(`Мероприятие с ID ${id} не найдено`)
       }
 
-      // Обновляем статус мероприятия
       const updatedEvent: Event = {
         ...MOCK_EVENTS[eventIndex],
         status: 'approved',
         updatedAt: new Date().toISOString()
       }
 
-      // Обновляем мок-данные
       MOCK_EVENTS[eventIndex] = updatedEvent
 
-      // Если есть детальные данные, обновляем статусы согласующих
       if (MOCK_EVENT_DETAILS[id]) {
         const updatedDetails = { ...MOCK_EVENT_DETAILS[id] }
 
-        // Обновляем статус мероприятия
         updatedDetails.status = 'approved'
         updatedDetails.updatedAt = new Date().toISOString()
 
-        // Обновляем статусы согласующих
         if (updatedDetails.approvers) {
           updatedDetails.approvers = updatedDetails.approvers.map((approver) => ({
             ...approver,
@@ -576,38 +545,30 @@ export const eventApi = {
    */
   rejectEvent: async (id: string, reason: string): Promise<Event> => {
     try {
-      // В реальном приложении используем реальное API
       // const { data } = await api.post<Event>(`/application/${id}/reject`, { reason });
       // return data;
 
-      // Для тестирования используем мок-данные
       await delay(1000)
 
-      // Находим мероприятие в моках
       const eventIndex = MOCK_EVENTS.findIndex((e) => e.id === id)
       if (eventIndex === -1) {
         throw new Error(`Мероприятие с ID ${id} не найдено`)
       }
 
-      // Обновляем статус мероприятия
       const updatedEvent: Event = {
         ...MOCK_EVENTS[eventIndex],
         status: 'rejected',
         updatedAt: new Date().toISOString()
       }
 
-      // Обновляем мок-данные
       MOCK_EVENTS[eventIndex] = updatedEvent
 
-      // Если есть детальные данные, добавляем комментарий с причиной
       if (MOCK_EVENT_DETAILS[id]) {
         const updatedDetails = { ...MOCK_EVENT_DETAILS[id] }
 
-        // Обновляем статус мероприятия
         updatedDetails.status = 'rejected'
         updatedDetails.updatedAt = new Date().toISOString()
 
-        // Добавляем комментарий с причиной
         updatedDetails.comments = updatedDetails.comments
           ? `${updatedDetails.comments}\n\nПричина отклонения: ${reason}`
           : `Причина отклонения: ${reason}`

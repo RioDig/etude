@@ -8,13 +8,11 @@ export const useSessionCheck = () => {
   const sessionCheckPerformed = useRef(false)
 
   useEffect(() => {
-    if (!isAuthenticated) return // если юзер не залогинен — ничего не делаем
+    if (!isAuthenticated) return
 
-    // Проверяем сессию только один раз за жизненный цикл компонента
     if (!sessionCheckPerformed.current && !isLoading) {
       sessionCheckPerformed.current = true
 
-      // Проверяем, есть ли данные пользователя
       if (!user) {
         refreshSession().catch(console.error)
       }

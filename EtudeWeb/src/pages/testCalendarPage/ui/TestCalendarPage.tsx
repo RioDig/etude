@@ -73,7 +73,7 @@ const createRandomCard = (id: string): CalendarCard => {
     description: `Обучающий курс для развития навыков специалистов. Длительность: ${duration} дней.`,
     employee: employees[Math.floor(Math.random() * employees.length)],
     format: formats[Math.floor(Math.random() * formats.length)],
-    category: categories[Math.floor(Math.random() * categories.length)],
+    track: categories[Math.floor(Math.random() * categories.length)],
     type: types[Math.floor(Math.random() * types.length)]
   }
 }
@@ -89,7 +89,7 @@ const mockCards: CalendarCard[] = [
       'Курс для продвинутых UI/UX дизайнеров, включающий современные тренды и инструменты',
     employee: 'Иванов Иван',
     format: 'online',
-    category: 'hard-skills',
+    track: 'hard-skills',
     type: 'course'
   },
   {
@@ -101,7 +101,7 @@ const mockCards: CalendarCard[] = [
     description: 'Интенсивный курс по системному анализу с практическими заданиями',
     employee: 'Петров Петр',
     format: 'mixed',
-    category: 'hard-skills',
+    track: 'hard-skills',
     type: 'webinar'
   },
   {
@@ -113,7 +113,7 @@ const mockCards: CalendarCard[] = [
     description: 'Базовые навыки работы с Figma, создание прототипов и дизайн-систем',
     employee: 'Сидорова Анна',
     format: 'online',
-    category: 'hard-skills',
+    track: 'hard-skills',
     type: 'course'
   },
   {
@@ -125,7 +125,7 @@ const mockCards: CalendarCard[] = [
     description: 'Методы проведения пользовательских исследований и анализа полученных данных',
     employee: 'Козлов Дмитрий',
     format: 'offline',
-    category: 'hard-skills',
+    track: 'hard-skills',
     type: 'training'
   },
   {
@@ -137,7 +137,7 @@ const mockCards: CalendarCard[] = [
     description: 'Развитие навыков эффективного общения в команде и с клиентами',
     employee: 'Смирнова Екатерина',
     format: 'offline',
-    category: 'soft-skills',
+    track: 'soft-skills',
     type: 'training'
   },
   {
@@ -149,7 +149,7 @@ const mockCards: CalendarCard[] = [
     description: 'Полный курс обучения профессии аналитика с нуля до профессионального уровня',
     employee: 'Новиков Алексей',
     format: 'online',
-    category: 'hard-skills',
+    track: 'hard-skills',
     type: 'course'
   },
   {
@@ -161,7 +161,7 @@ const mockCards: CalendarCard[] = [
     description: 'Стратегии эффективного управления командой разработчиков и дизайнеров',
     employee: 'Морозов Владимир',
     format: 'mixed',
-    category: 'management',
+    track: 'management',
     type: 'conference'
   },
   {
@@ -173,7 +173,7 @@ const mockCards: CalendarCard[] = [
     description: 'Создание адаптивных интерфейсов для различных устройств и разрешений экрана',
     employee: 'Соколова Мария',
     format: 'online',
-    category: 'hard-skills',
+    track: 'hard-skills',
     type: 'course'
   },
   {
@@ -185,7 +185,7 @@ const mockCards: CalendarCard[] = [
     description: 'Основы управления продуктом, работа с требованиями и разработка стратегии',
     employee: 'Васильев Николай',
     format: 'mixed',
-    category: 'management',
+    track: 'management',
     type: 'course'
   },
   {
@@ -197,7 +197,7 @@ const mockCards: CalendarCard[] = [
     description: 'Навыки эффективных выступлений перед аудиторией, подготовка презентаций',
     employee: 'Королева Анастасия',
     format: 'offline',
-    category: 'soft-skills',
+    track: 'soft-skills',
     type: 'training'
   }
 ]
@@ -302,9 +302,9 @@ export const TestCalendarPage: React.FC = () => {
                   : 'Смешанный'}
             </Tag>
             <Tag>
-              {selectedCard.category === 'hard-skills'
+              {selectedCard.track === 'hard-skills'
                 ? 'Hard Skills'
-                : selectedCard.category === 'soft-skills'
+                : selectedCard.track === 'soft-skills'
                   ? 'Soft Skills'
                   : 'Management'}
             </Tag>
@@ -418,7 +418,6 @@ export const TestCalendarPage: React.FC = () => {
 
   const sidebarProps = getSidebarProps()
 
-  // @ts-ignore
   return (
     <div className="p-6 bg-mono-50 min-h-screen">
       <Typography variant="h1" className="mb-6">

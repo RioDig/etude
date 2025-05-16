@@ -5,7 +5,7 @@ import { useSessionCheck } from '@/entities/session/hooks/useSessionCheck'
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { initialized, initAuth } = useAuth()
-  useSessionCheck() // Используем хук вместо компонента
+  useSessionCheck()
 
   useEffect(() => {
     void initAuth()

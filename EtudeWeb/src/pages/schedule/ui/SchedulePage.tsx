@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { Container } from '@/shared/ui/container'
 import { Filter } from '@/shared/ui/filter'
 import { Switch } from '@/shared/ui/switch'
@@ -18,10 +18,15 @@ import {
   calendarViewOptions
 } from '@/features/schedule'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
+import { ScheduleSidebar } from './ScheduleSidebar'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const SchedulePage: React.FC = () => {
   const { data: calendarCards, isLoading, error } = useSchedule()
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
+  const queryClient = useQueryClient()
   const {
     currentDate,
     viewMode,
@@ -37,8 +42,17 @@ export const SchedulePage: React.FC = () => {
   } = useScheduleNavigation()
 
   const handleCardClick = useCallback((card: CalendarCard) => {
-    console.log('Clicked card:', card)
+    setSelectedTemplateId(card.id)
+    setIsSidebarOpen(true)
   }, [])
+
+  const handleCloseSidebar = useCallback(() => {
+    setIsSidebarOpen(false)
+  }, [])
+
+  const handleResetFilters = () => {
+    queryClient.invalidateQueries({ queryKey: ['schedule'] })
+  }
 
   const errorComponent = error ? (
     <EmptyMessage
@@ -68,7 +82,7 @@ export const SchedulePage: React.FC = () => {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex-grow">
-          <Filter filters={scheduleFilterOptions} pageId="schedule-page" className="flex-wrap" />
+          <Filter filters={scheduleFilterOptions} pageId="schedule-page" className="flex-wrap" onReset={handleResetFilters} />
         </div>
 
         <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
@@ -146,6 +160,12 @@ export const SchedulePage: React.FC = () => {
           </div>,
           document.body
         )}
+
+      <ScheduleSidebar
+        open={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        templateId={selectedTemplateId}
+      />
     </Container>
   )
 }

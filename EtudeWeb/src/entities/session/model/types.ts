@@ -1,5 +1,3 @@
-// src/entities/session/model/types.ts
-
 import { User } from '@/shared/types'
 
 export interface LoginCredentials {
@@ -20,8 +18,4 @@ export interface SessionState {
   isLoading: boolean
   error: string | null
   initialized: boolean
-}
-
-export interface AuthResponse {
-  user: User
 }

@@ -77,7 +77,7 @@ const router = createBrowserRouter([
             <AdminPage />
           </ProtectedRoute>
         )
-      },
+      }
     ]
   },
 

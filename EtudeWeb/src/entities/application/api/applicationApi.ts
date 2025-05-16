@@ -2,13 +2,11 @@ import axios from 'axios'
 import { API_URL } from '@/shared/config'
 import { ApplicationEvent, ApplicationData } from '@/entities/application'
 
-// Создаем инстанс axios с базовыми настройками
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true
 })
 
-// Временный массив с моковыми данными для демонстрации работы
 const MOCK_EVENTS: ApplicationEvent[] = [
   {
     id: '1',
@@ -77,20 +75,15 @@ const MOCK_EVENTS: ApplicationEvent[] = [
   }
 ]
 
-// Задержка для имитации запроса к серверу
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const applicationApi = {
-  // Получение каталога мероприятий
   getEventsCatalog: async (filters?: Record<string, any>): Promise<ApplicationEvent[]> => {
     try {
-      // В реальном проекте здесь будет реальный запрос
       // const { data } = await api.get('/applications/catalog', { params: filters });
 
-      // Имитация запроса для демонстрации
       await delay(1000)
 
-      // Если есть фильтры, применяем их
       if (filters && Object.keys(filters).length > 0) {
         return MOCK_EVENTS.filter((event) => {
           for (const [key, value] of Object.entries(filters)) {
@@ -109,13 +102,10 @@ export const applicationApi = {
     }
   },
 
-  // Получение конкретного мероприятия по ID
   getEventById: async (id: string): Promise<ApplicationEvent> => {
     try {
-      // В реальном проекте здесь будет реальный запрос
       // const { data } = await api.get(`/applications/events/${id}`);
 
-      // Имитация запроса для демонстрации
       await delay(500)
 
       const event = MOCK_EVENTS.find((event) => event.id === id)
@@ -130,10 +120,9 @@ export const applicationApi = {
     }
   },
 
-// Создание нового заявления
   createApplication: async (applicationData: ApplicationData): Promise<ApplicationData> => {
     try {
-      const { data } = await api.post('/application', applicationData);
+      const { data } = await api.post('/application', applicationData)
       return data
     } catch (error) {
       console.error('Error creating application:', error)
@@ -141,16 +130,13 @@ export const applicationApi = {
     }
   },
 
-  // Обновление существующего заявления
   updateApplication: async (
     id: string,
     updates: Partial<ApplicationData>
   ): Promise<ApplicationData> => {
     try {
-      // В реальном проекте здесь будет реальный запрос
       // const { data } = await api.patch(`/applications/${id}`, updates);
 
-      // Имитация запроса для демонстрации
       await delay(1000)
 
       return {

@@ -9,11 +9,10 @@ import {
   formatDate,
   getStatusColor,
   getStatusBadgeVariant,
-  getStatusText,
-  getFormatLabel,
-  getCategoryLabel,
-  getTypeLabel
+  getStatusText
 } from '../utils/calendar-helpers'
+import { CourseFormatLabels } from '@/shared/labels/courseFormat.ts'
+import { CourseTypeLabels } from '@/shared/labels/courseType.ts'
 
 interface CalendarCardItemProps {
   card: CalendarCard
@@ -49,12 +48,15 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
         </p>
       </div>
       <div className="flex flex-wrap gap-1 mb-2">
-        <Tag>{getFormatLabel(card.format)}</Tag>
-        <Tag>{getCategoryLabel(card.category)}</Tag>
-        <Tag>{getTypeLabel(card.type)}</Tag>
+        <Tag>{CourseFormatLabels[card.format]}</Tag>
+        <Tag>{card.track}</Tag>
+        <Tag>{CourseTypeLabels[card.type]}</Tag>
       </div>
       <p className="text-b4-regular mb-2">{card.description}</p>
-      <p className="text-b4-regular text-mono-700">Сотрудник: {card.employee}</p>
+      {card.employee && <p className="text-b4-regular text-mono-700">Сотрудник: {card.employee}</p>}
+      {card.trainingCenter && (
+        <p className="text-b4-regular text-mono-700">Учебный центр: {card.trainingCenter}</p>
+      )}
     </div>
   )
 
@@ -83,7 +85,7 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
           {!isMinSize && (
             <>
               <div className="flex items-center gap-2 mb-[6px]">
-                {showBadge && (
+                {card.status && showBadge && (
                   <Badge
                     variant={getStatusBadgeVariant(card.status)}
                     className="whitespace-nowrap shrink-0"

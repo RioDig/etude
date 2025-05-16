@@ -5,15 +5,21 @@ import { FilterOption } from '@/shared/ui/filter/types'
  */
 export const scheduleFilterOptions: FilterOption[] = [
   {
+    id: 'name',
+    label: 'Наименование',
+    type: 'dropdown',
+    options: [{ value: '', label: 'Все курсы' }]
+  },
+  {
     id: 'type',
     label: 'Тип',
     type: 'dropdown',
     options: [
       { value: '', label: 'Все типы' },
-      { value: 'Курс', label: 'Курс' },
-      { value: 'Конференция', label: 'Конференция' },
-      { value: 'Вебинар', label: 'Вебинар' },
-      { value: 'Тренинг', label: 'Тренинг' }
+      { value: 'Course', label: 'Курс' },
+      { value: 'Conference', label: 'Конференция' },
+      { value: 'Certification', label: 'Сертификация' },
+      { value: 'Workshop', label: 'Мастер-класс' }
     ]
   },
   {
@@ -22,20 +28,19 @@ export const scheduleFilterOptions: FilterOption[] = [
     type: 'dropdown',
     options: [
       { value: '', label: 'Все форматы' },
-      { value: 'Онлайн', label: 'Онлайн' },
-      { value: 'Очно', label: 'Очно' },
-      { value: 'Смешанный', label: 'Смешанный' }
+      { value: 'Online', label: 'Онлайн' },
+      { value: 'Offline', label: 'Очно' }
     ]
   },
   {
-    id: 'category',
-    label: 'Категория',
+    id: 'track',
+    label: 'Направление',
     type: 'dropdown',
     options: [
-      { value: '', label: 'Все категории' },
+      { value: '', label: 'Все направления' },
       { value: 'Hard Skills', label: 'Hard Skills' },
       { value: 'Soft Skills', label: 'Soft Skills' },
-      { value: 'Management', label: 'Management' }
+      { value: 'Management Skills', label: 'Management Skills' }
     ]
   }
 ]

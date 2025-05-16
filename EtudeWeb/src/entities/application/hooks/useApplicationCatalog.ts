@@ -8,10 +8,8 @@ import { usePageFilters } from '@/entities/filter'
 export const useApplicationCatalog = () => {
   const { filters } = usePageFilters('application-catalog')
 
-  // Преобразуем фильтры в формат, подходящий для API
   const apiFilters = Object.entries(filters).reduce(
     (acc, [key, value]) => {
-      // Игнорируем пустые значения
       if (value !== null && value !== undefined && value !== '') {
         acc[key] = value
       }
@@ -19,7 +17,6 @@ export const useApplicationCatalog = () => {
     },
     {} as Record<string, any>
   )
-
 
   return useQuery({
     queryKey: ['applications', 'catalog', filters],
@@ -36,9 +33,9 @@ export const useApplicationEvent = (eventId: string | null) => {
   return useQuery({
     queryKey: ['applications', 'event', eventId],
     queryFn: () => applicationApi.getEventById(eventId as string),
-    enabled: !!eventId, // Запрос активен только если есть eventId
-    staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
-    refetchOnWindowFocus: false // Не обновлять данные при фокусе окна
+    enabled: !!eventId,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false
   })
 }
 

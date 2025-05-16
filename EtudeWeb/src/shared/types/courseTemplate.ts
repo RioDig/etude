@@ -1,3 +1,5 @@
+import { CourseFormat, CourseTrack, CourseType } from '@/shared/types/course.ts'
+
 /**
  * Интерфейс для шаблона курса
  */
@@ -20,17 +22,17 @@ export interface CourseTemplate {
   /**
    * Тип курса (course, conference, certification, workshop)
    */
-  course_template_type: string
+  course_template_type: CourseType
 
   /**
    * Направление курса (Soft Skills, Hard Skills, Management Skills)
    */
-  course_template_track: string
+  course_template_track: CourseTrack
 
   /**
    * Формат проведения (очно, дистанционно)
    */
-  course_template_format: string
+  course_template_format: CourseFormat
 
   /**
    * Учебный центр

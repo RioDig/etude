@@ -1,5 +1,3 @@
-// Обновить в src/entities/session/hooks/useAuth.ts
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { sessionApi } from '../api/sessionApi'
 import { useCallback, useEffect } from 'react'
@@ -21,7 +19,6 @@ export const useAuth = () => {
     setInitialized
   } = useSessionStore()
 
-  // Запрос данных пользователя с оптимальными настройками React Query
   const { isLoading: isUserLoading, refetch } = useQuery({
     queryKey: ['auth', 'me'],
     queryFn: async () => {
@@ -35,17 +32,16 @@ export const useAuth = () => {
         return null
       }
     },
-    enabled: isAuthenticated, // Запускаем только если пользователь авторизован
-    staleTime: 1000 * 60 * 15, // Данные считаются свежими 15 минут
-    gcTime: 1000 * 60 * 30, // Данные хранятся в кеше 30 минут
-    refetchInterval: 1000 * 60 * 15, // Автоматическое обновление каждые 15 минут
-    refetchIntervalInBackground: true, // Не обновлять, когда вкладка не активна
-    refetchOnWindowFocus: true, // Не обновлять при фокусе окна
-    refetchOnMount: true, // Обновлять при монтировании, если данные устарели
-    retry: 1 // Одна повторная попытка при ошибке
+    enabled: isAuthenticated,
+    staleTime: 1000 * 60 * 15,
+    gcTime: 1000 * 60 * 30,
+    refetchInterval: 1000 * 60 * 15,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 1
   })
 
-  // Простая функция обновления сессии, используя refetch из React Query
   const refreshSession = useCallback(async () => {
     try {
       const result = await refetch()
@@ -57,7 +53,6 @@ export const useAuth = () => {
     }
   }, [refetch, clearSession])
 
-  // Функция инициализации
   const initAuth = useCallback(async () => {
     if (!initialized) {
       try {
@@ -71,7 +66,6 @@ export const useAuth = () => {
     }
   }, [initialized, refreshSession, clearSession, setInitialized])
 
-  // Слушаем события изменения localStorage
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'session-storage' && e.newValue !== e.oldValue) {
@@ -86,7 +80,6 @@ export const useAuth = () => {
     }
   }, [refreshSession])
 
-  // Мутации для логина, регистрации и выхода
   const loginMutation = useMutation({
     mutationFn: sessionApi.login,
     onSuccess: (userData: User) => {
@@ -113,7 +106,7 @@ export const useAuth = () => {
     mutationFn: sessionApi.logout,
     onSuccess: () => {
       clearSession()
-      // Удаляем запросы вместо инвалидации
+
       queryClient.removeQueries({ queryKey: ['auth'] })
     }
   })
@@ -125,7 +118,7 @@ export const useAuth = () => {
     isPending: loginMutation.isPending,
     error,
     setError,
-    setUser, // Экспортируем, чтобы можно было устанавливать пользователя извне
+    setUser,
     initialized,
     initAuth,
     refreshSession,
