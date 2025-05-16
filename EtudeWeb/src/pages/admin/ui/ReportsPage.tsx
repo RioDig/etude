@@ -5,12 +5,12 @@ import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
-import { useReports, useDownloadReport, useGenerateReport, Report } from '@/entities/report'
+import { useReports, useDownloadReport, Report } from '@/entities/report'
 import { MoreHoriz, Download, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { notification } from '@/shared/lib/notification'
 import { Typography } from '@/shared/ui/typography'
-import { Modal } from '@/shared/ui/modal'
+import { ReportGenerationSidebar } from '@/features/admin/ui/ReportGenerationSidebar'
 
 export const ReportsPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -18,14 +18,11 @@ export const ReportsPage: React.FC = () => {
     direction: 'desc'
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
-  const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
-  // Используем хуки для загрузки отчетов и операций с ними
   const { data: reports, isLoading, error } = useReports()
   const { mutate: downloadReport, isPending: isDownloading } = useDownloadReport()
-  const { mutate: generateReport, isPending: isGenerating } = useGenerateReport()
 
-  // Опции для фильтров
   const filterOptions: FilterOption[] = [
     {
       id: 'filter_type',
@@ -43,12 +40,10 @@ export const ReportsPage: React.FC = () => {
     }
   ]
 
-  // Обработчик сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
   }
 
-  // Обработчик скачивания отчета
   const handleDownloadReport = (report: Report) => {
     setOpenDropdownId(null)
 
@@ -68,36 +63,14 @@ export const ReportsPage: React.FC = () => {
     })
   }
 
-  // Обработчик открытия модального окна генерации отчета
-  const handleOpenGenerateModal = () => {
-    setIsGenerateModalOpen(true)
+  const handleOpenGenerationSidebar = () => {
+    setIsSidebarOpen(true)
   }
 
-  // Обработчик закрытия модального окна генерации отчета
-  const handleCloseGenerateModal = () => {
-    setIsGenerateModalOpen(false)
+  const handleCloseGenerationSidebar = () => {
+    setIsSidebarOpen(false)
   }
 
-  // Обработчик генерации нового отчета
-  const handleGenerateReport = () => {
-    generateReport(undefined, {
-      onSuccess: () => {
-        notification.success({
-          title: 'Успешно',
-          description: 'Отчет успешно сгенерирован и скачан'
-        })
-        setIsGenerateModalOpen(false)
-      },
-      onError: () => {
-        notification.error({
-          title: 'Ошибка',
-          description: 'Не удалось сгенерировать отчет'
-        })
-      }
-    })
-  }
-
-  // Колонки таблицы
   const columns = [
     {
       id: 'report_createDate',
@@ -167,7 +140,6 @@ export const ReportsPage: React.FC = () => {
     }
   ]
 
-  // Компонент пустого состояния
   const emptyComponent = (
     <EmptyMessage
       variant="small"
@@ -180,7 +152,6 @@ export const ReportsPage: React.FC = () => {
     />
   )
 
-  // Компонент загрузки
   const loadingComponent = (
     <div className="flex justify-center items-center h-64">
       <Spinner size="large" label="Загрузка отчетов..." />
@@ -191,15 +162,13 @@ export const ReportsPage: React.FC = () => {
     <div className="flex flex-col gap-6 h-full">
       <div className="flex justify-between items-center">
         <Typography variant={'h1'}>Отчетность</Typography>
-        <Button variant="primary" leftIcon={<Add />} onClick={handleOpenGenerateModal}>
+        <Button variant="primary" leftIcon={<Add />} onClick={handleOpenGenerationSidebar}>
           Сформировать отчет
         </Button>
       </div>
 
-      {/* Фильтры */}
       <Filter filters={filterOptions} pageId="admin-reports" />
 
-      {/* Таблица */}
       <div className="flex-1 overflow-hidden">
         <Table
           data={isLoading ? [] : reports || []}
@@ -212,34 +181,7 @@ export const ReportsPage: React.FC = () => {
         />
       </div>
 
-      {/* Модальное окно генерации отчета */}
-      <Modal
-        isOpen={isGenerateModalOpen}
-        onClose={handleCloseGenerateModal}
-        title="Сформировать отчет"
-        actions={
-          <>
-            <Button variant="secondary" onClick={handleCloseGenerateModal}>
-              Отмена
-            </Button>
-            <Button variant="primary" onClick={handleGenerateReport} disabled={isGenerating}>
-              {isGenerating ? (
-                <>
-                  <Spinner size="small" variant="white" className="mr-2" />
-                  <span>Создание отчета...</span>
-                </>
-              ) : (
-                'Создать и скачать'
-              )}
-            </Button>
-          </>
-        }
-      >
-        <Typography variant="b3Regular">
-          Вы собираетесь сформировать отчет по завершенным обучениям. Отчет будет автоматически
-          скачан после формирования.
-        </Typography>
-      </Modal>
+      <ReportGenerationSidebar open={isSidebarOpen} onClose={handleCloseGenerationSidebar} />
     </div>
   )
 }

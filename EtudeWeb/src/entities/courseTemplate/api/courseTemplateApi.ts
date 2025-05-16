@@ -8,15 +8,34 @@ const api = axios.create({
   withCredentials: true
 })
 
+export interface CourseTemplateFilter {
+  name: string
+  value: string
+}
+
 export const courseTemplateApi = {
   /**
    * Получение списка шаблонов курсов с возможностью фильтрации
    */
   getCourseTemplates: async (filters?: CourseTemplateFilterParam[]): Promise<CourseTemplate[]> => {
     try {
-      const { data } = await api.get<CourseTemplate[]>('/CourseTemplate1', {
-        params: { filter: filters }
+      let filterParams = undefined
+
+      if (filters && Object.keys(filters).length > 0) {
+        const filterArray: CourseTemplateFilter[] = Object.entries(filters)
+          .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+          .map(([key, value]) => ({
+            name: key,
+            value: typeof value === 'string' ? value : String(value)
+          }))
+
+        filterParams = { filter: JSON.stringify(filterArray) }
+      }
+
+      const { data } = await api.get<CourseTemplate[]>('/CourseTemplate', {
+        params: filterParams
       })
+
       return data
     } catch (error) {
       console.error('Error fetching course templates:', error)

@@ -14,7 +14,7 @@ export const customStatusApi = {
    */
   getCustomStatuses: async (): Promise<CustomStatus[]> => {
     try {
-      const { data } = await api.get<CustomStatus[]>('/CustomStatus1')
+      const { data } = await api.get<CustomStatus[]>('/CustomStatus')
       return data
     } catch (error) {
       console.error('Error fetching custom statuses:', error)
@@ -46,7 +46,7 @@ export const customStatusApi = {
   /**
    * Создание нового дополнительного статуса
    */
-  createCustomStatus: async (statusData: Omit<CustomStatus, 'id'>): Promise<CustomStatus> => {
+  createCustomStatus: async (statusData: Omit<Omit<CustomStatus, 'type'>, 'id'>): Promise<CustomStatus> => {
     try {
       const { data } = await api.post<CustomStatus>('/CustomStatus', statusData)
       return data

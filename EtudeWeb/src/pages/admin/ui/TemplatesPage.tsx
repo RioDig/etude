@@ -15,7 +15,7 @@ import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { Typography } from '@/shared/ui/typography'
 import { Modal } from '@/shared/ui/modal'
 import { notification } from '@/shared/lib/notification'
-import { CourseTemplateForm } from './CourseTemplateForm'
+import { CourseTemplateSidebar } from '@/features/admin/ui/CourseTemplateSidebar'
 
 export const TemplatesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -23,15 +23,13 @@ export const TemplatesPage: React.FC = () => {
     direction: 'asc'
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<CourseTemplate | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  // Используем хук для загрузки данных
   const { data: templates, isLoading, error } = useCourseTemplates()
   const deleteTemplateMutation = useDeleteCourseTemplate()
 
-  // Опции для фильтров
   const filterOptions: FilterOption[] = [
     {
       id: 'name',
@@ -74,32 +72,27 @@ export const TemplatesPage: React.FC = () => {
     }
   ]
 
-  // Обработчик сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
   }
 
-  // Обработчик добавления нового шаблона
   const handleAddTemplate = () => {
     setSelectedTemplate(null)
-    setIsModalOpen(true)
+    setIsSidebarOpen(true)
   }
 
-  // Обработчик редактирования шаблона
   const handleEditTemplate = (template: CourseTemplate) => {
     setSelectedTemplate(template)
-    setIsModalOpen(true)
+    setIsSidebarOpen(true)
     setOpenDropdownId(null)
   }
 
-  // Обработчик открытия модального окна удаления
   const handleOpenDeleteModal = (template: CourseTemplate) => {
     setSelectedTemplate(template)
     setIsDeleteModalOpen(true)
     setOpenDropdownId(null)
   }
 
-  // Обработчик удаления шаблона
   const handleDeleteTemplate = () => {
     if (selectedTemplate) {
       deleteTemplateMutation.mutate(selectedTemplate.course_template_id, {
@@ -120,17 +113,14 @@ export const TemplatesPage: React.FC = () => {
     }
   }
 
-  // Закрытие модального окна
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false)
   }
 
-  // Закрытие модального окна удаления
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false)
   }
 
-  // Колонки таблицы
   const columns = [
     {
       id: 'course_template_type',
@@ -194,16 +184,6 @@ export const TemplatesPage: React.FC = () => {
       }
     },
     {
-      id: 'course_template_endDate',
-      header: 'Дата окончания',
-      sortable: true,
-      width: '10%',
-      render: (template: CourseTemplate) => {
-        if (!template.course_template_endDate) return '—'
-        return new Date(template.course_template_endDate).toLocaleDateString('ru-RU')
-      }
-    },
-    {
       id: 'actions',
       header: '',
       width: '5%',
@@ -247,7 +227,6 @@ export const TemplatesPage: React.FC = () => {
     }
   ]
 
-  // Компонент пустого состояния
   const emptyComponent = (
     <EmptyMessage
       variant="small"
@@ -260,7 +239,6 @@ export const TemplatesPage: React.FC = () => {
     />
   )
 
-  // Компонент загрузки
   const loadingComponent = (
     <div className="flex justify-center items-center h-64">
       <Spinner size="large" label="Загрузка шаблонов..." />
@@ -276,10 +254,8 @@ export const TemplatesPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Фильтры */}
       <Filter filters={filterOptions} pageId="admin-templates" />
 
-      {/* Таблица */}
       <div className="flex-1 overflow-hidden">
         <Table
           data={isLoading ? [] : templates || []}
@@ -291,26 +267,12 @@ export const TemplatesPage: React.FC = () => {
         />
       </div>
 
-      {/* Модальное окно добавления/редактирования шаблона */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={selectedTemplate ? 'Редактирование шаблона курса' : 'Добавление шаблона курса'}
-        actions={
-          <>
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Отмена
-            </Button>
-            <Button variant="primary" type="submit" form="templateForm">
-              {selectedTemplate ? 'Сохранить' : 'Создать'}
-            </Button>
-          </>
-        }
-      >
-        <CourseTemplateForm initialData={selectedTemplate} onSuccess={handleCloseModal} />
-      </Modal>
+      <CourseTemplateSidebar
+        open={isSidebarOpen}
+        onClose={handleCloseSidebar}
+        template={selectedTemplate}
+      />
 
-      {/* Модальное окно подтверждения удаления */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}

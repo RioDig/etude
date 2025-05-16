@@ -8,10 +8,10 @@ import { CustomStatus, useCustomStatuses, useDeleteCustomStatus } from '@/entiti
 import { MoreHoriz, Edit, Delete, Add } from '@mui/icons-material'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { Typography } from '@/shared/ui/typography'
-import { Control } from '@/shared/ui/controls'
 import { Modal } from '@/shared/ui/modal'
 import { notification } from '@/shared/lib/notification'
-import { StatusForm } from './StatusForm'
+import { StatusSidebar } from '@/features/admin/ui/StatusSidebar'
+import { Control } from '@/shared/ui/controls'
 
 export const StatusesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -20,45 +20,38 @@ export const StatusesPage: React.FC = () => {
   })
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState<string>('')
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<CustomStatus | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
-  // Используем хук для загрузки данных
   const { data: statuses, isLoading, error } = useCustomStatuses()
   const deleteStatusMutation = useDeleteCustomStatus()
 
-  // Обработчик сортировки
   const handleSort = (newSortState: SortState) => {
     setSortState(newSortState)
   }
 
-  // Обработчик поиска
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value)
   }
 
-  // Обработчик добавления статуса
   const handleAddStatus = () => {
     setSelectedStatus(null)
-    setIsModalOpen(true)
+    setIsSidebarOpen(true)
   }
 
-  // Обработчик редактирования статуса
   const handleEditStatus = (status: CustomStatus) => {
     setSelectedStatus(status)
-    setIsModalOpen(true)
+    setIsSidebarOpen(true)
     setOpenDropdownId(null)
   }
 
-  // Обработчик открытия модального окна удаления
   const handleOpenDeleteModal = (status: CustomStatus) => {
     setSelectedStatus(status)
     setIsDeleteModalOpen(true)
     setOpenDropdownId(null)
   }
 
-  // Обработчик удаления статуса
   const handleDeleteStatus = () => {
     if (selectedStatus) {
       deleteStatusMutation.mutate(selectedStatus.id, {
@@ -79,23 +72,19 @@ export const StatusesPage: React.FC = () => {
     }
   }
 
-  // Закрытие модального окна
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
+  const handleCloseSidebar = () => {
+    setIsSidebarOpen(false)
   }
 
-  // Закрытие модального окна удаления
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false)
   }
 
-  // Фильтрация статусов по поисковому запросу
   const filteredStatuses =
     statuses?.filter(
       (status) => searchTerm === '' || status.name.toLowerCase().includes(searchTerm.toLowerCase())
     ) || []
 
-  // Колонки таблицы
   const columns = [
     {
       id: 'name',
@@ -109,7 +98,7 @@ export const StatusesPage: React.FC = () => {
       header: 'Описание',
       accessor: 'description',
       sortable: true,
-      width: '60%'
+      width: '40%'
     },
     {
       id: 'actions',
@@ -155,7 +144,6 @@ export const StatusesPage: React.FC = () => {
     }
   ]
 
-  // Компонент пустого состояния
   const emptyComponent = (
     <EmptyMessage
       variant="small"
@@ -170,7 +158,6 @@ export const StatusesPage: React.FC = () => {
     />
   )
 
-  // Компонент загрузки
   const loadingComponent = (
     <div className="flex justify-center items-center h-64">
       <Spinner size="large" label="Загрузка статусов..." />
@@ -179,7 +166,6 @@ export const StatusesPage: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      {/* Заголовок и кнопка добавления */}
       <div className="flex justify-between items-center mb-2">
         <Typography variant="h1">Дополнительные статусы</Typography>
         <Button variant="primary" leftIcon={<Add />} onClick={handleAddStatus}>
@@ -187,7 +173,6 @@ export const StatusesPage: React.FC = () => {
         </Button>
       </div>
 
-      {/* Поиск */}
       <div className="w-full">
         <Control.Input
           placeholder="Поиск по названию статуса..."
@@ -196,7 +181,6 @@ export const StatusesPage: React.FC = () => {
         />
       </div>
 
-      {/* Таблица */}
       <div className="flex-1 overflow-hidden">
         <Table
           data={isLoading ? [] : filteredStatuses}
@@ -208,26 +192,8 @@ export const StatusesPage: React.FC = () => {
         />
       </div>
 
-      {/* Модальное окно добавления/редактирования статуса */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title={selectedStatus ? 'Редактирование статуса' : 'Добавление статуса'}
-        actions={
-          <>
-            <Button variant="secondary" onClick={handleCloseModal}>
-              Отмена
-            </Button>
-            <Button variant="primary" type="submit" form="statusForm">
-              {selectedStatus ? 'Сохранить' : 'Создать'}
-            </Button>
-          </>
-        }
-      >
-        <StatusForm initialData={selectedStatus} onSuccess={handleCloseModal} />
-      </Modal>
+      <StatusSidebar open={isSidebarOpen} onClose={handleCloseSidebar} status={selectedStatus} />
 
-      {/* Модальное окно подтверждения удаления */}
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}

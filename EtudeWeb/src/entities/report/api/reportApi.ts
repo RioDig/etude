@@ -8,13 +8,34 @@ const api = axios.create({
   withCredentials: true
 })
 
+export interface ReportFilter {
+  name: string
+  value: string
+}
+
 export const reportApi = {
   /**
    * Получение списка отчетов с возможностью фильтрации
    */
   getReports: async (filters?: ReportFilterParam[]): Promise<Report[]> => {
     try {
-      const { data } = await api.get<Report[]>('/Report1', { params: { filter: filters } })
+      let filterParams = undefined
+
+      if (filters && Object.keys(filters).length > 0) {
+        const filterArray: ReportFilter[] = Object.entries(filters)
+          .filter(([_, value]) => value !== null && value !== undefined && value !== '')
+          .map(([key, value]) => ({
+            name: key,
+            value: typeof value === 'string' ? value : String(value)
+          }))
+
+        filterParams = { filter: JSON.stringify(filterArray) }
+      }
+
+      const { data } = await api.get<Report[]>('/Report', {
+        params: filterParams
+      })
+
       return data
     } catch (error) {
       console.error('Error fetching reports:', error)

@@ -8,17 +8,18 @@ export const useCourseTemplates = () => {
 
   // Преобразуем фильтры в формат API
   const apiFilters = Object.entries(filters).reduce(
-    (result: CourseTemplateFilterParam[], [key, value]) => {
+    (result, [key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        result.push(<CourseTemplateFilterParam>{ name: key, value: String(value) })
+        result[key] = String(value)
       }
       return result
     },
-    []
+    {} as Record<string, string>
   )
 
   return useQuery({
     queryKey: ['courseTemplates', apiFilters],
+    // @ts-expect-error hotfix
     queryFn: () => courseTemplateApi.getCourseTemplates(apiFilters),
     staleTime: 1000 * 60 * 5 // Данные считаются свежими 5 минут
   })

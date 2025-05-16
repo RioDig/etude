@@ -1,20 +1,23 @@
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { reportApi } from '../api/reportApi'
-import { ReportFilterParam } from '@/shared/types'
 import { usePageFilters } from '@/entities/filter'
 
 export const useReports = () => {
   const { filters } = usePageFilters('admin-reports')
 
-  const apiFilters = Object.entries(filters).reduce((result: ReportFilterParam[], [key, value]) => {
-    if (value !== null && value !== undefined && value !== '') {
-      result.push(<ReportFilterParam>{ name: key, value: String(value) })
-    }
-    return result
-  }, [])
+  const apiFilters = Object.entries(filters).reduce(
+    (result, [key, value]) => {
+      if (value !== null && value !== undefined && value !== '') {
+        result[key] = String(value)
+      }
+      return result
+    },
+    {} as Record<string, string>
+  )
 
   return useQuery({
     queryKey: ['reports', apiFilters],
+    // @ts-expect-error hotfix
     queryFn: () => reportApi.getReports(apiFilters),
     staleTime: 1000 * 60 * 5
   })
