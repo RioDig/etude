@@ -7,8 +7,8 @@ export interface ContainerProps {
 }
 
 export const Container: React.FC<ContainerProps> = ({ children, className }) => {
-  const containerClassNames = 'bg-white shadow-[0px_0px_10px_0px_rgba(0,_0,_0,_0.03)] p-6 rounded-lg overflow-visible'
+  const containerClassNames =
+    'bg-white shadow-[0px_0px_10px_0px_rgba(0,_0,_0,_0.03)] p-6 rounded-lg overflow-visible'
 
   return <div className={clsx(className, containerClassNames)}>{children}</div>
 }
-

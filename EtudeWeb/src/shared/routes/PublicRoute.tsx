@@ -1,4 +1,3 @@
-// src/shared/routes/PublicRoute.tsx
 import React, { useEffect, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/entities/session'
@@ -19,10 +18,8 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Проверяем, есть ли активная сессия
         await refreshSession()
       } finally {
-        // В любом случае завершаем проверку
         setTimeout(() => {
           setIsChecking(false)
         }, 500)
@@ -32,20 +29,17 @@ export const PublicRoute: React.FC<PublicRouteProps> = ({ children }) => {
     checkAuth()
   }, [refreshSession])
 
-  // Показываем индикатор загрузки во время проверки
   if (isChecking) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Spinner size="medium" label="Проверка авторизации..." className='leading-none' />
+        <Spinner size="medium" label="Проверка авторизации..." className="leading-none" />
       </div>
     )
   }
 
-  // Если пользователь авторизован, перенаправляем на главную
   if (isAuthenticated) {
     return <Navigate to="/" replace />
   }
 
-  // Если не авторизован, показываем содержимое
   return <>{children}</>
 }

@@ -1,4 +1,3 @@
-// src/shared/api/employeeAutocomplete.ts
 import axios from 'axios'
 import { API_URL } from '@/shared/config'
 
@@ -36,7 +35,7 @@ export const employeeAutocompleteApi = {
       return data
     } catch (error) {
       console.error('Error fetching employee autocomplete data:', error)
-      // В случае ошибки возвращаем пустой список
+
       return { employees: [], hasMoreItems: false }
     }
   }

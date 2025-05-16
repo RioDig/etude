@@ -22,8 +22,8 @@ export const profileApi = {
 
   getUserPastEvents: async (): Promise<PastEvent[]> => {
     try {
-      // const { data } = await api.get<PastEvent[]>('/UserStatistics/pastEvents')
-      return MOCK_PAST_EVENTS
+      const { data } = await api.get<PastEvent[]>('/UserStatistics/pastEvents')
+      return data
     } catch (error) {
       console.error('Error fetching user past events:', error)
       await delay(1000)

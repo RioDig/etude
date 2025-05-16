@@ -1,86 +1,85 @@
-import React, { useRef } from 'react';
-import clsx from 'clsx';
-import { Check } from '@mui/icons-material';
+import React, { useRef } from 'react'
+import clsx from 'clsx'
+import { Check } from '@mui/icons-material'
 
 export interface DropdownOption {
-  value: string;
-  label: string;
-  description?: string;
-  disabled?: boolean;
+  value: string
+  label: string
+  description?: string
+  disabled?: boolean
 }
 
 export interface DropdownProps {
   /**
    * Список опций для выпадающего списка
    */
-  options: DropdownOption[];
+  options: DropdownOption[]
 
   /**
    * Выбранное значение в режиме одиночного выбора
    */
-  value?: string;
+  value?: string
 
   /**
    * Выбранные значения в режиме множественного выбора
    */
-  selectedValues?: string[];
+  selectedValues?: string[]
 
   /**
    * Режим множественного выбора
    * @default false
    */
-  multiSelect?: boolean;
+  multiSelect?: boolean
 
   /**
    * Обработчик выбора значения в режиме одиночного выбора
    */
-  onSelect?: (value: string) => void;
+  onSelect?: (value: string) => void
 
   /**
    * Обработчик выбора значения в режиме множественного выбора
    */
-  onMultiSelect?: (values: string[]) => void;
+  onMultiSelect?: (values: string[]) => void
 
   /**
    * Обработчик закрытия выпадающего списка
    */
-  onClose?: () => void;
+  onClose?: () => void
 
   /**
    * Максимальная высота списка в пикселях
    * @default 300
    */
-  maxHeight?: number;
+  maxHeight?: number
 
   /**
    * Показать скролл
    * @default true
    */
-  showScroll?: boolean;
+  showScroll?: boolean
 
   /**
    * Закрыть при выборе в режиме одиночного выбора
    * @default true
    */
-  closeOnSelect?: boolean;
+  closeOnSelect?: boolean
 
   /**
    * Отключить клик по пустому пространству для закрытия
    * @default false
    */
-  disableClickOutside?: boolean;
+  disableClickOutside?: boolean
 
   /**
    * Дополнительные классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }
-
 
 /**
  * Компонент выпадающего списка (Dropdown)
@@ -98,53 +97,44 @@ export const Dropdown: React.FC<DropdownProps> = ({
   closeOnSelect = true,
   // disableClickOutside = false,
   className,
-  testId = 'dropdown',
+  testId = 'dropdown'
 }) => {
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-  // Обработчик выбора в режиме одиночного выбора
   const handleSingleSelect = (option: DropdownOption) => {
-    if (option.disabled) return;
+    if (option.disabled) return
 
     if (onSelect) {
-      onSelect(option.value);
+      onSelect(option.value)
     }
 
     if (closeOnSelect) {
-      if (onClose) onClose();
+      if (onClose) onClose()
     }
-  };
+  }
 
-  // Обработчик выбора в режиме множественного выбора
   const handleMultiSelect = (option: DropdownOption) => {
-    if (option.disabled) return;
+    if (option.disabled) return
 
-    const isSelected = selectedValues.includes(option.value);
+    const isSelected = selectedValues.includes(option.value)
     const newValues = isSelected
-      ? selectedValues.filter(val => val !== option.value)
-      : [...selectedValues, option.value];
+      ? selectedValues.filter((val) => val !== option.value)
+      : [...selectedValues, option.value]
 
     if (onMultiSelect) {
-      onMultiSelect(newValues);
+      onMultiSelect(newValues)
     }
-  };
+  }
 
   return (
     <div
       ref={dropdownRef}
-      className={clsx(
-        'bg-white rounded-md shadow-lg',
-        'w-full border border-mono-300',
-        className
-      )}
+      className={clsx('bg-white rounded-md shadow-lg', 'w-full border border-mono-300', className)}
       style={{ zIndex: 50 }}
       data-testid={testId}
     >
       <ul
-        className={clsx(
-          'py-1',
-          showScroll && 'overflow-y-auto'
-        )}
+        className={clsx('py-1', showScroll && 'overflow-y-auto')}
         style={{ maxHeight: `${maxHeight}px` }}
         role={multiSelect ? 'listbox' : 'menu'}
         aria-multiselectable={multiSelect}
@@ -152,15 +142,15 @@ export const Dropdown: React.FC<DropdownProps> = ({
         {options.map((option) => {
           const isSelected = multiSelect
             ? selectedValues.includes(option.value)
-            : option.value === value;
+            : option.value === value
 
           const handleClick = () => {
             if (multiSelect) {
-              handleMultiSelect(option);
+              handleMultiSelect(option)
             } else {
-              handleSingleSelect(option);
+              handleSingleSelect(option)
             }
-          };
+          }
 
           return (
             <li
@@ -172,50 +162,44 @@ export const Dropdown: React.FC<DropdownProps> = ({
                 'max-h-[52px] min-h-[34px] flex items-center justify-between',
                 'focus-visible:outline-none',
                 'transition-colors duration-150 ease-in-out',
-                /* Default состояние */
                 'bg-white',
-                /* Hover состояние - светло-серый фон */
                 'hover:bg-mono-100',
-                /* Pressed состояние - темнее серый */
                 'active:bg-mono-200',
-                /* Selected состояние - темнее серый */
                 isSelected && 'bg-mono-200',
-                /* Focus состояние - с рамкой */
                 'focus:bg-mono-100 focus:outline focus:outline-2 focus:outline-offset-[-2px] focus:outline-blue-500',
-                /* Disabled состояние */
                 option.disabled && 'cursor-not-allowed pointer-events-none',
-                /* Enabled состояние */
                 !option.disabled && 'cursor-pointer'
               )}
               onClick={handleClick}
               tabIndex={option.disabled ? -1 : 0}
             >
               <div className="flex flex-col text-left">
-                <span className={clsx(
-                  "text-b4-regular",
-                  option.disabled ? "text-mono-500" : "text-mono-950"
-                )}>{option.label}</span>
+                <span
+                  className={clsx(
+                    'text-b4-regular',
+                    option.disabled ? 'text-mono-500' : 'text-mono-950'
+                  )}
+                >
+                  {option.label}
+                </span>
                 {option.description && (
-                  <span className={clsx(
-                    "text-b4-regular mt-1",
-                    option.disabled ? "text-mono-500" : "text-mono-600"
-                  )}>
+                  <span
+                    className={clsx(
+                      'text-b4-regular mt-1',
+                      option.disabled ? 'text-mono-500' : 'text-mono-600'
+                    )}
+                  >
                     {option.description}
                   </span>
                 )}
               </div>
-              {isSelected && (
-                <Check
-                  className="text-mono-950"
-                  sx={{ width: 20, height: 20 }}
-                />
-              )}
+              {isSelected && <Check className="text-mono-950" sx={{ width: 20, height: 20 }} />}
             </li>
-          );
+          )
         })}
       </ul>
     </div>
-  );
-};
+  )
+}
 
-export default Dropdown;
+export default Dropdown

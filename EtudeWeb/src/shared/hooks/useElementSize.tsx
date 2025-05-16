@@ -18,7 +18,7 @@ export function useElementSize<T extends HTMLElement>(element: T | null) {
     })
 
     resizeObserver.observe(element)
-    updateSize() // Инициализация размеров при первом рендере
+    updateSize()
 
     return () => {
       resizeObserver.disconnect()

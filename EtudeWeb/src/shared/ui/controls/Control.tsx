@@ -9,17 +9,13 @@ import {
 import { SvgIconProps } from '@mui/material'
 import { Hint } from '@/shared/ui/hint'
 
-// Импортируем компонент DatePicker
 import { DatePicker } from '@/shared/ui/datepicker/Datepicker.tsx'
 
-// Импортируем компонент Dropdown
 import { Dropdown, DropdownOption } from '@/shared/ui/dropdown/Dropdown.tsx'
 
-// Определение общих типов
 export type ControlVariant = 'default' | 'filled' | 'error' | 'disabled'
 export type ControlSize = 'default' | 'large'
 
-// Базовый интерфейс для всех контролов
 interface ControlBaseProps {
   /**
    * Метка контрола
@@ -81,7 +77,6 @@ interface ControlBaseProps {
   testId?: string
 }
 
-// Реализация паттерна составного компонента
 const ControlRoot = forwardRef<
   HTMLDivElement,
   React.PropsWithChildren<{
@@ -97,12 +92,10 @@ const ControlRoot = forwardRef<
 })
 ControlRoot.displayName = 'Control.Root'
 
-// Компонент индикатора обязательности поля
 const RequiredIndicator = React.memo(() => (
   <div className="w-[6px] h-[6px] rounded-full bg-red-500 ml-1 mt-1" aria-hidden="true" />
 ))
 
-// Компонент метки с индикатором обязательности и подсказкой
 const ControlLabel: React.FC<{
   label?: React.ReactNode
   required?: boolean
@@ -145,7 +138,6 @@ const ControlLabel: React.FC<{
   )
 }
 
-// Компонент сообщения об ошибке
 const ControlError: React.FC<{
   error?: string
   className?: string
@@ -163,7 +155,6 @@ const ControlError: React.FC<{
   )
 }
 
-// Базовая обертка для элементов контрола с общими стилями
 const ControlWrapper: React.FC<{
   children: React.ReactNode
   variant?: ControlVariant
@@ -181,7 +172,6 @@ const ControlWrapper: React.FC<{
   className,
   testId = 'control-wrapper'
 }) => {
-  // Определение стилей на основе варианта
   const variantStyles = {
     default: 'border-mono-400 focus-within:border-mono-500',
     filled: 'border-mono-400 bg-mono-50 focus-within:border-mono-500',
@@ -189,7 +179,6 @@ const ControlWrapper: React.FC<{
     disabled: 'border-mono-400 bg-mono-200 text-mono-500'
   }
 
-  // Определение фактического варианта для применения
   let actualVariant = variant
   if (disabled) actualVariant = 'disabled'
   else if (error) actualVariant = 'error'
@@ -211,7 +200,6 @@ const ControlWrapper: React.FC<{
   )
 }
 
-// Компонент кнопки очистки
 const ClearButton: React.FC<{
   onClear: () => void
   disabled?: boolean
@@ -250,7 +238,6 @@ const ClearButton: React.FC<{
   )
 }
 
-// Реализация компонента Input
 interface InputControlProps
   extends ControlBaseProps,
     Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -288,10 +275,8 @@ export const InputControl = forwardRef<HTMLInputElement, InputControlProps>(
     const inputId = id || `input-${Math.random().toString(36).substring(2, 9)}`
     const [localValue, setLocalValue] = useState(value)
 
-    // Проверка, заполнено ли поле
     const isFilled = !!localValue
 
-    // Синхронизация с внешним значением
     useEffect(() => {
       setLocalValue(value)
     }, [value])
@@ -305,7 +290,6 @@ export const InputControl = forwardRef<HTMLInputElement, InputControlProps>(
       setLocalValue('')
       onClear?.()
 
-      // Создание и отправка синтетического события
       const syntheticEvent = {
         target: { value: '' }
       } as React.ChangeEvent<HTMLInputElement>
@@ -314,7 +298,6 @@ export const InputControl = forwardRef<HTMLInputElement, InputControlProps>(
 
     const heightClass = size === 'default' ? 'h-[40px]' : 'h-[72px]'
 
-    // Подготовка иконок с единым размером, если они предоставлены
     const iconSx = { width: 18, height: 18, fontSize: 18 }
 
     const leftIconElement = leftIcon
@@ -378,7 +361,6 @@ export const InputControl = forwardRef<HTMLInputElement, InputControlProps>(
 )
 InputControl.displayName = 'Control.Input'
 
-// Компонент числового ввода
 interface InputNumberControlProps extends Omit<InputControlProps, 'type'> {
   min?: number
   max?: number
@@ -387,12 +369,10 @@ interface InputNumberControlProps extends Omit<InputControlProps, 'type'> {
 
 export const InputNumberControl = forwardRef<HTMLInputElement, InputNumberControlProps>(
   ({ min, max, step = 1, onChange, value, ...props }, ref) => {
-    // Обработчик для применения ограничений min/max
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let newValue = e.target.valueAsNumber
 
       if (!isNaN(newValue)) {
-        // Применение ограничений min/max
         if (max !== undefined && newValue > max) {
           newValue = max
           e.target.value = max.toString()
@@ -422,7 +402,6 @@ export const InputNumberControl = forwardRef<HTMLInputElement, InputNumberContro
 )
 InputNumberControl.displayName = 'Control.InputNumber'
 
-// Компонент Textarea
 interface TextareaControlProps
   extends ControlBaseProps,
     Omit<React.TextareaHTMLAttributes<HTMLTextAreaElement>, 'size'> {
@@ -458,10 +437,8 @@ export const TextareaControl = forwardRef<HTMLTextAreaElement, TextareaControlPr
     const [localValue, setLocalValue] = useState(value)
     const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-    // Проверка, заполнено ли поле
     const isFilled = !!localValue
 
-    // Пробрасываем ref, сохраняя локальную ссылку
     useEffect(() => {
       if (typeof ref === 'function') {
         ref(textareaRef.current)
@@ -470,7 +447,6 @@ export const TextareaControl = forwardRef<HTMLTextAreaElement, TextareaControlPr
       }
     }, [ref])
 
-    // Синхронизация с внешним значением
     useEffect(() => {
       setLocalValue(value)
     }, [value])
@@ -489,7 +465,6 @@ export const TextareaControl = forwardRef<HTMLTextAreaElement, TextareaControlPr
       setLocalValue('')
       onClear?.()
 
-      // Создание и отправка синтетического события
       const syntheticEvent = {
         target: { value: '' }
       } as React.ChangeEvent<HTMLTextAreaElement>
@@ -500,7 +475,6 @@ export const TextareaControl = forwardRef<HTMLTextAreaElement, TextareaControlPr
       }
     }
 
-    // Установка начальной высоты при монтировании
     useEffect(() => {
       if (autoResize && textareaRef.current) {
         textareaRef.current.style.height = 'auto'
@@ -554,10 +528,8 @@ export const TextareaControl = forwardRef<HTMLTextAreaElement, TextareaControlPr
 )
 TextareaControl.displayName = 'Control.Textarea'
 
-// Тип опции для Select и MultiSelect
 export type SelectOption = DropdownOption
 
-// Компонент Select
 interface SelectControlProps extends ControlBaseProps {
   value?: string
   onChange?: (value: string) => void
@@ -593,10 +565,8 @@ export const SelectControl = forwardRef<HTMLDivElement, SelectControlProps>(
     const [isOpen, setIsOpen] = useState(false)
     const controlRef = useRef<HTMLDivElement>(null)
 
-    // Проверяем, заполнено ли поле
     const isFilled = !!value
 
-    // Поиск выбранной опции
     const selectedOption = options.find((option) => option.value === value)
 
     const handleToggle = () => {
@@ -612,7 +582,6 @@ export const SelectControl = forwardRef<HTMLDivElement, SelectControlProps>(
       }
     }
 
-    // Обработчик клика на стрелочку
     const handleArrowClick = (e: React.MouseEvent) => {
       e.stopPropagation()
       handleToggle()
@@ -634,7 +603,6 @@ export const SelectControl = forwardRef<HTMLDivElement, SelectControlProps>(
       onClose?.()
     }
 
-    // Закрытие выпадающего списка при клике вне компонента
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (controlRef.current && !controlRef.current.contains(event.target as Node)) {
@@ -729,7 +697,6 @@ export const SelectControl = forwardRef<HTMLDivElement, SelectControlProps>(
 )
 SelectControl.displayName = 'Control.Select'
 
-// Компонент MultiSelect
 interface MultiSelectControlProps extends Omit<Omit<SelectControlProps, 'onChange'>, 'value'> {
   value?: string[]
   onChange?: (value: string[]) => void
@@ -762,10 +729,8 @@ export const MultiSelectControl = forwardRef<HTMLDivElement, MultiSelectControlP
     const [isOpen, setIsOpen] = useState(false)
     const controlRef = useRef<HTMLDivElement>(null)
 
-    // Проверяем, заполнено ли поле
     const isFilled = value.length > 0
 
-    // Поиск выбранных опций
     const selectedOptions = options.filter((option) => value.includes(option.value))
 
     const handleToggle = () => {
@@ -780,7 +745,6 @@ export const MultiSelectControl = forwardRef<HTMLDivElement, MultiSelectControlP
       }
     }
 
-    // Обработчик клика на стрелочку
     const handleArrowClick = (e: React.MouseEvent) => {
       e.stopPropagation()
       handleToggle()
@@ -806,7 +770,6 @@ export const MultiSelectControl = forwardRef<HTMLDivElement, MultiSelectControlP
       onClose?.()
     }
 
-    // Закрытие выпадающего списка при клике вне компонента
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (controlRef.current && !controlRef.current.contains(event.target as Node)) {
@@ -922,7 +885,6 @@ export const MultiSelectControl = forwardRef<HTMLDivElement, MultiSelectControlP
 )
 MultiSelectControl.displayName = 'Control.MultiSelect'
 
-// Компонент выбора даты
 interface DateInputControlProps extends Omit<InputControlProps, 'onChange' | 'value' | 'type'> {
   value?: Date | null
   onChange?: (date: Date | null) => void
@@ -956,13 +918,10 @@ export const DateInputControl = forwardRef<HTMLInputElement, DateInputControlPro
     const [displayValue, setDisplayValue] = useState('')
     const controlRef = useRef<HTMLDivElement>(null)
 
-    // Проверяем, заполнено ли поле
     const isFilled = !!value
 
-    // Форматирование даты для отображения
     useEffect(() => {
       if (value) {
-        // Это упрощенный формат, в реальном приложении используйте date-fns или аналогичную библиотеку
         setDisplayValue(new Intl.DateTimeFormat('ru-RU').format(value))
       } else {
         setDisplayValue('')
@@ -975,7 +934,6 @@ export const DateInputControl = forwardRef<HTMLInputElement, DateInputControlPro
       }
     }
 
-    // Обработчик клика на иконку календаря
     const handleCalendarClick = (e: React.MouseEvent) => {
       e.stopPropagation()
       handleToggle()
@@ -995,7 +953,6 @@ export const DateInputControl = forwardRef<HTMLInputElement, DateInputControlPro
       setIsOpen(false)
     }
 
-    // Закрытие выпадающего списка при клике вне компонента
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (controlRef.current && !controlRef.current.contains(event.target as Node)) {

@@ -1,4 +1,3 @@
-// src/shared/ui/autocompleteSelect/AutocompleteSelect.tsx
 import React, { useState, useRef, useEffect, forwardRef } from 'react'
 import clsx from 'clsx'
 import { Control } from '@/shared/ui/controls'
@@ -41,7 +40,6 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
     },
     ref
   ) => {
-    // Состояния компонента
     const [isOpen, setIsOpen] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [isLoading, setIsLoading] = useState(false)
@@ -49,11 +47,9 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
     const [hasMoreItems, setHasMoreItems] = useState(false)
     const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null)
 
-    // Создаем ref для контейнера и инпута
     const containerRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
 
-    // Используем debounce для предотвращения слишком частых запросов
     const debouncedSearchTerm = useDebounce(searchTerm, 300)
 
     useEffect(() => {
@@ -65,7 +61,6 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       }
     }, [initialEmployee, value])
 
-    // Эффект для загрузки данных при изменении поискового запроса
     useEffect(() => {
       const fetchEmployees = async () => {
         if (!debouncedSearchTerm && !isOpen) return
@@ -77,7 +72,6 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
             excludeIds
           )
 
-          // Преобразуем ответ API в формат опций для выпадающего списка
           const newOptions = employees.map((emp) => ({
             value: emp.id,
             label: emp.name + (emp.position ? `, ${emp.position}` : ''),
@@ -88,6 +82,7 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
           setHasMoreItems(hasMoreItems)
         } catch (error) {
           console.error('Failed to fetch employees:', error)
+          console.error(selectedEmployee)
           setOptions([])
           setHasMoreItems(false)
         } finally {
@@ -98,7 +93,6 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       fetchEmployees()
     }, [debouncedSearchTerm, excludeIds, isOpen])
 
-    // Эффект для закрытия выпадающего списка при клике вне компонента
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -112,23 +106,19 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       }
     }, [])
 
-    // Обработчик изменения текста в инпуте
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setSearchTerm(e.target.value)
 
-      // Если поле очищено, открываем дропдаун
       if (e.target.value === '') {
         setSelectedEmployee(null)
         onChange?.('', undefined)
       }
 
-      // Открываем дропдаун при вводе
       if (!isOpen) {
         setIsOpen(true)
       }
     }
 
-    // Обработчик выбора опции из выпадающего списка
     const handleSelect = (optionValue: string) => {
       const selectedOption = options.find((opt) => opt.value === optionValue)
 
@@ -142,7 +132,6 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       inputRef.current?.blur()
     }
 
-    // Обработчик очистки поля
     const handleClear = (e: React.MouseEvent) => {
       e.stopPropagation()
       setSearchTerm('')
@@ -151,26 +140,21 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       inputRef.current?.focus()
     }
 
-    // Обработчик для открытия/закрытия выпадающего списка
     const handleToggleDropdown = () => {
       if (!disabled) {
         setIsOpen(!isOpen)
 
-        // Если открываем и инпут пустой, выполняем поиск для отображения исходных результатов
         if (!isOpen && !searchTerm) {
-          // Не нужно устанавливать searchTerm, так как это приведет к рекурсии
-          // Просто запускаем поиск в эффекте за счет изменения isOpen
+          /* empty */
         }
       }
     }
 
-    // Обработчик клика на стрелочку
     const handleArrowClick = (e: React.MouseEvent) => {
       e.stopPropagation()
       handleToggleDropdown()
     }
 
-    // Подготавливаем дополнительную опцию для сообщения о слишком большом количестве результатов
     const dropdownOptions = [...options]
 
     if (hasMoreItems) {

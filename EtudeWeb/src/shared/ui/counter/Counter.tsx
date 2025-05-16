@@ -1,32 +1,28 @@
-import React from 'react';
-import clsx from 'clsx';
+import React from 'react'
+import clsx from 'clsx'
 
 export interface CounterProps {
   /**
    * Значение для отображения
    * @default 0
    */
-  value: number;
+  value: number
 
   /**
    * Дополнительные CSS классы
    */
-  className?: string;
+  className?: string
 
   /**
    * ID для тестирования
    */
-  testId?: string;
+  testId?: string
 }
 
 /**
  * Компонент Counter - показывает числовое значение
  */
-export const Counter: React.FC<CounterProps> = ({
-  value,
-  className,
-  testId = 'counter',
-}) => {
+export const Counter: React.FC<CounterProps> = ({ value, className, testId = 'counter' }) => {
   return (
     <div
       className={clsx(
@@ -39,7 +35,7 @@ export const Counter: React.FC<CounterProps> = ({
     >
       {value}
     </div>
-  );
-};
+  )
+}
 
-export default Counter;
+export default Counter
