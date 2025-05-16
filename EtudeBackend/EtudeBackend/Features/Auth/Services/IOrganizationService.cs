@@ -8,4 +8,5 @@ public interface IOrganizationService
     Task<EmployeeDto?> GetEmployeeByEmailAsync(string email);
     Task<List<EmployeeDto>> SearchEmployeesAsync(string? searchTerm = null, int limit = 10);
     Task<List<EmployeeDto>> GetDepartmentEmployeesAsync(string departmentName);
+    Task<string> GetCompanyNameAsync();
 }

@@ -8,10 +8,10 @@ public class UserDto
     public string? Patronymic { get; set; }
     public string OrgEmail { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public string Role { get; set; } = "user"; // "user" | "admin"
     public string Position { get; set; } = string.Empty;
-    public int RoleId { get; set; }
-    public string RoleName { get; set; } = string.Empty;
-    public int? SoloUserId { get; set; }
+    public string Department { get; set; } = string.Empty; // Подразделение + организация
+    public bool IsLeader { get; set; } = false;
 }
 
 public class EmployeeDto

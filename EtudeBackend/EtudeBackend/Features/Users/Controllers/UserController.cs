@@ -1,9 +1,8 @@
 ﻿using System.Security.Claims;
+using EtudeBackend.Features.Auth.Services;
 using EtudeBackend.Features.Users.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-
-namespace EtudeBackend.Features.Users.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -11,10 +10,12 @@ namespace EtudeBackend.Features.Users.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IOrganizationService _organizationService;
 
-    public UserController(IUserService userService)
+    public UserController(IUserService userService, IOrganizationService organizationService)
     {
         _userService = userService;
+        _organizationService = organizationService;
     }
     
     /// <summary>

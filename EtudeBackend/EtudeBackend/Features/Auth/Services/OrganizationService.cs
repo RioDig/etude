@@ -190,4 +190,10 @@ public class OrganizationService : IOrganizationService
         var parts = fullName.Split(' ');
         return parts.Length > 2 ? parts[2] : null;
     }
+    
+    public async Task<string> GetCompanyNameAsync()
+    {
+        var structure = await GetOrganizationStructureAsync();
+        return structure.Company.Name;
+    }
 }
