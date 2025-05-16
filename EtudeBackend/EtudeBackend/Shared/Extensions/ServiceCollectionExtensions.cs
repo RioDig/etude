@@ -80,6 +80,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddHttpContextAccessor();
         services.AddScoped<EtudeAuthApiService>();
+        services.AddScoped<IOrganizationService, OrganizationService>();
 
         return services;
     }
