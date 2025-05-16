@@ -22,11 +22,13 @@ public class ApplicationDetailDto
 
 public class UserBasicDto
 {
-    public string Id { get; set; } = string.Empty; // Изменяем тип на string
+    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Surname { get; set; } = string.Empty;
     public string? Patronymic { get; set; }
     public string Position { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
+    public bool IsLeader { get; set; } = false;
 }
 
 public class CourseBasicDto
@@ -46,7 +48,8 @@ public class CourseDetailDto : CourseBasicDto
     public string Description { get; set; } = string.Empty;
     public decimal Price { get; set; }
     public string EducationGoal { get; set; } = string.Empty;
-    public string Learner { get; set; } = string.Empty;
+    public string Link { get; set; } = string.Empty;
+    public UserBasicDto Learner { get; set; } = new UserBasicDto();
 }
 
 public class CreateApplicationDto

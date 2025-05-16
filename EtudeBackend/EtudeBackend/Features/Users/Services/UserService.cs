@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using EtudeBackend.Features.Auth.Services;
 using EtudeBackend.Features.Users.DTOs;
 using EtudeBackend.Shared.Data;
 using Microsoft.AspNetCore.Identity;
@@ -10,18 +11,34 @@ public class UserService : IUserService
 {
     private readonly IMapper _mapper;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IOrganizationService _organizationService;
+    private readonly ILogger<OrganizationService> _logger;
     private const int MaxAutocompleteResults = 8;
 
-    public UserService(IMapper mapper, UserManager<ApplicationUser> userManager) 
+    public UserService(
+        IMapper mapper, 
+        UserManager<ApplicationUser> userManager,
+        IOrganizationService organizationService,
+        ILogger<OrganizationService> logger) 
     {
         _mapper = mapper;
         _userManager = userManager;
+        _organizationService = organizationService;
+        _logger = logger;
     }
 
     public async Task<List<UserDto>> GetAllUsersAsync()
     {
         var users = await _userManager.Users.ToListAsync();
-        return _mapper.Map<List<UserDto>>(users);
+        var userDtos = _mapper.Map<List<UserDto>>(users);
+        
+        // Обогащаем данные пользователей информацией из EtudeAuth
+        foreach (var userDto in userDtos)
+        {
+            await EnrichUserDto(userDto);
+        }
+        
+        return userDtos;
     }
 
     public async Task<UserDto?> GetUserByIdAsync(string id)
@@ -30,7 +47,10 @@ public class UserService : IUserService
         if (user == null)
             return null;
             
-        return _mapper.Map<UserDto>(user);
+        var userDto = _mapper.Map<UserDto>(user);
+        await EnrichUserDto(userDto);
+        
+        return userDto;
     }
 
     public async Task<UserDto?> GetUserByEmailAsync(string email)
@@ -39,7 +59,47 @@ public class UserService : IUserService
         if (user == null)
             return null;
             
-        return _mapper.Map<UserDto>(user);
+        var userDto = _mapper.Map<UserDto>(user);
+        await EnrichUserDto(userDto);
+        
+        return userDto;
+    }
+    
+    private async Task EnrichUserDto(UserDto userDto)
+    {
+        try
+        {
+            var companyName = await GetCompanyNameAsync();
+            
+            var employee = await _organizationService.GetEmployeeByEmailAsync(userDto.OrgEmail);
+        
+            if (employee != null)
+            {
+                userDto.Department = $"{employee.Department}, {companyName}";
+                userDto.IsLeader = employee.IsLeader;
+            }
+            else
+            {
+                userDto.Department = companyName;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обогащении данных пользователя {Email}", userDto.OrgEmail);
+        }
+    }
+    
+    private async Task<string> GetCompanyNameAsync()
+    {
+        try
+        {
+            var orgStructure = await _organizationService.GetOrganizationStructureAsync();
+            return orgStructure.Company.Name;
+        }
+        catch (Exception)
+        {
+            return "Организация";
+        }
     }
     
     public async Task<(List<EmployeeDto> employees, bool hasMoreItems)> GetAutocompleteEmployeesAsync(string? term, string[]? idsToRemove = null)

@@ -1,4 +1,4 @@
-﻿﻿using EtudeBackend.Features.TrainingRequests.Entities;
+﻿using EtudeBackend.Features.TrainingRequests.Entities;
 
 namespace EtudeBackend.Features.TrainingRequests.DTOs;
 
@@ -10,6 +10,7 @@ public class UpdateCourseDto
     public CourseTrack? Track { get; set; }
     public CourseFormat? Format { get; set; }
     public string? TrainingCenter { get; set; }
+    public string? Link { get; set; }
     public string? Employees { get; set; }
     public DateOnly? StartDate { get; set; }
     public DateOnly? EndDate { get; set; }

@@ -31,8 +31,8 @@ public static class ServiceCollectionExtensions
             options.Password.RequireLowercase = false;
             options.Password.RequireNonAlphanumeric = false;
             options.Password.RequireUppercase = false;
-            options.Password.RequiredLength = 6;
-            options.Password.RequiredUniqueChars = 1;
+            options.Password.RequiredLength = 1;
+            options.Password.RequiredUniqueChars = 0;
             
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
@@ -80,6 +80,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddHttpContextAccessor();
         services.AddScoped<EtudeAuthApiService>();
+        services.AddScoped<IOrganizationService, OrganizationService>();
 
         return services;
     }
