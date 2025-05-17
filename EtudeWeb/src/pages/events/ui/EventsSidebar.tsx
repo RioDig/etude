@@ -17,7 +17,6 @@ import {
 import {
   Application,
   ApplicationStatusType,
-  ApplicationUpdate,
   CustomStatus,
   StatusType
 } from '@/shared/types'
@@ -29,6 +28,7 @@ import clsx from 'clsx'
 import { getCommentColorVariant } from '@/widgets/calendar/utils/calendar-helpers.ts'
 import { StatusTypeLabels } from '@/shared/labels/statusType.ts'
 import { Autorenew, Check, Close, Delete, Edit } from '@mui/icons-material'
+import EventEditModal from '@/pages/events/ui/EventEditModal.tsx'
 
 interface EventsSidebarProps {
   open: boolean
@@ -45,8 +45,6 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   const [modalType, setModalType] = useState<ModalType>(null)
   const [statusComment, setStatusComment] = useState('')
   const [selectedStatusId, setSelectedStatusId] = useState('')
-
-  const [formValues, setFormValues] = useState<ApplicationUpdate>({})
 
   const { data: eventDetails, isLoading, error } = useApplicationDetail(event?.application_id)
 
@@ -65,64 +63,11 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     setModalType(null)
     setStatusComment('')
     setSelectedStatusId('')
-    setFormValues({})
     onClose()
   }
 
   const openModal = (type: ModalType) => {
     setModalType(type)
-
-    if (type === 'edit' && eventDetails) {
-      setFormValues({
-        name: eventDetails.course.course_name,
-        description: eventDetails.course.course_description,
-        type: eventDetails.course.course_type,
-        track: eventDetails.course.course_track,
-        format: eventDetails.course.course_format,
-        trainingCenter: eventDetails.course.course_trainingCenter,
-        startDate: eventDetails.course.course_startDate,
-        endDate: eventDetails.course.course_endDate,
-        link: eventDetails.course.course_link,
-        price:
-          typeof eventDetails.course.course_price === 'number'
-            ? String(eventDetails.course.course_price)
-            : (eventDetails.course.course_price as string),
-        educationGoal: eventDetails.course.course_educationGoal
-      })
-    }
-  }
-
-  const handleFormChange = (field: keyof ApplicationUpdate, value: string) => {
-    setFormValues((prev) => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleUpdateSubmit = () => {
-    if (!eventDetails) return
-
-    updateMutation.mutate(
-      {
-        id: eventDetails.application_id,
-        data: formValues
-      },
-      {
-        onSuccess: () => {
-          notification.success({
-            title: 'Успешно',
-            description: 'Заявка успешно обновлена'
-          })
-          setModalType(null)
-        },
-        onError: (error) => {
-          notification.error({
-            title: 'Ошибка',
-            description: `Не удалось обновить заявку: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
-          })
-        }
-      }
-    )
   }
 
   const handleApprove = () => {
@@ -524,121 +469,11 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
       </Sidebar>
 
       {modalType === 'edit' && (
-        <Modal
+        <EventEditModal
           isOpen={true}
           onClose={() => setModalType(null)}
-          title="Редактирование заявки"
-          actions={
-            <>
-              <Button variant="secondary" onClick={() => setModalType(null)}>
-                Отмена
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleUpdateSubmit}
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending ? (
-                  <>
-                    <Spinner size="small" variant="white" className="mr-2" />
-                    <span>Сохранение...</span>
-                  </>
-                ) : (
-                  'Сохранить'
-                )}
-              </Button>
-            </>
-          }
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Control.Input
-              label="Название"
-              value={formValues.name || ''}
-              onChange={(e) => handleFormChange('name', e.target.value)}
-              required
-            />
-
-            <Control.Select
-              label="Тип"
-              value={formValues.type || ''}
-              onChange={(value) => handleFormChange('type', value)}
-              options={Object.entries(CourseTypeLabels).map(([value, label]) => ({ value, label }))}
-              required
-            />
-
-            <Control.Select
-              label="Направление"
-              value={formValues.track || ''}
-              onChange={(value) => handleFormChange('track', value)}
-              options={[
-                { value: 'Hard Skills', label: 'Hard Skills' },
-                { value: 'Soft Skills', label: 'Soft Skills' },
-                { value: 'Management Skills', label: 'Management Skills' }
-              ]}
-              required
-            />
-
-            <Control.Select
-              label="Формат"
-              value={formValues.format || ''}
-              onChange={(value) => handleFormChange('format', value)}
-              options={Object.entries(CourseFormatLabels).map(([value, label]) => ({
-                value,
-                label
-              }))}
-              required
-            />
-
-            <Control.Input
-              label="Учебный центр"
-              value={formValues.trainingCenter || ''}
-              onChange={(e) => handleFormChange('trainingCenter', e.target.value)}
-            />
-
-            <Control.Input
-              label="Место проведения или ссылка"
-              value={formValues.link || ''}
-              onChange={(e) => handleFormChange('link', e.target.value)}
-            />
-
-            <Control.DateInput
-              label="Дата начала"
-              value={formValues.startDate ? new Date(formValues.startDate) : null}
-              onChange={(date) => date && handleFormChange('startDate', date.toISOString())}
-            />
-
-            <Control.DateInput
-              label="Дата окончания"
-              value={formValues.endDate ? new Date(formValues.endDate) : null}
-              onChange={(date) => date && handleFormChange('endDate', date.toISOString())}
-            />
-
-            <Control.Input
-              label="Стоимость"
-              value={formValues.price?.toString() || ''}
-              onChange={(e) => handleFormChange('price', e.target.value)}
-              type="number"
-            />
-          </div>
-
-          <div className="mt-6">
-            <Control.Textarea
-              label="Описание"
-              value={formValues.description || ''}
-              onChange={(e) => handleFormChange('description', e.target.value)}
-              rows={4}
-            />
-          </div>
-
-          <div className="mt-6">
-            <Control.Textarea
-              label="Цель обучения"
-              value={formValues.educationGoal || ''}
-              onChange={(e) => handleFormChange('educationGoal', e.target.value)}
-              rows={3}
-            />
-          </div>
-        </Modal>
+          eventDetails={eventDetails}
+        />
       )}
 
       {modalType === 'approve' && (

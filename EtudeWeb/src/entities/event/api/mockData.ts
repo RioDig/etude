@@ -173,7 +173,7 @@ export const MOCK_APPLICATIONS: Application[] = [
  * Моковые данные для детальной информации о заявках
  */
 export const MOCK_APPLICATION_DETAILS: Record<string, ApplicationDetail> = {
-  '1': {
+  '4': {
     ...MOCK_APPLICATIONS[0],
     comment: 'Заявка на обучение основам JavaScript',
     author: {

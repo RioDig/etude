@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import clsx from 'clsx'
 import { Close } from '@mui/icons-material'
 import { Button } from '@/shared/ui/button'
+import { Typography } from '@/shared/ui/typography'
 
 export interface ModalProps {
   /**
@@ -18,7 +19,8 @@ export interface ModalProps {
    * Заголовок модального окна
    */
   title: string
-
+  subtitle?: string
+  stepper?: React.ReactNode
   /**
    * Содержимое модального окна
    */
@@ -53,8 +55,10 @@ export const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
   title,
+  subtitle,
   children,
   actions,
+  stepper,
   linkAction,
   className,
   testId = 'modal'
@@ -95,15 +99,27 @@ export const Modal: React.FC<ModalProps> = ({
         data-testid={`${testId}-container`}
       >
         <div className="flex items-center justify-between px-8 pt-7 pb-0">
-          <h2 className="text-h2 text-mono-950">{title}</h2>
-          <button
-            className="w-9 h-9 flex items-center justify-center ml-4 text-mono-700 hover:text-mono-950 transition-colors"
-            onClick={onClose}
-            aria-label="Закрыть"
-            data-testid={`${testId}-close-button`}
-          >
-            <Close sx={{ height: '36px', width: '36px' }} />
-          </button>
+          <div className="flex flex-col gap-0.5">
+            {subtitle && (
+              <Typography variant={'b3Regular'} className="text-mono-600">
+                {subtitle}
+              </Typography>
+            )}
+            <h2 className="text-h2 text-mono-950">{title}</h2>
+          </div>
+
+          {stepper ? (
+            stepper
+          ) : (
+            <button
+              className="w-9 h-9 flex items-center justify-center ml-4 text-mono-700 hover:text-mono-950 transition-colors"
+              onClick={onClose}
+              aria-label="Закрыть"
+              data-testid={`${testId}-close-button`}
+            >
+              <Close sx={{ height: '36px', width: '36px' }} />
+            </button>
+          )}
         </div>
 
         <div className="p-8" data-testid={`${testId}-body`}>
@@ -111,7 +127,7 @@ export const Modal: React.FC<ModalProps> = ({
         </div>
 
         {(linkAction || actions) && (
-          <div className="px-8 pb-7" data-testid={`${testId}-footer`}>
+          <div className="px-8 pb-7 mt-auto" data-testid={`${testId}-footer`}>
             <div className="flex items-center justify-between pt-7 border-t border-mono-500">
               <div>
                 {linkAction && (
