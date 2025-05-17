@@ -8,6 +8,8 @@ public class Status
     
     public string Description { get; set; } = string.Empty;
     
+    public string Type { get; set; } = string.Empty;
+    
     public bool IsProtected { get; set; } = false;
     
     public bool IsTerminal { get; set; } = false;

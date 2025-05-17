@@ -10,10 +10,10 @@ public class ReportTemplateMappingProfile : Profile
     {
         // Entity -> DTO
         CreateMap<ReportTemplate, ReportTemplateDto>();
-        
+
         // CreateDTO -> Entity
         CreateMap<CreateReportTemplateDto, ReportTemplate>();
-        
+
         // UpdateDTO -> Entity селективно реализуется в сервисе
     }
 }

@@ -18,7 +18,7 @@ public class UserStatisticsController : ControllerBase
         _userStatisticsService = userStatisticsService;
         _logger = logger;
     }
-        
+
     /// <summary>
     /// Получает список компетенций пользователя
     /// </summary>
@@ -41,11 +41,11 @@ public class UserStatisticsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении списка компетенций");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Внутренняя ошибка сервера при получении списка компетенций" });
         }
     }
-        
+
     /// <summary>
     /// Получает список прошедших мероприятий пользователя
     /// </summary>
@@ -68,7 +68,7 @@ public class UserStatisticsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении списка прошедших мероприятий");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Внутренняя ошибка сервера при получении списка прошедших мероприятий" });
         }
     }

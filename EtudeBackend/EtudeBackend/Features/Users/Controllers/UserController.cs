@@ -17,7 +17,7 @@ public class UserController : ControllerBase
         _userService = userService;
         _organizationService = organizationService;
     }
-    
+
     /// <summary>
     /// Получает список всех пользователей
     /// </summary>
@@ -28,7 +28,7 @@ public class UserController : ControllerBase
         var users = await _userService.GetAllUsersAsync();
         return Ok(users);
     }
-    
+
     /// <summary>
     /// Получает информацию о пользователе по идентификатору
     /// </summary>
@@ -38,13 +38,13 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetUserById(string id)
     {
         var user = await _userService.GetUserByIdAsync(id);
-            
+
         if (user == null)
             return NotFound();
-            
+
         return Ok(user);
     }
-    
+
     /// <summary>
     /// Получает информацию о текущем пользователе
     /// </summary>
@@ -54,15 +54,15 @@ public class UserController : ControllerBase
     public async Task<IActionResult> GetCurrentUser()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
+
         if (string.IsNullOrEmpty(userId))
             return Unauthorized();
-            
+
         var user = await _userService.GetUserByIdAsync(userId);
-            
+
         if (user == null)
             return Unauthorized();
-            
+
         return Ok(user);
     }
 }

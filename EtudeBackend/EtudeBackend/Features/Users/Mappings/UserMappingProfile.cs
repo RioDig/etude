@@ -10,13 +10,13 @@ public class UserMappingProfile : Profile
     {
         // ApplicationUser -> UserDto
         CreateMap<ApplicationUser, UserDto>()
-            .ForMember(dest => dest.Role, opt => 
+            .ForMember(dest => dest.Role, opt =>
                 opt.MapFrom(src => src.RoleId > 1 ? "admin" : "user"))
-            .ForMember(dest => dest.Department, opt => 
+            .ForMember(dest => dest.Department, opt =>
                 opt.MapFrom(src => string.Empty))
-            .ForMember(dest => dest.IsLeader, opt => 
+            .ForMember(dest => dest.IsLeader, opt =>
                 opt.MapFrom(src => false));
-                
+
         // ApplicationUser -> EmployeeDto
         CreateMap<ApplicationUser, EmployeeDto>();
     }

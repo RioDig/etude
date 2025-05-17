@@ -20,7 +20,7 @@ public class CourseTemplateController : ControllerBase
         _templateService = templateService;
         _logger = logger;
     }
-    
+
     /// <summary>
     /// Получает список всех шаблонов курсов с возможностью фильтрации
     /// </summary>
@@ -44,11 +44,11 @@ public class CourseTemplateController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении списка шаблонов курсов");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера" });
         }
     }
-    
+
     /// <summary>
     /// Получает шаблон курса по идентификатору
     /// </summary>
@@ -60,20 +60,20 @@ public class CourseTemplateController : ControllerBase
         try
         {
             var template = await _templateService.GetTemplateByIdAsync(id);
-                
+
             if (template == null)
                 return NotFound();
-                
+
             return Ok(template);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении шаблона курса с ID: {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера" });
         }
     }
-    
+
     /// <summary>
     /// Создает новый шаблон курса
     /// </summary>
@@ -88,20 +88,20 @@ public class CourseTemplateController : ControllerBase
                 return BadRequest(ModelState);
 
             var createdTemplate = await _templateService.CreateTemplateAsync(templateDto);
-                
+
             return CreatedAtAction(
-                nameof(GetTemplateById), 
-                new { id = createdTemplate.Id }, 
+                nameof(GetTemplateById),
+                new { id = createdTemplate.Id },
                 createdTemplate);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при создании шаблона курса");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера" });
         }
     }
-    
+
     /// <summary>
     /// Обновляет существующий шаблон курса
     /// </summary>
@@ -117,20 +117,20 @@ public class CourseTemplateController : ControllerBase
                 return BadRequest(ModelState);
 
             var updatedTemplate = await _templateService.UpdateTemplateAsync(templateDto);
-                
+
             if (updatedTemplate == null)
                 return NotFound();
-                
+
             return Ok(updatedTemplate);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обновлении шаблона курса с ID: {Id}", templateDto.Id);
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера" });
         }
     }
-    
+
     /// <summary>
     /// Удаляет шаблон курса
     /// </summary>
@@ -142,16 +142,16 @@ public class CourseTemplateController : ControllerBase
         try
         {
             var result = await _templateService.DeleteTemplateAsync(id);
-                
+
             if (!result)
                 return NotFound();
-                
+
             return NoContent();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при удалении шаблона курса с ID: {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера" });
         }
     }

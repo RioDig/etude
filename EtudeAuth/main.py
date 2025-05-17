@@ -1205,7 +1205,6 @@ async def read_users(
 @app.get("/api/users/{user_id}", response_model=UserResponse)
 async def read_user(
         user_id: UUID,
-        current_user: User = Depends(get_current_active_user),
         db: AsyncSession = Depends(get_async_session)
 ):
     user_query = select(User).where(User.id == user_id)
@@ -1216,7 +1215,19 @@ async def read_user(
         raise HTTPException(status_code=404, detail="User not found")
 
     # Создаем базовый ответ
-    user_dict = UserInDB.model_validate(user).model_dump()
+    user_dict = {
+        "id": user.id,
+        "org_email": user.org_email,
+        "name": user.name,
+        "surname": user.surname,
+        "patronymic": user.patronymic,
+        "position": user.position,
+        "EtudeID": user.EtudeID,
+        "department_id": user.department_id
+    }
+    user_model = UserInDB(**user_dict)
+    user_dict = user_model.model_dump()
+
 
     # Добавляем имя департамента, если пользователь привязан к департаменту
     if user.department_id:

@@ -20,11 +20,11 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-        
+
         services.AddIdentity<ApplicationUser, IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-        
+
         services.Configure<IdentityOptions>(options =>
         {
             options.Password.RequireDigit = false;
@@ -33,17 +33,17 @@ public static class ServiceCollectionExtensions
             options.Password.RequireUppercase = false;
             options.Password.RequiredLength = 1;
             options.Password.RequiredUniqueChars = 0;
-            
+
             options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
             options.Lockout.MaxFailedAccessAttempts = 5;
             options.Lockout.AllowedForNewUsers = true;
-            
+
             options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
             options.User.RequireUniqueEmail = true;
         });
-        
+
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        
+
         services.AddStackExchangeRedisCache(opts =>
         {
             opts.Configuration = configuration.GetConnectionString("Redis");
@@ -53,7 +53,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpClient<IOAuthService, OAuthService>();
 
         services.AddSingleton<ITokenStorageService, TokenStorageService>();
-        
+
         services.AddScoped<IEmailService, EmailService>();
 
         return services;
@@ -68,7 +68,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ITokenRepository, TokenRepository>();
         services.AddScoped<ICourseTemplateRepository, CourseTemplateRepository>();
         services.AddScoped<IReportTemplateRepository, ReportTemplateRepository>();
-        
+
         services.AddScoped<IApplicationService, ApplicationService>();
         services.AddScoped<IUserStatisticsService, UserStatisticsService>();
         services.AddScoped<ICustomStatusService, CustomStatusService>();

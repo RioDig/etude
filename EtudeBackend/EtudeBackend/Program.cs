@@ -1,3 +1,4 @@
+using EtudeBackend.Features.TrainingRequests.Services;
 using EtudeBackend.Shared.Extensions;
 using EtudeBackend.Shared.Middleware;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -53,7 +54,7 @@ builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.Ap
 // Add Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddHostedService<DocumentApprovalService>();
 // Add CORS
 builder.Services.AddCors(options =>
 {
@@ -76,7 +77,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
+
     // Apply migrations in development
     app.ApplyMigrations();
 }

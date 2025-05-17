@@ -13,11 +13,11 @@ public class TokenStorageService : ITokenStorageService
     private readonly IDistributedCache _cache;
     private readonly ILogger<TokenStorageService> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    
+
     private const string IdTokenPrefix = "auth:identity:";
     private const string OAuthTokenPrefix = "auth:oauth:";
     private const string UserTokensPrefix = "auth:user:";
-    
+
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -25,7 +25,7 @@ public class TokenStorageService : ITokenStorageService
     };
 
     public TokenStorageService(
-        IDistributedCache cache, 
+        IDistributedCache cache,
         ILogger<TokenStorageService> logger,
         IHttpContextAccessor httpContextAccessor)
     {
@@ -36,10 +36,10 @@ public class TokenStorageService : ITokenStorageService
 
     /// <inheritdoc />
     public async Task StoreTokensAsync(
-        string userId, 
-        string identityToken, 
-        OAuthTokenInfo? oauthTokens, 
-        UserInfo userInfo, 
+        string userId,
+        string identityToken,
+        OAuthTokenInfo? oauthTokens,
+        UserInfo userInfo,
         DateTimeOffset expiresAt)
     {
         try
@@ -56,32 +56,32 @@ public class TokenStorageService : ITokenStorageService
                 IpAddress = GetClientIpAddress(),
                 UserAgent = GetUserAgent()
             };
-            
+
             var tokenJson = JsonSerializer.Serialize(tokenInfo, _jsonOptions);
-            
+
             var expiration = expiresAt - DateTimeOffset.UtcNow;
             var cacheOptions = new DistributedCacheEntryOptions
             {
-                AbsoluteExpirationRelativeToNow = expiration > TimeSpan.Zero 
-                    ? expiration 
+                AbsoluteExpirationRelativeToNow = expiration > TimeSpan.Zero
+                    ? expiration
                     : TimeSpan.FromDays(30)
             };
-            
+
             await _cache.SetStringAsync(
-                IdTokenPrefix + identityToken, 
-                tokenJson, 
+                IdTokenPrefix + identityToken,
+                tokenJson,
                 cacheOptions);
-            
+
             if (oauthTokens != null && !string.IsNullOrEmpty(oauthTokens.AccessToken))
             {
                 await _cache.SetStringAsync(
-                    OAuthTokenPrefix + oauthTokens.AccessToken, 
-                    identityToken, 
+                    OAuthTokenPrefix + oauthTokens.AccessToken,
+                    identityToken,
                     cacheOptions);
             }
-            
+
             await AddTokenToUserList(userId, identityToken, cacheOptions);
-            
+
             _logger.LogInformation("Токен для пользователя {UserId} успешно сохранен в Redis", userId);
         }
         catch (Exception ex)
@@ -121,7 +121,7 @@ public class TokenStorageService : ITokenStorageService
             {
                 return null;
             }
-            
+
             return await GetTokenByIdentityTokenAsync(identityToken);
         }
         catch (Exception ex)
@@ -178,17 +178,17 @@ public class TokenStorageService : ITokenStorageService
                 _logger.LogWarning("Попытка отозвать несуществующий токен");
                 return;
             }
-            
+
             if (token.OAuthTokens != null && !string.IsNullOrEmpty(token.OAuthTokens.AccessToken))
             {
                 await _cache.RemoveAsync(OAuthTokenPrefix + token.OAuthTokens.AccessToken);
             }
-            
+
             await _cache.RemoveAsync(IdTokenPrefix + identityToken);
 
             await RemoveTokenFromUserList(token.UserId, identityToken);
-            
-            _logger.LogInformation("Токен {TokenId} для пользователя {UserId} успешно отозван", 
+
+            _logger.LogInformation("Токен {TokenId} для пользователя {UserId} успешно отозван",
                 identityToken, token.UserId);
         }
         catch (Exception ex)
@@ -203,19 +203,19 @@ public class TokenStorageService : ITokenStorageService
         try
         {
             var tokens = await GetUserTokensAsync(userId);
-            
+
             foreach (var token in tokens)
             {
                 if (token.OAuthTokens != null && !string.IsNullOrEmpty(token.OAuthTokens.AccessToken))
                 {
                     await _cache.RemoveAsync(OAuthTokenPrefix + token.OAuthTokens.AccessToken);
                 }
-                
+
                 await _cache.RemoveAsync(IdTokenPrefix + token.IdentityToken);
             }
-            
+
             await _cache.RemoveAsync(UserTokensPrefix + userId);
-            
+
             _logger.LogInformation("Все токены пользователя {UserId} успешно отозваны", userId);
         }
         catch (Exception ex)
@@ -271,7 +271,7 @@ public class TokenStorageService : ITokenStorageService
         }
 
         tokenIds.Remove(tokenId);
-        
+
         if (tokenIds.Count > 0)
         {
             await _cache.SetStringAsync(
@@ -297,9 +297,9 @@ public class TokenStorageService : ITokenStorageService
         {
             return "unknown";
         }
-        
+
         var forwardedHeader = _httpContextAccessor.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        
+
         if (!string.IsNullOrEmpty(forwardedHeader))
         {
             var ips = forwardedHeader.Split(',', StringSplitOptions.RemoveEmptyEntries);
@@ -308,7 +308,7 @@ public class TokenStorageService : ITokenStorageService
                 return ips[0].Trim();
             }
         }
-        
+
         var remoteIp = _httpContextAccessor.HttpContext.Connection.RemoteIpAddress;
         return remoteIp?.ToString() ?? "unknown";
     }

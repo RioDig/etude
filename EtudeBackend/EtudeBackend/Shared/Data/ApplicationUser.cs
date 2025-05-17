@@ -13,7 +13,7 @@ public class ApplicationUser : IdentityUser
     public string? SoloUserId { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    
+
     public virtual ICollection<Features.TrainingRequests.Entities.Application> Applications { get; set; } = new List<Features.TrainingRequests.Entities.Application>();
     public virtual ICollection<Features.TrainingRequests.Entities.UserStatistics> Statistics { get; set; } = new List<Features.TrainingRequests.Entities.UserStatistics>();
     public virtual ICollection<Features.Users.Entities.Token> Tokens { get; set; } = new List<Features.Users.Entities.Token>();

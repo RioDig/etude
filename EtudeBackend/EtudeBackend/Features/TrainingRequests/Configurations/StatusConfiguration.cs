@@ -19,6 +19,11 @@ public class StatusConfiguration : IEntityTypeConfiguration<Status>
             
         builder.Property(s => s.Description)
             .HasColumnType("text");
+        
+        builder.Property(s => s.Type)
+            .IsRequired()
+            .HasMaxLength(50)
+            .HasDefaultValue("Processed");
             
         builder.Property(s => s.IsProtected)
             .IsRequired()
@@ -30,5 +35,8 @@ public class StatusConfiguration : IEntityTypeConfiguration<Status>
         
         builder.HasIndex(s => s.Name)
             .IsUnique();
+        
+        // Добавляем индекс для улучшения запросов по типу статуса
+        builder.HasIndex(s => s.Type);
     }
 }

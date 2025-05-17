@@ -45,7 +45,7 @@ public class ReportTemplateService : IReportTemplateService
         var template = _mapper.Map<ReportTemplate>(templateDto);
         template.Id = Guid.NewGuid();
         template.CreatedAt = DateTimeOffset.UtcNow;
-        
+
         var createdTemplate = await _repository.AddAsync(template);
         return _mapper.Map<ReportTemplateDto>(createdTemplate);
     }
@@ -55,21 +55,21 @@ public class ReportTemplateService : IReportTemplateService
         var template = await _repository.GetByIdAsync(id);
         if (template == null)
             return null;
-        
+
         if (templateDto.Name != null)
             template.Name = templateDto.Name;
-            
+
         if (templateDto.Attributes != null)
             template.Attributes = templateDto.Attributes;
-            
+
         if (templateDto.TemplateContent != null)
             template.TemplateContent = templateDto.TemplateContent;
-            
+
         if (templateDto.TemplateType != null)
             template.TemplateType = templateDto.TemplateType;
-            
+
         template.UpdatedAt = DateTimeOffset.UtcNow;
-        
+
         await _repository.UpdateAsync(template);
         return _mapper.Map<ReportTemplateDto>(template);
     }
@@ -79,7 +79,7 @@ public class ReportTemplateService : IReportTemplateService
         var template = await _repository.GetByIdAsync(id);
         if (template == null)
             return false;
-            
+
         await _repository.RemoveAsync(template);
         return true;
     }

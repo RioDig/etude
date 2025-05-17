@@ -14,13 +14,13 @@ public class CourseTemplateMappingProfile : Profile
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
             .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track.ToString()))
             .ForMember(dest => dest.Format, opt => opt.MapFrom(src => src.Format.ToString()));
-        
+
         // CreateDTO -> Entity
         CreateMap<CreateCourseTemplateDto, CourseTemplate>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => ParseEnum<CourseType>(src.Type)))
             .ForMember(dest => dest.Track, opt => opt.MapFrom(src => ParseEnum<CourseTrack>(src.Track)))
             .ForMember(dest => dest.Format, opt => opt.MapFrom(src => ParseEnum<CourseFormat>(src.Format)));
-        
+
         // UpdateDTO -> Entity преобразуется селективно в сервисе
     }
 
@@ -28,7 +28,7 @@ public class CourseTemplateMappingProfile : Profile
     {
         if (Enum.TryParse<T>(value, true, out var result))
             return result;
-            
+
         return default;
     }
 }

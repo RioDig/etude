@@ -22,7 +22,7 @@ public class EmployeeDto
     public string? Patronymic { get; set; }
     public string Position { get; set; } = string.Empty;
     public string Department { get; set; } = string.Empty;
-    public bool IsLeader { get; set; } 
+    public bool IsLeader { get; set; }
 }
 
 public class EmployeeAutocompleteResponse

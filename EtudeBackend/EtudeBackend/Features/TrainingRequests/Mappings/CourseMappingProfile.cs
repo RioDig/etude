@@ -10,10 +10,10 @@ public class CourseMappingProfile : Profile
     {
         // Маппинг из Entity в DTO
         CreateMap<Course, CourseDto>();
-            
+
         // Маппинг из CreateDTO в Entity
         CreateMap<CreateCourseDto, Course>();
-            
+
         // Маппинг из UpdateDTO в Entity - делаем селективно в сервисе
     }
 }

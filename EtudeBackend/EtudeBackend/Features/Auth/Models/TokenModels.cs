@@ -24,16 +24,16 @@ public class OAuthTokenInfo
 {
     [JsonPropertyName("access_token")]
     public string AccessToken { get; set; } = string.Empty;
-    
-    [JsonPropertyName("refresh_token")] 
+
+    [JsonPropertyName("refresh_token")]
     public string RefreshToken { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("token_type")]
     public string TokenType { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("expires_in")]
     public int ExpiresIn { get; set; }
-    
+
     [JsonPropertyName("scope")]
     public string Scope { get; set; } = string.Empty;
 }
@@ -47,42 +47,42 @@ public class TokenInfo
     /// ID пользователя
     /// </summary>
     public string UserId { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Токен ASP.NET Core Identity
     /// </summary>
     public string IdentityToken { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Токены OAuth (если аутентификация через OAuth)
     /// </summary>
     public OAuthTokenInfo? OAuthTokens { get; set; }
-    
+
     /// <summary>
     /// Информация о пользователе
     /// </summary>
     public UserInfo UserInfo { get; set; } = new();
-    
+
     /// <summary>
     /// Дата и время создания токена
     /// </summary>
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
-    
+
     /// <summary>
     /// Дата и время истечения токена
     /// </summary>
     public DateTimeOffset ExpiresAt { get; set; }
-    
+
     /// <summary>
     /// IP-адрес, с которого была выполнена аутентификация
     /// </summary>
     public string IpAddress { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Тип аутентификации (OAuth, Email+Password)
     /// </summary>
     public string AuthType { get; set; } = string.Empty;
-    
+
     /// <summary>
     /// Устройство пользователя (User-Agent)
     /// </summary>

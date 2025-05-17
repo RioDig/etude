@@ -43,37 +43,37 @@ public class TrainingRequestService : ITrainingRequestService
         var request = await _repository.GetByIdAsync(id);
         if (request == null)
             return null;
-        
+
         if (requestDto.Name != null)
             request.Name = requestDto.Name;
-            
+
         if (requestDto.Description != null)
             request.Description = requestDto.Description;
-            
+
         if (requestDto.TrainingCenter != null)
             request.TrainingCenter = requestDto.TrainingCenter;
-            
+
         if (requestDto.EducationGoal != null)
             request.EducationGoal = requestDto.EducationGoal;
-            
+
         if (requestDto.Type.HasValue)
             request.Type = requestDto.Type.Value;
-            
+
         if (requestDto.Track.HasValue)
             request.Track = requestDto.Track.Value;
-            
+
         if (requestDto.Format.HasValue)
             request.Format = requestDto.Format.Value;
-            
+
         if (requestDto.StartDate.HasValue)
             request.StartDate = requestDto.StartDate.Value;
-            
+
         if (requestDto.EndDate.HasValue)
             request.EndDate = requestDto.EndDate.Value;
-            
+
         if (!string.IsNullOrEmpty(requestDto.Price))
             request.Price = requestDto.Price;
-            
+
         if (requestDto.IsActive.HasValue)
             request.IsActive = requestDto.IsActive.Value;
 

@@ -9,46 +9,46 @@ public class CourseTemplateConfiguration : IEntityTypeConfiguration<CourseTempla
     public void Configure(EntityTypeBuilder<CourseTemplate> builder)
     {
         builder.HasKey(ct => ct.Id);
-        
+
         builder.Property(ct => ct.Id)
             .HasDefaultValueSql("gen_random_uuid()");
-            
+
         builder.Property(ct => ct.Name)
             .IsRequired()
             .HasMaxLength(100);
-            
+
         builder.Property(ct => ct.Description)
             .HasColumnType("text");
-        
+
         builder.Property(ct => ct.Type)
             .IsRequired()
             .HasConversion<string>();
-            
+
         builder.Property(ct => ct.Track)
             .IsRequired()
             .HasConversion<string>();
-            
+
         builder.Property(ct => ct.Format)
             .IsRequired()
             .HasConversion<string>();
-            
+
         builder.Property(ct => ct.TrainingCenter)
             .HasMaxLength(100);
-            
+
         builder.Property(ct => ct.Link)
             .HasMaxLength(500);
-        
+
         builder.Property(ct => ct.CreatedAt)
             .IsRequired()
             .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("now()");
-            
+
         builder.Property(ct => ct.UpdatedAt)
             .HasColumnType("timestamp with time zone");
-        
+
         builder.HasIndex(ct => ct.Name)
             .IsUnique();
-        
+
         builder.HasIndex(ct => ct.Type);
         builder.HasIndex(ct => ct.Track);
         builder.HasIndex(ct => ct.Format);

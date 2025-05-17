@@ -11,10 +11,14 @@ namespace EtudeBackend.Features.TrainingRequests.Controllers;
 public class CustomStatusController : ControllerBase
 {
     private readonly ICustomStatusService _statusService;
+    private readonly ILogger<CustomStatusController> _logger;
 
-    public CustomStatusController(ICustomStatusService statusService)
+    public CustomStatusController(
+        ICustomStatusService statusService,
+        ILogger<CustomStatusController> logger)
     {
         _statusService = statusService;
+        _logger = logger;
     }
     
     /// <summary>
@@ -24,8 +28,17 @@ public class CustomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAllStatuses()
     {
-        var statuses = await _statusService.GetAllStatusesAsync();
-        return Ok(statuses);
+        try
+        {
+            var statuses = await _statusService.GetAllStatusesAsync();
+            return Ok(statuses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении списка статусов");
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Внутренняя ошибка сервера при получении списка статусов" });
+        }
     }
     
     /// <summary>
@@ -36,12 +49,21 @@ public class CustomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetStatusById(Guid id)
     {
-        var status = await _statusService.GetStatusByIdAsync(id);
-            
-        if (status == null)
-            return NotFound();
-            
-        return Ok(status);
+        try
+        {
+            var status = await _statusService.GetStatusByIdAsync(id);
+                
+            if (status == null)
+                return NotFound(new { message = "Статус не найден" });
+                
+            return Ok(status);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении статуса по ID: {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Внутренняя ошибка сервера при получении статуса" });
+        }
     }
     
     /// <summary>
@@ -52,15 +74,28 @@ public class CustomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateStatus([FromBody] CreateStatusDto statusDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        var createdStatus = await _statusService.CreateStatusAsync(statusDto);
+            var createdStatus = await _statusService.CreateStatusAsync(statusDto);
+                
+            return CreatedAtAction(
+                nameof(GetStatusById), 
+                new { id = createdStatus.Id }, 
+                createdStatus);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при создании нового статуса");
             
-        return CreatedAtAction(
-            nameof(GetStatusById), 
-            new { id = createdStatus.Id }, 
-            createdStatus);
+            if (ex.Message.Contains("уже существует") || ex.Message.Contains("Невалидный тип"))
+                return BadRequest(new { message = ex.Message });
+                
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Внутренняя ошибка сервера при создании статуса" });
+        }
     }
     
     /// <summary>
@@ -72,15 +107,28 @@ public class CustomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateStatusDto statusDto)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-        var updatedStatus = await _statusService.UpdateStatusAsync(id, statusDto);
+            var updatedStatus = await _statusService.UpdateStatusAsync(id, statusDto);
+                
+            if (updatedStatus == null)
+                return NotFound(new { message = "Статус не найден" });
+                
+            return Ok(updatedStatus);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обновлении статуса с ID: {Id}", id);
             
-        if (updatedStatus == null)
-            return NotFound();
-            
-        return Ok(updatedStatus);
+            if (ex.Message.Contains("защищенный") || ex.Message.Contains("уже существует") || ex.Message.Contains("Невалидный тип"))
+                return BadRequest(new { message = ex.Message });
+                
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Внутренняя ошибка сервера при обновлении статуса" });
+        }
     }
     
     /// <summary>
@@ -92,16 +140,25 @@ public class CustomStatusController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> DeleteStatus(Guid id)
     {
-        var (success, errorMessage) = await _statusService.DeleteStatusAsync(id);
-    
-        if (!success)
+        try
         {
-            if (errorMessage == null)
-                return NotFound();
-            
-            return BadRequest(new { message = errorMessage });
-        }
+            var (success, errorMessage) = await _statusService.DeleteStatusAsync(id);
         
-        return NoContent();
+            if (!success)
+            {
+                if (errorMessage == null)
+                    return NotFound(new { message = "Статус не найден" });
+                
+                return BadRequest(new { message = errorMessage });
+            }
+            
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при удалении статуса с ID: {Id}", id);
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Внутренняя ошибка сервера при удалении статуса" });
+        }
     }
 }

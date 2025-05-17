@@ -9,7 +9,7 @@ public interface IUserStatisticsService
     /// </summary>
     /// <returns>Список компетенций</returns>
     Task<List<CompetencyDto>> GetCompetenciesAsync();
-    
+
     /// <summary>
     /// Получает список прошедших мероприятий текущего пользователя
     /// </summary>

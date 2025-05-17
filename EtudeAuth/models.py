@@ -1,3 +1,5 @@
+import uuid
+
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
@@ -27,9 +29,9 @@ class UserUpdate(BaseModel):
 
 
 class UserInDB(UserBase):
-    id: int
+    id: uuid.UUID
     EtudeID: Optional[int] = None
-    department_id: Optional[int] = None
+    department_id: Optional[uuid.UUID] = None
 
     class Config:
         orm_mode = True

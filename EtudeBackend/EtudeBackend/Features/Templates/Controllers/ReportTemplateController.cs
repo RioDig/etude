@@ -16,7 +16,7 @@ public class ReportTemplateController : ControllerBase
     {
         _templateService = templateService;
     }
-    
+
     /// <summary>
     /// Получает список всех шаблонов отчетов
     /// </summary>
@@ -27,7 +27,7 @@ public class ReportTemplateController : ControllerBase
         var templates = await _templateService.GetAllTemplatesAsync();
         return Ok(templates);
     }
-    
+
     /// <summary>
     /// Получает шаблон отчета по идентификатору
     /// </summary>
@@ -37,13 +37,13 @@ public class ReportTemplateController : ControllerBase
     public async Task<IActionResult> GetTemplateById(Guid id)
     {
         var template = await _templateService.GetTemplateByIdAsync(id);
-            
+
         if (template == null)
             return NotFound();
-            
+
         return Ok(template);
     }
-    
+
     /// <summary>
     /// Создает новый шаблон отчета
     /// </summary>
@@ -56,13 +56,13 @@ public class ReportTemplateController : ControllerBase
             return BadRequest(ModelState);
 
         var createdTemplate = await _templateService.CreateTemplateAsync(templateDto);
-            
+
         return CreatedAtAction(
-            nameof(GetTemplateById), 
-            new { id = createdTemplate.Id }, 
+            nameof(GetTemplateById),
+            new { id = createdTemplate.Id },
             createdTemplate);
     }
-    
+
     /// <summary>
     /// Обновляет существующий шаблон отчета
     /// </summary>
@@ -76,13 +76,13 @@ public class ReportTemplateController : ControllerBase
             return BadRequest(ModelState);
 
         var updatedTemplate = await _templateService.UpdateTemplateAsync(id, templateDto);
-            
+
         if (updatedTemplate == null)
             return NotFound();
-            
+
         return Ok(updatedTemplate);
     }
-    
+
     /// <summary>
     /// Удаляет шаблон отчета
     /// </summary>
@@ -92,10 +92,10 @@ public class ReportTemplateController : ControllerBase
     public async Task<IActionResult> DeleteTemplate(Guid id)
     {
         var result = await _templateService.DeleteTemplateAsync(id);
-            
+
         if (!result)
             return NotFound();
-            
+
         return NoContent();
     }
 }

@@ -11,7 +11,7 @@ namespace EtudeBackend.Features.TrainingRequests.DTOs
         public DateOnly? CompletionDate { get; set; }
         public decimal? AttendanceRate { get; set; }
         public bool CertificateIssued { get; set; }
-        
+
         public string? CourseName { get; set; }
         public string? UserFullName { get; set; }
     }

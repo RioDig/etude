@@ -11,7 +11,7 @@ public class OrganizationService : IOrganizationService
     private readonly ILogger<OrganizationService> _logger;
     private const string OrganizationCacheKey = "OrganizationStructure";
     private const int CacheTimeMinutes = 60; // Кешируем на час
-    
+
     public OrganizationService(
         EtudeAuthApiService etudeAuthApiService,
         IDistributedCache cache,
@@ -21,16 +21,16 @@ public class OrganizationService : IOrganizationService
         _cache = cache;
         _logger = logger;
     }
-    
+
     public async Task<OrganizationStructureDto> GetOrganizationStructureAsync(bool forceRefresh = false)
     {
         if (!forceRefresh)
         {
             var cachedData = await _cache.GetValue<OrganizationStructureDto>(
-                OrganizationCacheKey, 
-                CancellationToken.None, 
+                OrganizationCacheKey,
+                CancellationToken.None,
                 _logger);
-                
+
             if (cachedData != null)
             {
                 _logger.LogDebug("Структура организации получена из кеша");
@@ -39,75 +39,75 @@ public class OrganizationService : IOrganizationService
         }
 
         var structure = await _etudeAuthApiService.GetOrganizationStructureAsync();
-        
+
         await _cache.SetValue(
-            OrganizationCacheKey, 
-            structure, 
-            (uint)CacheTimeMinutes, 
-            CancellationToken.None, 
+            OrganizationCacheKey,
+            structure,
+            (uint)CacheTimeMinutes,
+            CancellationToken.None,
             _logger);
-            
+
         _logger.LogInformation("Структура организации обновлена в кеше");
         return structure;
     }
-    
+
     public async Task<EmployeeDto?> GetEmployeeByEmailAsync(string email)
     {
         var structure = await GetOrganizationStructureAsync();
-        
+
         foreach (var department in structure.Company.Departments)
         {
             if (department.Manager.Email.Equals(email, StringComparison.OrdinalIgnoreCase))
             {
-                return MapToEmployeeDto(department.Manager.Name, department.Manager.Email, 
+                return MapToEmployeeDto(department.Manager.Name, department.Manager.Email,
                     department.Manager.Position, department.Name, true);
             }
-            
-            var employee = department.Employees.FirstOrDefault(e => 
+
+            var employee = department.Employees.FirstOrDefault(e =>
                 e.Email.Equals(email, StringComparison.OrdinalIgnoreCase));
-                
+
             if (employee != null)
             {
-                return MapToEmployeeDto(employee.Name, employee.Email, 
+                return MapToEmployeeDto(employee.Name, employee.Email,
                     employee.Position, department.Name, false);
             }
         }
-        
+
         return null;
     }
-    
+
     public async Task<List<EmployeeDto>> SearchEmployeesAsync(string? searchTerm = null, int limit = 10)
     {
         var structure = await GetOrganizationStructureAsync();
         var allEmployees = new List<EmployeeDto>();
-        
+
         foreach (var department in structure.Company.Departments)
         {
             // Добавляем руководителя
             allEmployees.Add(MapToEmployeeDto(
-                department.Manager.Name, 
-                department.Manager.Email, 
-                department.Manager.Position, 
-                department.Name, 
+                department.Manager.Name,
+                department.Manager.Email,
+                department.Manager.Position,
+                department.Name,
                 true));
-            
+
             // Добавляем сотрудников
             foreach (var employee in department.Employees)
             {
                 allEmployees.Add(MapToEmployeeDto(
-                    employee.Name, 
-                    employee.Email, 
-                    employee.Position, 
-                    department.Name, 
+                    employee.Name,
+                    employee.Email,
+                    employee.Position,
+                    department.Name,
                     false));
             }
         }
-        
+
         if (string.IsNullOrWhiteSpace(searchTerm))
         {
             return allEmployees.Take(limit).ToList();
         }
-        
+
         // Фильтруем сотрудников по поисковому запросу
         searchTerm = searchTerm.Trim().ToLower();
         var filteredEmployees = allEmployees.Where(e =>
@@ -118,47 +118,83 @@ public class OrganizationService : IOrganizationService
             e.Department.ToLower().Contains(searchTerm) ||
             e.Id.ToLower().Contains(searchTerm)
         ).Take(limit).ToList();
-        
+
         return filteredEmployees;
     }
-    
+
     public async Task<List<EmployeeDto>> GetDepartmentEmployeesAsync(string departmentName)
     {
         var structure = await GetOrganizationStructureAsync();
         var employees = new List<EmployeeDto>();
-        
+
         // Ищем отдел по имени
-        var department = structure.Company.Departments.FirstOrDefault(d => 
+        var department = structure.Company.Departments.FirstOrDefault(d =>
             d.Name.Equals(departmentName, StringComparison.OrdinalIgnoreCase));
-            
+
         if (department == null)
         {
             _logger.LogWarning("Отдел {DepartmentName} не найден", departmentName);
             return employees;
         }
-        
+
         // Добавляем руководителя
         employees.Add(MapToEmployeeDto(
-            department.Manager.Name, 
-            department.Manager.Email, 
-            department.Manager.Position, 
-            department.Name, 
+            department.Manager.Name,
+            department.Manager.Email,
+            department.Manager.Position,
+            department.Name,
             true));
-        
+
         // Добавляем сотрудников
         foreach (var employee in department.Employees)
         {
             employees.Add(MapToEmployeeDto(
-                employee.Name, 
-                employee.Email, 
-                employee.Position, 
-                department.Name, 
+                employee.Name,
+                employee.Email,
+                employee.Position,
+                department.Name,
                 false));
         }
-        
+
         return employees;
     }
     
+    public async Task<EmployeeDto?> GetEmployeeByIdAsync(string employeeId)
+    {
+        try
+        {
+            var structure = await GetOrganizationStructureAsync();
+        
+            // Проверяем руководителей и сотрудников всех отделов
+            foreach (var department in structure.Company.Departments)
+            {
+                // Проверяем руководителя отдела
+                if (IsEmployeeMatch(department.Manager, employeeId))
+                {
+                    return MapToEmployeeDto(department.Manager.Name, department.Manager.Email, 
+                        department.Manager.Position, department.Name, true);
+                }
+            
+                // Проверяем сотрудников отдела
+                foreach (var employee in department.Employees)
+                {
+                    if (IsEmployeeMatch(employee, employeeId))
+                    {
+                        return MapToEmployeeDto(employee.Name, employee.Email, 
+                            employee.Position, department.Name, false);
+                    }
+                }
+            }
+        
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при поиске сотрудника по ID: {EmployeeId}", employeeId);
+            return null;
+        }
+    }
+
     private EmployeeDto MapToEmployeeDto(string fullName, string email, string position, string departmentName, bool isLeader)
     {
         return new EmployeeDto
@@ -172,7 +208,7 @@ public class OrganizationService : IOrganizationService
             IsLeader = isLeader
         };
     }
-    
+
     private string ExtractLastName(string fullName)
     {
         var parts = fullName.Split(' ');
@@ -190,10 +226,38 @@ public class OrganizationService : IOrganizationService
         var parts = fullName.Split(' ');
         return parts.Length > 2 ? parts[2] : null;
     }
-    
+
     public async Task<string> GetCompanyNameAsync()
     {
         var structure = await GetOrganizationStructureAsync();
         return structure.Company.Name;
+    }
+    
+    private bool IsEmployeeMatch(EmployeeInfoDto employee, string employeeId)
+    {
+        // Проверяем, совпадает ли email с идентификатором
+        if (employee.Email.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
+            return true;
+    
+        // Проверяем, совпадает ли имя с идентификатором (менее надежно)
+        if (employee.Name.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
+            return true;
+    
+        return false;
+    }    
+
+// Вспомогательный метод для проверки соответствия ID сотрудника
+    private bool IsMatchingEmployeeId(EmployeeInfoDto employee, string employeeId)
+    {
+        // Если ID в EtudeAuth это email - наиболее вероятный сценарий
+        if (employee.Email.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
+            return true;
+    
+        // Дополнительная проверка: возможно ID - это часть имени или email без домена
+        string emailWithoutDomain = employee.Email.Split('@')[0];
+        if (emailWithoutDomain.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
+            return true;
+    
+        return false;
     }
 }

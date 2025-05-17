@@ -27,7 +27,7 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                 .OrderByDescending(ct => ct.CreatedAt)
                 .ToListAsync();
         }
-        
+
         return new List<CourseTemplate>();
     }
 
@@ -40,7 +40,7 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                 .OrderByDescending(ct => ct.CreatedAt)
                 .ToListAsync();
         }
-        
+
         return new List<CourseTemplate>();
     }
 
@@ -53,7 +53,7 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                 .OrderByDescending(ct => ct.CreatedAt)
                 .ToListAsync();
         }
-        
+
         return new List<CourseTemplate>();
     }
 

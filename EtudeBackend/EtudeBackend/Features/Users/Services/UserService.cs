@@ -16,10 +16,10 @@ public class UserService : IUserService
     private const int MaxAutocompleteResults = 8;
 
     public UserService(
-        IMapper mapper, 
+        IMapper mapper,
         UserManager<ApplicationUser> userManager,
         IOrganizationService organizationService,
-        ILogger<OrganizationService> logger) 
+        ILogger<OrganizationService> logger)
     {
         _mapper = mapper;
         _userManager = userManager;
@@ -31,13 +31,13 @@ public class UserService : IUserService
     {
         var users = await _userManager.Users.ToListAsync();
         var userDtos = _mapper.Map<List<UserDto>>(users);
-        
+
         // Обогащаем данные пользователей информацией из EtudeAuth
         foreach (var userDto in userDtos)
         {
             await EnrichUserDto(userDto);
         }
-        
+
         return userDtos;
     }
 
@@ -46,10 +46,10 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(id);
         if (user == null)
             return null;
-            
+
         var userDto = _mapper.Map<UserDto>(user);
         await EnrichUserDto(userDto);
-        
+
         return userDto;
     }
 
@@ -58,21 +58,21 @@ public class UserService : IUserService
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
             return null;
-            
+
         var userDto = _mapper.Map<UserDto>(user);
         await EnrichUserDto(userDto);
-        
+
         return userDto;
     }
-    
+
     private async Task EnrichUserDto(UserDto userDto)
     {
         try
         {
             var companyName = await GetCompanyNameAsync();
-            
+
             var employee = await _organizationService.GetEmployeeByEmailAsync(userDto.OrgEmail);
-        
+
             if (employee != null)
             {
                 userDto.Department = $"{employee.Department}, {companyName}";
@@ -88,7 +88,7 @@ public class UserService : IUserService
             _logger.LogError(ex, "Ошибка при обогащении данных пользователя {Email}", userDto.OrgEmail);
         }
     }
-    
+
     private async Task<string> GetCompanyNameAsync()
     {
         try
@@ -101,11 +101,11 @@ public class UserService : IUserService
             return "Организация";
         }
     }
-    
+
     public async Task<(List<EmployeeDto> employees, bool hasMoreItems)> GetAutocompleteEmployeesAsync(string? term, string[]? idsToRemove = null)
     {
         IQueryable<ApplicationUser> query = _userManager.Users.Where(u => u.IsActive);
-        
+
         if (!string.IsNullOrEmpty(term))
         {
             string searchTerm = term.Trim().ToLower();
@@ -115,22 +115,22 @@ public class UserService : IUserService
                 (u.Patronymic != null && u.Patronymic.ToLower().Contains(searchTerm))
             );
         }
-        
+
         if (idsToRemove != null && idsToRemove.Length > 0)
         {
             query = query.Where(u => !idsToRemove.Contains(u.Id));
         }
-        
+
         int totalCount = await query.CountAsync();
 
         bool hasMore = totalCount > MaxAutocompleteResults;
-        
+
         var users = await query
             .OrderBy(u => u.Surname)
             .ThenBy(u => u.Name)
             .Take(MaxAutocompleteResults)
             .ToListAsync();
-        
+
         var employees = users.Select(u => new EmployeeDto
         {
             Id = u.Id,
@@ -139,7 +139,7 @@ public class UserService : IUserService
             Patronymic = u.Patronymic,
             Position = u.Position
         }).ToList();
-        
+
         return (employees, hasMore);
     }
 }

@@ -12,32 +12,50 @@ public class CustomStatusService : ICustomStatusService
     private readonly IStatusRepository _statusRepository;
     private readonly IApplicationRepository _applicationRepository;
     private readonly IMapper _mapper;
+    private readonly ILogger<CustomStatusService> _logger;
 
     public CustomStatusService(
         IStatusRepository statusRepository,
         IApplicationRepository applicationRepository,
-        IMapper mapper)
+        IMapper mapper,
+        ILogger<CustomStatusService> logger)
     {
         _statusRepository = statusRepository;
         _applicationRepository = applicationRepository;
         _mapper = mapper;
+        _logger = logger;
     }
 
     public async Task<List<StatusDto>> GetAllStatusesAsync()
     {
         var statuses = await _statusRepository.GetAllAsync();
+        
+        // Логируем типы статусов из БД для проверки
+        foreach (var status in statuses)
+        {
+            _logger.LogInformation("Статус из БД: Id={Id}, Name={Name}, Type={Type}", 
+                status.Id, status.Name, status.Type);
+        }
+        
         var statusDtos = _mapper.Map<List<StatusDto>>(statuses);
+        
+        // Проверяем, что тип корректно замаппился
+        for (int i = 0; i < statuses.Count && i < statusDtos.Count; i++)
+        {
+            _logger.LogInformation("Сравнение: БД Type={DbType}, DTO Type={DtoType}", 
+                statuses[i].Type, statusDtos[i].Type);
+        }
         
         foreach (var statusDto in statusDtos)
         {
-            // Устанавливаем тип "Processed" для всех кастомных статусов
-            statusDto.Type = "Processed";
-            
             var statusGuid = statusDto.Id;
             var applicationCount = await _applicationRepository.GetAllQuery()
                 .CountAsync(a => a.StatusId == statusGuid);
                 
             statusDto.ApplicationCount = applicationCount;
+            
+            // Выводим тип в консоль для проверки
+            Console.WriteLine($"Статус {statusDto.Name}, Тип: {statusDto.Type}");
         }
         
         return statusDtos;
@@ -48,16 +66,23 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByIdAsync(id);
         if (status == null)
             return null;
+        
+        // Логируем тип из БД
+        _logger.LogInformation("Статус из БД: Id={Id}, Name={Name}, Type={Type}", 
+            status.Id, status.Name, status.Type);
             
         var statusDto = _mapper.Map<StatusDto>(status);
         
-        // Устанавливаем тип "Processed" для кастомного статуса
-        statusDto.Type = "Processed";
+        // Проверяем, что тип корректно замаппился
+        _logger.LogInformation("После маппинга: DTO Type={Type}", statusDto.Type);
         
         var applicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == id);
             
         statusDto.ApplicationCount = applicationCount;
+        
+        // Выводим тип в консоль для проверки
+        Console.WriteLine($"Статус {statusDto.Name}, Тип: {statusDto.Type}");
             
         return statusDto;
     }
@@ -67,16 +92,23 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByNameAsync(name);
         if (status == null)
             return null;
+        
+        // Логируем тип из БД
+        _logger.LogInformation("Статус из БД: Id={Id}, Name={Name}, Type={Type}", 
+            status.Id, status.Name, status.Type);
             
         var statusDto = _mapper.Map<StatusDto>(status);
         
-        // Устанавливаем тип "Processed" для кастомного статуса
-        statusDto.Type = "Processed";
+        // Проверяем, что тип корректно замаппился
+        _logger.LogInformation("После маппинга: DTO Type={Type}", statusDto.Type);
         
         var applicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == statusDto.Id);
             
         statusDto.ApplicationCount = applicationCount;
+        
+        // Выводим тип в консоль для проверки
+        Console.WriteLine($"Статус {statusDto.Name}, Тип: {statusDto.Type}");
             
         return statusDto;
     }
@@ -87,20 +119,26 @@ public class CustomStatusService : ICustomStatusService
         if (existingStatus != null)
             throw new ApiException($"Статус с именем '{statusDto.Name}' уже существует", 400);
             
-        var status = new Status
+        var status = _mapper.Map<Status>(statusDto);
+        status.Id = Guid.NewGuid();
+        
+        // Если тип не указан, используем "Processed" по умолчанию
+        if (string.IsNullOrEmpty(status.Type))
+            status.Type = "Processed";
+            
+        // Проверяем валидность типа
+        if (!IsValidStatusType(status.Type))
         {
-            Id = Guid.NewGuid(),
-            Name = statusDto.Name,
-            Description = statusDto.Description,
-            IsProtected = false,  // По умолчанию не защищенный
-            IsTerminal = false    // По умолчанию не терминальный
-        };
+            _logger.LogWarning("Указан невалидный тип статуса: {Type}. Используется тип по умолчанию (Processed)", status.Type);
+            status.Type = "Processed";
+        }
+        
+        status.IsProtected = false;  // По умолчанию не защищенный
+        status.IsTerminal = false;   // По умолчанию не терминальный
         
         var createdStatus = await _statusRepository.AddAsync(status);
         var resultDto = _mapper.Map<StatusDto>(createdStatus);
         
-        // Устанавливаем тип "Processed" для нового кастомного статуса
-        resultDto.Type = "Processed";
         resultDto.ApplicationCount = 0;
         
         return resultDto;
@@ -126,13 +164,24 @@ public class CustomStatusService : ICustomStatusService
         
         if (statusDto.Description != null)
             status.Description = statusDto.Description;
+        
+        if (statusDto.Type != null)
+        {
+            // Проверяем валидность типа
+            if (IsValidStatusType(statusDto.Type))
+            {
+                status.Type = statusDto.Type;
+            }
+            else
+            {
+                _logger.LogWarning("При обновлении указан невалидный тип статуса: {Type}. Тип не изменен", statusDto.Type);
+                throw new ApiException($"Невалидный тип статуса: '{statusDto.Type}'. Допустимые значения: 'Confirmation', 'Rejected', 'Approvement', 'Processed', 'Registered'", 400);
+            }
+        }
             
         await _statusRepository.UpdateAsync(status);
         
         var result = _mapper.Map<StatusDto>(status);
-        
-        // Устанавливаем тип "Processed" для обновленного кастомного статуса
-        result.Type = "Processed";
         
         result.ApplicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == result.Id);
@@ -157,5 +206,12 @@ public class CustomStatusService : ICustomStatusService
         
         await _statusRepository.RemoveAsync(status);
         return (true, null);
+    }
+    
+    // Метод для проверки валидности типа статуса
+    private bool IsValidStatusType(string type)
+    {
+        var validTypes = new[] { "Confirmation", "Rejected", "Approvement", "Processed", "Registered" };
+        return validTypes.Contains(type);
     }
 }

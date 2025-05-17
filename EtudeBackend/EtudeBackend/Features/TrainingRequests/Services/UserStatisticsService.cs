@@ -45,7 +45,7 @@ public class UserStatisticsService : IUserStatisticsService
             _logger.LogWarning("Попытка получения компетенций без авторизации");
             throw new UnauthorizedAccessException("Пользователь не авторизован");
         }
-        
+
         var allCompetencies = new List<CompetencyDto>
         {
             new CompetencyDto { Id = Guid.NewGuid(), Name = "Разработка на C#" },
@@ -64,7 +64,7 @@ public class UserStatisticsService : IUserStatisticsService
             new CompetencyDto { Id = Guid.NewGuid(), Name = "Непрерывная интеграция (CI/CD)" },
             new CompetencyDto { Id = Guid.NewGuid(), Name = "Функциональное программирование" }
         };
-        
+
         var random = new Random();
         int count = random.Next(3, 7);
 
@@ -81,29 +81,29 @@ public class UserStatisticsService : IUserStatisticsService
             _logger.LogWarning("Попытка получения прошедших мероприятий без авторизации");
             throw new UnauthorizedAccessException("Пользователь не авторизован");
         }
-        
+
         var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
             _logger.LogWarning("Пользователь не найден при получении прошедших мероприятий");
             return new List<PastEventDto>();
         }
-        
+
         var userApplications = await _applicationRepository.GetByAuthorIdAsync(userId);
-        
+
         var currentDate = DateOnly.FromDateTime(DateTime.UtcNow);
         var pastEvents = new List<PastEventDto>();
-        
+
         foreach (var application in userApplications)
         {
             var course = await _courseRepository.GetByIdAsync(application.CourseId);
             var status = await _statusRepository.GetByIdAsync(application.StatusId);
-            
+
             if (course == null || status == null)
             {
                 continue;
             }
-            
+
             if (course.EndDate < currentDate)
             {
                 try
@@ -147,7 +147,7 @@ public class UserStatisticsService : IUserStatisticsService
                             } : new UserBasicDto()
                         }
                     };
-                    
+
                     pastEvents.Add(pastEvent);
                 }
                 catch (Exception ex)
@@ -156,10 +156,10 @@ public class UserStatisticsService : IUserStatisticsService
                 }
             }
         }
-        
+
         return pastEvents.OrderByDescending(e => e.Course.EndDate).ToList();
     }
-    
+
     private string DetermineStatusType(string statusName)
     {
         return statusName.ToLower() switch

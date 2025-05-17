@@ -39,27 +39,27 @@ public class ApplicationService : IApplicationService
     }
 
     public async Task<PagedResult<ApplicationDto>> GetApplicationsAsync(
-        int page = 1, 
-        int perPage = 10, 
-        string? sortBy = null, 
+        int page = 1,
+        int perPage = 10,
+        string? sortBy = null,
         string? orderBy = null,
         Dictionary<string, string>? filters = null)
     {
         if (page < 1) page = 1;
         if (perPage < 1) perPage = 10;
         if (perPage > 100) perPage = 100;
-        
+
         IQueryable<Application> query = _applicationRepository.GetAllQuery()
             .Include(a => a.Status)
             .Include(a => a.Course);
-        
+
         if (filters != null && filters.Count > 0)
         {
             query = ApplyFilters(query, filters);
         }
-        
+
         var totalCount = await query.CountAsync();
-        
+
         query = ApplySorting(query, sortBy, orderBy);
 
         var items = await query
@@ -68,7 +68,7 @@ public class ApplicationService : IApplicationService
             .ToListAsync();
 
         var applicationDtos = _mapper.Map<List<ApplicationDto>>(items);
-        
+
         return new PagedResult<ApplicationDto>(applicationDtos, totalCount, page, perPage);
     }
 
@@ -77,7 +77,7 @@ public class ApplicationService : IApplicationService
         var application = await _applicationRepository.GetApplicationWithDetailsAsync(id);
         if (application == null)
             return null;
-            
+
         return _mapper.Map<ApplicationDetailDto>(application);
     }
 
@@ -107,8 +107,17 @@ public class ApplicationService : IApplicationService
         
         await _courseRepository.AddAsync(course);
         
-        var newStatus = await _statusRepository.GetByNameAsync("Новая") 
-            ?? throw new ApiException("Статус 'Новая' не найден", 500);
+        // Получаем статус "Confirmation" по умолчанию, если не указан другой
+        Guid statusId = applicationDto.StatusId;
+        if (statusId == Guid.Empty)
+        {
+            var confirmationStatus = await _statusRepository.GetByNameAsync("Confirmation");
+            if (confirmationStatus == null)
+            {
+                throw new ApiException("Статус 'Confirmation' не найден в системе", 500);
+            }
+            statusId = confirmationStatus.Id;
+        }
         
         var approverIdStrings = applicationDto.ApproverIds
             .Select(id => id.ToString())
@@ -121,7 +130,7 @@ public class ApplicationService : IApplicationService
             Id = Guid.NewGuid(),
             CourseId = course.Id,
             AuthorId = userId,
-            StatusId = newStatus.Id,
+            StatusId = statusId,
             ApprovalHistory = string.Empty,
             Approvers = approversJson,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -154,55 +163,55 @@ public class ApplicationService : IApplicationService
         var application = await _applicationRepository.GetByIdAsync(id);
         if (application == null)
             return null;
-            
+
         var course = await _courseRepository.GetByIdAsync(application.CourseId);
         if (course == null)
             throw new ApiException("Связанный курс не найден", 404);
-        
+
         if (applicationDto.Name != null)
             course.Name = applicationDto.Name;
-            
+
         if (applicationDto.Description != null)
             course.Description = applicationDto.Description;
-            
+
         if (applicationDto.Type != null)
             course.Type = ParseEnum<CourseType>(applicationDto.Type);
-            
+
         if (applicationDto.Track != null)
             course.Track = ParseEnum<CourseTrack>(applicationDto.Track);
-            
+
         if (applicationDto.Format != null)
             course.Format = ParseEnum<CourseFormat>(applicationDto.Format);
-            
+
         if (applicationDto.TrainingCenter != null)
             course.TrainingCenter = applicationDto.TrainingCenter;
-            
+
         if (applicationDto.StartDate.HasValue)
             course.StartDate = applicationDto.StartDate.Value;
-            
+
         if (applicationDto.EndDate.HasValue)
             course.EndDate = applicationDto.EndDate.Value;
-            
+
         if (!string.IsNullOrEmpty(applicationDto.Price))
             course.Price = applicationDto.Price;
-        
+
         if (applicationDto.Link != null)
             course.Link = applicationDto.Link;
-        
+
         if (applicationDto.EducationGoal != null)
             course.EducationGoal = applicationDto.EducationGoal;
-        
+
         course.UpdatedAt = DateTimeOffset.UtcNow;
         await _courseRepository.UpdateAsync(course);
-        
+
         if (applicationDto.Approvers != null)
         {
             string approversJson = System.Text.Json.JsonSerializer.Serialize(applicationDto.Approvers);
         }
-        
+
         application.UpdatedAt = DateTimeOffset.UtcNow;
         await _applicationRepository.UpdateAsync(application);
-        
+
         return await GetApplicationByIdAsync(id);
     }
 
@@ -211,13 +220,13 @@ public class ApplicationService : IApplicationService
         var application = await _applicationRepository.GetByIdAsync(id);
         if (application == null)
             return null;
-            
+
         var newStatus = await _statusRepository.GetByIdAsync(statusDto.StatusId);
         if (newStatus == null)
             throw new ApiException("Указанный статус не найден", 404);
-        
+
         application.StatusId = statusDto.StatusId;
-        
+
         if (!string.IsNullOrEmpty(statusDto.Comment))
         {
             var historyEntry = new
@@ -227,15 +236,15 @@ public class ApplicationService : IApplicationService
                 StatusName = newStatus.Name,
                 Comment = statusDto.Comment
             };
-            
+
             string historyJson = System.Text.Json.JsonSerializer.Serialize(historyEntry);
             application.ApprovalHistory += (string.IsNullOrEmpty(application.ApprovalHistory) ? "" : "\n") + historyJson;
         }
-        
+
         application.UpdatedAt = DateTimeOffset.UtcNow;
         await _applicationRepository.UpdateAsync(application);
-        
-        
+
+
         return await GetApplicationByIdAsync(id);
     }
 
@@ -244,23 +253,23 @@ public class ApplicationService : IApplicationService
         var application = await _applicationRepository.GetByIdAsync(id);
         if (application == null)
             return false;
-            
+
 
         var course = await _courseRepository.GetByIdAsync(application.CourseId);
-        
+
 
         await _applicationRepository.RemoveAsync(application);
-        
+
 
         if (course != null)
         {
             await _courseRepository.RemoveAsync(course);
         }
-        
+
         return true;
     }
-    
-    
+
+
     private IQueryable<Application> ApplyFilters(IQueryable<Application> query, Dictionary<string, string> filters)
     {
         foreach (var filter in filters)
@@ -271,7 +280,7 @@ public class ApplicationService : IApplicationService
                     query = query.Where(a => a.Status.Name.Contains(filter.Value));
                     break;
                 case "author":
-                    query = query.Where(a => a.Author.Surname.Contains(filter.Value) || 
+                    query = query.Where(a => a.Author.Surname.Contains(filter.Value) ||
                                            a.Author.Name.Contains(filter.Value) ||
                                            a.Author.Patronymic.Contains(filter.Value));
                     break;
@@ -288,72 +297,72 @@ public class ApplicationService : IApplicationService
                     break;
             }
         }
-        
+
         return query;
     }
-    
+
     private IQueryable<Application> ApplySorting(IQueryable<Application> query, string? sortBy, string? orderBy)
     {
         if (string.IsNullOrEmpty(sortBy))
             return query.OrderByDescending(a => a.CreatedAt);
-        
+
         bool isAscending = string.IsNullOrEmpty(orderBy) || orderBy.ToLower() != "desc";
-        
+
         switch (sortBy.ToLower())
         {
             case "createdat":
-                return isAscending 
-                    ? query.OrderBy(a => a.CreatedAt) 
+                return isAscending
+                    ? query.OrderBy(a => a.CreatedAt)
                     : query.OrderByDescending(a => a.CreatedAt);
             case "status":
-                return isAscending 
-                    ? query.OrderBy(a => a.Status.Name) 
+                return isAscending
+                    ? query.OrderBy(a => a.Status.Name)
                     : query.OrderByDescending(a => a.Status.Name);
             case "author":
-                return isAscending 
-                    ? query.OrderBy(a => a.Author.Surname).ThenBy(a => a.Author.Name) 
+                return isAscending
+                    ? query.OrderBy(a => a.Author.Surname).ThenBy(a => a.Author.Name)
                     : query.OrderByDescending(a => a.Author.Surname).ThenByDescending(a => a.Author.Name);
             case "course":
-                return isAscending 
-                    ? query.OrderBy(a => a.Course.Name) 
+                return isAscending
+                    ? query.OrderBy(a => a.Course.Name)
                     : query.OrderByDescending(a => a.Course.Name);
             default:
                 return query.OrderByDescending(a => a.CreatedAt);
         }
     }
-    
+
     private static T ParseEnum<T>(string value) where T : struct, Enum
     {
         if (Enum.TryParse<T>(value, true, out var result))
             return result;
-            
+
         throw new ApiException($"Недопустимое значение '{value}' для типа {typeof(T).Name}", 400);
     }
-    
-    
+
+
     public async Task<string> GetLatestCommentAsync(Guid applicationId)
     {
         var application = await _applicationRepository.GetApplicationWithDetailsAsync(applicationId);
         if (application == null || string.IsNullOrEmpty(application.ApprovalHistory))
             return string.Empty;
-    
+
         try
         {
             // Разделяем историю по строкам
             var historyEntries = application.ApprovalHistory.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        
+
             if (historyEntries.Length == 0)
                 return string.Empty;
-        
+
             // Берем последнюю запись
             var lastEntryJson = historyEntries[historyEntries.Length - 1];
-        
+
             // Десериализуем последнюю запись
             var lastEntry = System.Text.Json.JsonSerializer.Deserialize<ApprovalHistoryEntry>(
                 lastEntryJson,
                 new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
             );
-        
+
             return lastEntry?.Comment ?? string.Empty;
         }
         catch (Exception ex)
@@ -362,7 +371,7 @@ public class ApplicationService : IApplicationService
             return string.Empty;
         }
     }
-    
+
     private string MapCourseType(CourseType type)
     {
         return type switch
@@ -373,8 +382,8 @@ public class ApplicationService : IApplicationService
             CourseType.Workshop => "Workshop",
             _ => "Course"
         };
-}
-    
+    }
+
     private string MapCourseTrack(CourseTrack track)
     {
         return track switch

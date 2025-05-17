@@ -10,7 +10,7 @@ public class ApiExceptionHandlerMiddleware
     private readonly IWebHostEnvironment _env;
 
     public ApiExceptionHandlerMiddleware(
-        RequestDelegate next, 
+        RequestDelegate next,
         ILogger<ApiExceptionHandlerMiddleware> logger,
         IWebHostEnvironment env)
     {
@@ -34,19 +34,19 @@ public class ApiExceptionHandlerMiddleware
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         _logger.LogError(exception, "Произошла ошибка: {Message}", exception.Message);
-        
+
         context.Response.ContentType = "application/json";
-        
+
         var statusCode = StatusCodes.Status500InternalServerError;
         var errors = new Dictionary<string, string[]>();
-        
+
         switch (exception)
         {
             case ApiException apiException:
                 statusCode = apiException.StatusCode;
                 errors = apiException.Errors ?? new Dictionary<string, string[]>();
                 break;
-                
+
             default:
                 if (_env.IsDevelopment())
                 {
@@ -59,19 +59,19 @@ public class ApiExceptionHandlerMiddleware
                 }
                 break;
         }
-        
+
         context.Response.StatusCode = statusCode;
-        
+
         var response = new
         {
             Status = statusCode,
             Title = GetDefaultMessageForStatusCode(statusCode),
             Errors = errors
         };
-        
+
         await context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
-    
+
     private static string GetDefaultMessageForStatusCode(int statusCode)
     {
         return statusCode switch

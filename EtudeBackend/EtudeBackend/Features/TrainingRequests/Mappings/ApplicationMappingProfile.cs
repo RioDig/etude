@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿using AutoMapper;
 using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Entities;
 using EtudeBackend.Shared.Data;
@@ -13,7 +13,7 @@ public class ApplicationMappingProfile : Profile
         CreateMap<Application, ApplicationDto>()
             .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status.Name))
             .ForMember(dest => dest.Course, opt => opt.MapFrom(src => src.Course));
-            
+
         // Application -> ApplicationDetailDto
         CreateMap<Application, ApplicationDetailDto>()
             .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status.Name))
@@ -21,20 +21,20 @@ public class ApplicationMappingProfile : Profile
             .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author))
             .ForMember(dest => dest.Course, opt => opt.MapFrom<CourseResolver>())
             .ForMember(dest => dest.Approvers, opt => opt.MapFrom<ApproversValueResolver>());
-            
+
         // Course -> CourseBasicDto
         CreateMap<Course, CourseBasicDto>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
             .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track.ToString()))
             .ForMember(dest => dest.Format, opt => opt.MapFrom(src => src.Format.ToString()));
-            
+
         // Course -> CourseDetailDto
         CreateMap<Course, CourseDetailDto>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
             .ForMember(dest => dest.Track, opt => opt.MapFrom(src => src.Track.ToString()))
             .ForMember(dest => dest.Format, opt => opt.MapFrom(src => src.Format.ToString()))
             .ForMember(dest => dest.Learner, opt => opt.Ignore()); // Будет заполнено отдельно
-            
+
         // ApplicationUser -> UserBasicDto
         CreateMap<ApplicationUser, UserBasicDto>()
             .ForMember(dest => dest.Department, opt => opt.Ignore())
@@ -86,7 +86,7 @@ public class ApplicationMappingProfile : Profile
             _ => "Course"
         };
     }
-        
+
     private static string MapCourseTrack(CourseTrack track)
     {
         return track switch
@@ -97,7 +97,7 @@ public class ApplicationMappingProfile : Profile
             _ => "Hard Skills"
         };
     }
-    
+
     private static string MapCourseFormat(CourseFormat format)
     {
         return format switch
@@ -111,25 +111,25 @@ public class ApplicationMappingProfile : Profile
     public class ApproversValueResolver : IValueResolver<Application, ApplicationDetailDto, List<UserBasicDto>>
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        
+
         public ApproversValueResolver(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
         }
-        
+
         public List<UserBasicDto> Resolve(
-            Application source, 
-            ApplicationDetailDto destination, 
-            List<UserBasicDto> destMember, 
+            Application source,
+            ApplicationDetailDto destination,
+            List<UserBasicDto> destMember,
             ResolutionContext context)
         {
             if (string.IsNullOrEmpty(source.Approvers))
                 return new List<UserBasicDto>();
-                
+
             try
             {
                 List<string> approverIds;
-                
+
                 try
                 {
                     // Сначала пробуем как список int
@@ -147,12 +147,12 @@ public class ApplicationMappingProfile : Profile
                 {
                     approverIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(source.Approvers) ?? new List<string>();
                 }
-                
+
                 if (approverIds.Count == 0)
                     return new List<UserBasicDto>();
-                    
+
                 var result = new List<UserBasicDto>();
-                
+
                 foreach (var approverId in approverIds)
                 {
                     var user = _userManager.FindByIdAsync(approverId).Result;
@@ -170,7 +170,7 @@ public class ApplicationMappingProfile : Profile
                         });
                     }
                 }
-                
+
                 return result;
             }
             catch (Exception)
@@ -179,17 +179,17 @@ public class ApplicationMappingProfile : Profile
             }
         }
     }
-    
+
     public class CourseResolver : IValueResolver<Application, ApplicationDetailDto, CourseDetailDto>
     {
         public CourseDetailDto Resolve(
-            Application source, 
-            ApplicationDetailDto destination, 
-            CourseDetailDto destMember, 
+            Application source,
+            ApplicationDetailDto destination,
+            CourseDetailDto destMember,
             ResolutionContext context)
         {
             var course = source.Course;
-            
+
             return new CourseDetailDto
             {
                 Id = course.Id,

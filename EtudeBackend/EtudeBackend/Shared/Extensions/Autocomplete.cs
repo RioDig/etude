@@ -36,7 +36,7 @@ public class AutocompleteController : ControllerBase
         try
         {
             var structure = await _etudeAuthApiService.GetOrganizationStructureAsync();
-            
+
             var allEmployees = new List<EmployeeDto>();
 
             foreach (var department in structure.Company.Departments)
@@ -52,7 +52,7 @@ public class AutocompleteController : ControllerBase
                     IsLeader = true
                 };
                 allEmployees.Add(manager);
-                
+
                 foreach (var employee in department.Employees)
                 {
                     allEmployees.Add(new EmployeeDto
@@ -67,9 +67,9 @@ public class AutocompleteController : ControllerBase
                     });
                 }
             }
-            
+
             var filteredEmployees = allEmployees;
-            
+
             if (!string.IsNullOrEmpty(term))
             {
                 string searchTerm = term.Trim().ToLower();
@@ -81,12 +81,12 @@ public class AutocompleteController : ControllerBase
                         e.Department.ToLower().Contains(searchTerm)
                 ).ToList();
             }
-            
+
             if (idsToRemove != null && idsToRemove.Length > 0)
             {
                 filteredEmployees = filteredEmployees.Where(e => !idsToRemove.Contains(e.Id)).ToList();
             }
-            
+
             const int maxResults = 8;
             bool hasMoreItems = filteredEmployees.Count > maxResults;
             var result = filteredEmployees
@@ -108,7 +108,7 @@ public class AutocompleteController : ControllerBase
                 new { message = "Ошибка при получении списка сотрудников" });
         }
     }
-    
+
     private string ExtractLastName(string fullName)
     {
         var parts = fullName.Split(' ');

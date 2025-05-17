@@ -18,8 +18,8 @@ public class OAuthService : IOAuthService
     private readonly UserManager<ApplicationUser> _userManager;
 
     public OAuthService(
-        HttpClient httpClient, 
-        IConfiguration configuration, 
+        HttpClient httpClient,
+        IConfiguration configuration,
         ILogger<OAuthService> logger,
         ITokenStorageService tokenStorageService,
         UserManager<ApplicationUser> userManager)
@@ -30,14 +30,14 @@ public class OAuthService : IOAuthService
         _tokenStorageService = tokenStorageService;
         _userManager = userManager;
     }
-    
+
     public string GetAuthorizationUrl(string redirectUri, string state = null)
     {
         var clientId = _configuration["OAuth:ClientId"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
-        
+
         var authUrl = $"{baseUrl}/oauth/authorize";
-        
+
         var queryParams = new Dictionary<string, string>
         {
             ["response_type"] = "code",
@@ -45,21 +45,21 @@ public class OAuthService : IOAuthService
             ["redirect_uri"] = redirectUri,
             ["scope"] = "profile documents"
         };
-        
+
         if (!string.IsNullOrEmpty(state))
         {
             queryParams["state"] = state;
             _logger.LogInformation("Добавлен state параметр: {State}", state);
         }
-        
+
         var queryString = string.Join("&", queryParams.Select(p => $"{p.Key}={Uri.EscapeDataString(p.Value)}"));
         var fullUrl = $"{authUrl}?{queryString}";
-        
+
         _logger.LogInformation("Сформирован URL авторизации: {Url}", fullUrl);
-        
+
         return fullUrl;
     }
-    
+
     public async Task<TokenResponse> ExchangeCodeForTokenAsync(string code, string redirectUri)
     {
         var clientId = _configuration["OAuth:ClientId"];
@@ -79,9 +79,9 @@ public class OAuthService : IOAuthService
 
         try
         {
-            _logger.LogInformation("Обмен кода авторизации на токены. Code: {Code}, RedirectUri: {RedirectUri}", 
+            _logger.LogInformation("Обмен кода авторизации на токены. Code: {Code}, RedirectUri: {RedirectUri}",
                 code, redirectUri);
-                
+
             var response = await _httpClient.PostAsync(tokenUrl, formContent);
 
             if (!response.IsSuccessStatusCode)
@@ -95,7 +95,7 @@ public class OAuthService : IOAuthService
 
             var content = await response.Content.ReadAsStringAsync();
             _logger.LogInformation("Получен ответ от сервера OAuth: {Response}", content);
-            
+
             var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(content, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -109,7 +109,7 @@ public class OAuthService : IOAuthService
             throw new ApiException("Failed to authenticate with OAuth server", 500);
         }
     }
-    
+
     public async Task<bool> ValidateTokenAsync(string token, string[] requiredScopes = null)
     {
         var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(token);
@@ -130,7 +130,7 @@ public class OAuthService : IOAuthService
                         return false;
                     }
                 }
-                
+
                 return true;
             }
             else
@@ -139,7 +139,7 @@ public class OAuthService : IOAuthService
                 return false;
             }
         }
-        
+
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
@@ -181,7 +181,7 @@ public class OAuthService : IOAuthService
             return false;
         }
     }
-    
+
     public async Task<UserInfoResponse> GetUserInfoAsync(string accessToken)
     {
         var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(accessToken);
@@ -197,7 +197,7 @@ public class OAuthService : IOAuthService
                 Position = tokenInfo.UserInfo.Position
             };
         }
-        
+
         var baseUrl = _configuration["OAuth:AuthServerUrl"];
         var userInfoUrl = $"{baseUrl}/api/user/me";
 
@@ -235,7 +235,7 @@ public class OAuthService : IOAuthService
             _httpClient.DefaultRequestHeaders.Authorization = null;
         }
     }
-    
+
     public async Task<bool> RevokeTokenAsync(string token)
     {
         var tokenInfo = await _tokenStorageService.GetTokenByOAuthTokenAsync(token);
@@ -243,7 +243,7 @@ public class OAuthService : IOAuthService
         {
             await _tokenStorageService.RevokeTokenAsync(tokenInfo.IdentityToken);
         }
-        
+
         var clientId = _configuration["OAuth:ClientId"];
         var clientSecret = _configuration["OAuth:ClientSecret"];
         var baseUrl = _configuration["OAuth:AuthServerUrl"];

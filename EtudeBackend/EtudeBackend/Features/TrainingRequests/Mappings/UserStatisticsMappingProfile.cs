@@ -15,7 +15,7 @@ public class UserStatisticsMappingProfile : Profile
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.Status, opt => opt.Ignore())
             .ForMember(dest => dest.Course, opt => opt.Ignore());
-        
+
         // Маппинг из Course в CourseDetailDto
         CreateMap<Course, CourseDetailDto>()
             .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type.ToString()))
@@ -23,11 +23,11 @@ public class UserStatisticsMappingProfile : Profile
             .ForMember(dest => dest.Format, opt => opt.MapFrom(src => src.Format.ToString()))
             .ForMember(dest => dest.Link, opt => opt.MapFrom(src => src.Link))
             .ForMember(dest => dest.Learner, opt => opt.Ignore());
-        
+
         // Маппинг из Status в StatusDto
         CreateMap<Status, StatusDto>()
             .ForMember(dest => dest.Type, opt => opt.Ignore());
-        
+
         // Маппинг из ApplicationUser в UserBasicDto
         CreateMap<ApplicationUser, UserBasicDto>()
             .ForMember(dest => dest.Department, opt => opt.Ignore())

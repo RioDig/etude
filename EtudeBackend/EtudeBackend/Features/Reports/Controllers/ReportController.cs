@@ -16,7 +16,7 @@ public class ReportController : ControllerBase
     {
         _reportService = reportService;
     }
-    
+
     /// <summary>
     /// Получает список всех отчетов с возможностью фильтрации
     /// </summary>
@@ -27,7 +27,7 @@ public class ReportController : ControllerBase
         var reports = await _reportService.GetAllReportsAsync(filter);
         return Ok(reports);
     }
-    
+
     /// <summary>
     /// Скачивает готовый отчет
     /// </summary>
@@ -40,7 +40,7 @@ public class ReportController : ControllerBase
         {
             var fileContent = await _reportService.DownloadReportAsync(id);
             return File(
-                fileContent, 
+                fileContent,
                 "text/plain",
                 $"report-{id}.txt");
         }
@@ -49,7 +49,7 @@ public class ReportController : ControllerBase
             return NotFound(new { message = ex.Message });
         }
     }
-    
+
     /// <summary>
     /// Генерирует новый отчет
     /// </summary>
@@ -62,7 +62,7 @@ public class ReportController : ControllerBase
         {
             var fileContent = await _reportService.GenerateReportAsync();
             return File(
-                fileContent, 
+                fileContent,
                 "text/plain",
                 $"report-{DateTime.Now:yyyyMMdd}.txt");
         }

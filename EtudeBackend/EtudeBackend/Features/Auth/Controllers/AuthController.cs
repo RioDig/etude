@@ -68,16 +68,16 @@ public class AuthController : ControllerBase
                 state = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("/"));
             }
 
-            _logger.LogInformation("OAuth авторизация. RedirectAfterLogin: {Redirect}, Encoded state: {State}", 
+            _logger.LogInformation("OAuth авторизация. RedirectAfterLogin: {Redirect}, Encoded state: {State}",
                 redirectAfterLogin ?? "/", state);
-            
+
             var baseUrl = _configuration["Application:BaseUrl"];
             var callbackUrl = $"{baseUrl}/api/auth/callback";
-            
+
             var authUrl = _oauthService.GetAuthorizationUrl(callbackUrl, state);
-        
+
             _logger.LogInformation("Перенаправление на OAuth авторизацию: {Url}", authUrl);
-        
+
             return Redirect(authUrl);
         }
         catch (Exception ex)
@@ -94,124 +94,124 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status302Found)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string? state = null)
-{
-    if (string.IsNullOrEmpty(code))
     {
-        _logger.LogWarning("OAuth callback без кода авторизации");
-        return BadRequest("Authorization code is missing");
-    }
-
-    _logger.LogInformation("OAuth callback получен. Code: {Code}, State: {State}", code, state ?? "null");
-
-    try
-    {
-        var baseUrl = _configuration["Application:BaseUrl"];
-        var callbackUrl = $"{baseUrl}/api/auth/callback";
-        
-        var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
-        
-        var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
-        
-        var existingUser = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
-
-        if (existingUser == null)
+        if (string.IsNullOrEmpty(code))
         {
-            var appUser = new ApplicationUser
+            _logger.LogWarning("OAuth callback без кода авторизации");
+            return BadRequest("Authorization code is missing");
+        }
+
+        _logger.LogInformation("OAuth callback получен. Code: {Code}, State: {State}", code, state ?? "null");
+
+        try
+        {
+            var baseUrl = _configuration["Application:BaseUrl"];
+            var callbackUrl = $"{baseUrl}/api/auth/callback";
+
+            var tokenResponse = await _oauthService.ExchangeCodeForTokenAsync(code, callbackUrl);
+
+            var userInfo = await _oauthService.GetUserInfoAsync(tokenResponse.AccessToken);
+
+            var existingUser = await _userManager.FindByEmailAsync(userInfo.OrgEmail);
+
+            if (existingUser == null)
             {
-                UserName = userInfo.OrgEmail,
-                Email = userInfo.OrgEmail,
-                EmailConfirmed = true,
-                Name = userInfo.Name,
-                Surname = userInfo.Surname,
-                Patronymic = userInfo.Patronymic,
-                OrgEmail = userInfo.OrgEmail,
-                Position = userInfo.Position,
-                SoloUserId = userInfo.UserId,
-                IsActive = true,
-                RoleId = 1
+                var appUser = new ApplicationUser
+                {
+                    UserName = userInfo.OrgEmail,
+                    Email = userInfo.OrgEmail,
+                    EmailConfirmed = true,
+                    Name = userInfo.Name,
+                    Surname = userInfo.Surname,
+                    Patronymic = userInfo.Patronymic,
+                    OrgEmail = userInfo.OrgEmail,
+                    Position = userInfo.Position,
+                    SoloUserId = userInfo.UserId,
+                    IsActive = true,
+                    RoleId = 1
+                };
+
+                string temporaryPassword = GenerateRandomPassword();
+
+                var result = await _userManager.CreateAsync(appUser, temporaryPassword);
+
+                if (!result.Succeeded)
+                {
+                    _logger.LogError("Ошибка при создании пользователя: {Errors}",
+                        string.Join(", ", result.Errors.Select(e => e.Description)));
+                    return BadRequest("Не удалось создать пользователя");
+                }
+
+                await _emailService.SendEmailAsync(userInfo.OrgEmail, temporaryPassword);
+                _logger.LogInformation("Создан новый пользователь: {Email} c паролем {Password}",
+                    userInfo.OrgEmail, temporaryPassword);
+
+                existingUser = appUser;
+            }
+
+            await _signInManager.SignInAsync(existingUser,
+                new AuthenticationProperties
+                {
+                    IsPersistent = true,
+                    ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
+                });
+
+            var identityToken = GenerateSecureToken();
+
+            var expiresAt = DateTimeOffset.UtcNow.AddSeconds(
+                tokenResponse.ExpiresIn > 0
+                    ? tokenResponse.ExpiresIn
+                    : 30 * 24 * 60 * 60);
+
+            var oauthTokenInfo = new OAuthTokenInfo
+            {
+                AccessToken = tokenResponse.AccessToken,
+                RefreshToken = tokenResponse.RefreshToken,
+                TokenType = tokenResponse.TokenType,
+                ExpiresIn = tokenResponse.ExpiresIn,
+                Scope = tokenResponse.Scope
             };
-            
-            string temporaryPassword = GenerateRandomPassword();
-            
-            var result = await _userManager.CreateAsync(appUser, temporaryPassword);
 
-            if (!result.Succeeded)
-            {
-                _logger.LogError("Ошибка при создании пользователя: {Errors}", 
-                    string.Join(", ", result.Errors.Select(e => e.Description)));
-                return BadRequest("Не удалось создать пользователя");
-            }
-            
-            await _emailService.SendEmailAsync(userInfo.OrgEmail, temporaryPassword);
-            _logger.LogInformation("Создан новый пользователь: {Email} c паролем {Password}", 
-                userInfo.OrgEmail, temporaryPassword);
-                
-            existingUser = appUser;
-        }
-        
-        await _signInManager.SignInAsync(existingUser,
-            new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30)
-            });
-        
-        var identityToken = GenerateSecureToken();
-        
-        var expiresAt = DateTimeOffset.UtcNow.AddSeconds(
-            tokenResponse.ExpiresIn > 0 
-                ? tokenResponse.ExpiresIn 
-                : 30 * 24 * 60 * 60);
-        
-        var oauthTokenInfo = new OAuthTokenInfo
-        {
-            AccessToken = tokenResponse.AccessToken,
-            RefreshToken = tokenResponse.RefreshToken,
-            TokenType = tokenResponse.TokenType,
-            ExpiresIn = tokenResponse.ExpiresIn,
-            Scope = tokenResponse.Scope
-        };
-        
-        await _tokenStorageService.StoreTokensAsync(
-            existingUser.Id, 
-            identityToken, 
-            oauthTokenInfo,
-            new UserInfo
-            {
-                Id = existingUser.Id,
-                Email = existingUser.OrgEmail,
-                Name = existingUser.Name,
-                Surname = existingUser.Surname,
-                Patronymic = existingUser.Patronymic,
-                Position = existingUser.Position,
-                SoloUserId = existingUser.SoloUserId,
-                RoleId = existingUser.RoleId
-            }, 
-            expiresAt);
-        
-        string redirectUrl = "/";
-        if (!string.IsNullOrEmpty(state))
-        {
-            try
-            {
-                redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
-                _logger.LogInformation("Расшифрованный state параметр: {RedirectUrl}", redirectUrl);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Невозможно расшифровать state параметр: {State}", state);
-            }
-        }
+            await _tokenStorageService.StoreTokensAsync(
+                existingUser.Id,
+                identityToken,
+                oauthTokenInfo,
+                new UserInfo
+                {
+                    Id = existingUser.Id,
+                    Email = existingUser.OrgEmail,
+                    Name = existingUser.Name,
+                    Surname = existingUser.Surname,
+                    Patronymic = existingUser.Patronymic,
+                    Position = existingUser.Position,
+                    SoloUserId = existingUser.SoloUserId,
+                    RoleId = existingUser.RoleId
+                },
+                expiresAt);
 
-        _logger.LogInformation("Перенаправление пользователя после успешной авторизации: {RedirectUrl}", redirectUrl);
-        return Redirect(redirectUrl);
+            string redirectUrl = "/";
+            if (!string.IsNullOrEmpty(state))
+            {
+                try
+                {
+                    redirectUrl = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(state));
+                    _logger.LogInformation("Расшифрованный state параметр: {RedirectUrl}", redirectUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Невозможно расшифровать state параметр: {State}", state);
+                }
+            }
+
+            _logger.LogInformation("Перенаправление пользователя после успешной авторизации: {RedirectUrl}", redirectUrl);
+            return Redirect(redirectUrl);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при обработке OAuth callback");
+            return BadRequest("Authentication failed");
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Ошибка при обработке OAuth callback");
-        return BadRequest("Authentication failed");
-    }
-}
 
 
     /// <summary>
@@ -227,8 +227,9 @@ public class AuthController : ControllerBase
             if (!string.IsNullOrEmpty(userId))
             {
                 var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
-                
-                return Ok(new { 
+
+                return Ok(new
+                {
                     Message = "Вы успешно аутентифицированы",
                     User = User.Identity.Name,
                     TokensCount = tokens.Count,
@@ -236,10 +237,10 @@ public class AuthController : ControllerBase
                 });
             }
         }
-        
+
         return Ok(new { Message = "OAuth тестовый эндпоинт. Вы не аутентифицированы." });
     }
-    
+
     /// <summary>
     /// Аутентификация пользователя по email и паролю
     /// </summary>
@@ -287,7 +288,7 @@ public class AuthController : ControllerBase
         await _authService.LogoutAsync();
         return Ok(new { message = "Вы успешно вышли из системы" });
     }
-    
+
     /// <summary>
     /// Получение информации о текущем пользователе и его токенах
     /// </summary>
@@ -302,23 +303,24 @@ public class AuthController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
         {
             return Unauthorized();
         }
-        
+
         var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
         var activeTokens = tokens.Where(t => t.ExpiresAt > DateTimeOffset.UtcNow).ToList();
-        
-        return Ok(new {
+
+        return Ok(new
+        {
             User = user,
             ActiveTokens = activeTokens.Count,
             LastLogin = activeTokens.OrderByDescending(t => t.CreatedAt).FirstOrDefault()?.CreatedAt
         });
     }
-    
+
     /// <summary>
     /// Получение списка активных сессий пользователя
     /// </summary>
@@ -333,11 +335,12 @@ public class AuthController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
         var activeSessions = tokens
             .Where(t => t.ExpiresAt > DateTimeOffset.UtcNow)
-            .Select(t => new {
+            .Select(t => new
+            {
                 TokenId = MaskToken(t.IdentityToken),
                 AuthType = t.AuthType,
                 CreatedAt = t.CreatedAt,
@@ -348,10 +351,10 @@ public class AuthController : ControllerBase
             })
             .OrderByDescending(s => s.CreatedAt)
             .ToList();
-        
+
         return Ok(activeSessions);
     }
-    
+
     /// <summary>
     /// Удаление указанной сессии пользователя
     /// </summary>
@@ -367,25 +370,25 @@ public class AuthController : ControllerBase
         {
             return Unauthorized();
         }
-        
+
         var tokens = await _tokenStorageService.GetUserTokensAsync(userId);
         var token = tokens.FirstOrDefault(t => t.IdentityToken.StartsWith(tokenId));
-        
+
         if (token == null)
         {
             return NotFound();
         }
-        
+
         await _tokenStorageService.RevokeTokenAsync(token.IdentityToken);
-        
+
         if (token.OAuthTokens != null && !string.IsNullOrEmpty(token.OAuthTokens.AccessToken))
         {
             await _oauthService.RevokeTokenAsync(token.OAuthTokens.AccessToken);
         }
-        
+
         return Ok(new { message = "Сессия успешно прекращена" });
     }
-    
+
     /// <summary>
     /// Вспомогательный метод для генерации случайного пароля
     /// </summary>
@@ -397,7 +400,7 @@ public class AuthController : ControllerBase
         //     .Select(s => s[random.Next(s.Length)]).ToArray());
         return "test";
     }
-    
+
     /// <summary>
     /// Вспомогательный метод для генерации защищенного токена
     /// </summary>
@@ -410,7 +413,7 @@ public class AuthController : ControllerBase
         }
         return Convert.ToBase64String(randomBytes);
     }
-    
+
     /// <summary>
     /// Вспомогательный метод для маскировки токена (показываем только первые и последние символы)
     /// </summary>
@@ -420,10 +423,10 @@ public class AuthController : ControllerBase
         {
             return token;
         }
-        
+
         return token.Substring(0, 4) + "..." + token.Substring(token.Length - 4);
     }
-    
+
     /// <summary>
     /// Проверяет, является ли токен текущей сессией пользователя
     /// </summary>

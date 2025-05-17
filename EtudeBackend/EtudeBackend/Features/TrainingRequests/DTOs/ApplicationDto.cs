@@ -66,6 +66,7 @@ public class CreateApplicationDto
     public string Price { get; set; }
     public string EducationGoal { get; set; } = string.Empty;
     public List<int> ApproverIds { get; set; } = new List<int>();
+    public Guid StatusId { get; set; }
 }
 
 public class UpdateApplicationDto

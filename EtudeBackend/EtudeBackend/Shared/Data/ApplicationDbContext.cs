@@ -13,15 +13,15 @@ namespace EtudeBackend.Shared.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
-        
+
         public DbSet<Course> Courses { get; set; } = null!;
         public DbSet<Application> Applications { get; set; } = null!;
         public DbSet<Status> Statuses { get; set; } = null!;
         public DbSet<UserStatistics> UserStatistics { get; set; } = null!;
-        
+
 
         public DbSet<Token> Tokens { get; set; } = null!;
-        
+
         public DbSet<EventType> EventTypes { get; set; } = null!;
         public DbSet<Log> Logs { get; set; } = null!;
         public DbSet<Report> Reports { get; set; } = null!;

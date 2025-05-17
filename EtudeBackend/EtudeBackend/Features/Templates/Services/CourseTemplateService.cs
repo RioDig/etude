@@ -13,7 +13,7 @@ public class CourseTemplateService : ICourseTemplateService
     private readonly ILogger<CourseTemplateService> _logger;
 
     public CourseTemplateService(
-        ICourseTemplateRepository repository, 
+        ICourseTemplateRepository repository,
         IMapper mapper,
         ILogger<CourseTemplateService> logger)
     {
@@ -63,10 +63,10 @@ public class CourseTemplateService : ICourseTemplateService
         try
         {
             var filterDictionary = filters.ToDictionary(
-                f => f.Name.ToLower(), 
+                f => f.Name.ToLower(),
                 f => f.Value
             );
-            
+
             var templates = await _repository.FilterByAsync(filterDictionary);
             return _mapper.Map<List<CourseTemplateDto>>(templates);
         }
@@ -82,7 +82,7 @@ public class CourseTemplateService : ICourseTemplateService
         var template = _mapper.Map<CourseTemplate>(templateDto);
         template.Id = Guid.NewGuid();
         template.CreatedAt = DateTimeOffset.UtcNow;
-        
+
         var createdTemplate = await _repository.AddAsync(template);
         return _mapper.Map<CourseTemplateDto>(createdTemplate);
     }
@@ -92,36 +92,36 @@ public class CourseTemplateService : ICourseTemplateService
         var template = await _repository.GetByIdAsync(templateDto.Id);
         if (template == null)
             return null;
-        
+
         if (templateDto.Name != null)
             template.Name = templateDto.Name;
-            
+
         if (templateDto.Description != null)
             template.Description = templateDto.Description;
-            
+
         if (templateDto.TrainingCenter != null)
             template.TrainingCenter = templateDto.TrainingCenter;
-            
+
         if (templateDto.Type != null && Enum.TryParse<CourseType>(templateDto.Type, true, out var courseType))
             template.Type = courseType;
-            
+
         if (templateDto.Track != null && Enum.TryParse<CourseTrack>(templateDto.Track, true, out var courseTrack))
             template.Track = courseTrack;
-            
+
         if (templateDto.Format != null && Enum.TryParse<CourseFormat>(templateDto.Format, true, out var courseFormat))
             template.Format = courseFormat;
-            
+
         if (templateDto.StartDate.HasValue)
             template.StartDate = templateDto.StartDate.Value;
-            
+
         if (templateDto.EndDate.HasValue)
             template.EndDate = templateDto.EndDate.Value;
-            
+
         if (templateDto.Link != null)
             template.Link = templateDto.Link;
-            
+
         template.UpdatedAt = DateTimeOffset.UtcNow;
-        
+
         await _repository.UpdateAsync(template);
         return _mapper.Map<CourseTemplateDto>(template);
     }
@@ -131,7 +131,7 @@ public class CourseTemplateService : ICourseTemplateService
         var template = await _repository.GetByIdAsync(id);
         if (template == null)
             return false;
-            
+
         await _repository.RemoveAsync(template);
         return true;
     }

@@ -9,7 +9,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
     public void Configure(EntityTypeBuilder<Course> builder)
     {
         builder.HasKey(c => c.Id);
-        
+
         builder.Property(c => c.Id)
             .HasDefaultValueSql("gen_random_uuid()");
         builder.Property(c => c.Name)
@@ -21,7 +21,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         builder.Property(c => c.TrainingCenter)
             .HasMaxLength(100);
-        
+
         builder.Property(c => c.Link)
             .HasMaxLength(500);
 
@@ -30,27 +30,27 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
 
         builder.Property(c => c.Price)
             .HasColumnType("text");
-        
+
         builder.Property(c => c.Type)
             .IsRequired()
             .HasConversion<string>();
-            
+
         builder.Property(c => c.Track)
             .IsRequired()
             .HasConversion<string>();
-            
+
         builder.Property(c => c.Format)
             .IsRequired()
             .HasConversion<string>();
-        
+
         builder.Property(c => c.CreatedAt)
             .IsRequired()
             .HasColumnType("timestamp with time zone")
             .HasDefaultValueSql("now()");
-            
+
         builder.Property(c => c.UpdatedAt)
             .HasColumnType("timestamp with time zone");
-        
+
         builder.HasIndex(c => c.Type);
         builder.HasIndex(c => c.Track);
         builder.HasIndex(c => c.Format);

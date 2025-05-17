@@ -37,13 +37,13 @@ public class AuthService : IAuthService
             _logger.LogWarning("Неудачная попытка входа: пользователь с email {Email} не найден", request.Email);
             throw new ArgumentException("Неверный email или пароль");
         }
-        
+
         if (!user.IsActive)
         {
             _logger.LogWarning("Попытка входа в деактивированный аккаунт: {Email}", request.Email);
             throw new InvalidOperationException("Аккаунт деактивирован");
         }
-        
+
         var signInResult = await _signInManager.PasswordSignInAsync(user, request.Password, request.RememberMe, false);
         if (!signInResult.Succeeded)
         {
@@ -52,13 +52,13 @@ public class AuthService : IAuthService
         }
 
         _logger.LogInformation("Пользователь {Email} успешно авторизован", request.Email);
-        
+
         var identityToken = GenerateSecureToken();
-        
+
         var httpContext = _httpContextAccessor.HttpContext;
         var authProperties = await httpContext.AuthenticateAsync();
         var expiresAt = authProperties?.Properties?.ExpiresUtc ?? DateTimeOffset.UtcNow.AddDays(30);
-        
+
         await _tokenStorageService.StoreTokensAsync(
             user.Id,
             identityToken,
@@ -75,7 +75,7 @@ public class AuthService : IAuthService
                 RoleId = user.RoleId
             },
             expiresAt);
-        
+
         return new LoginResponse
         {
             Id = user.Id,
@@ -101,11 +101,11 @@ public class AuthService : IAuthService
                 await _tokenStorageService.RevokeAllUserTokensAsync(userId);
             }
         }
-        
+
         await _signInManager.SignOutAsync();
         _logger.LogInformation("Пользователь вышел из системы");
     }
-    
+
     /// <summary>
     /// Генерирует случайный защищенный токен
     /// </summary>
