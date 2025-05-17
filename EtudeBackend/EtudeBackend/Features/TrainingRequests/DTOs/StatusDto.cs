@@ -22,5 +22,4 @@ public class UpdateStatusDto
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    public string? Type { get; set; } // Добавлен в DTO для обновления
 }

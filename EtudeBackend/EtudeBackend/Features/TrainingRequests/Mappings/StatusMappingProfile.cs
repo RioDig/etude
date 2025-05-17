@@ -8,21 +8,24 @@ public class StatusMappingProfile : Profile
 {
     public StatusMappingProfile()
     {
-        // Status -> StatusDto - явно указываем маппинг Type, чтобы гарантировать его копирование
+        // Status -> StatusDto
         CreateMap<Status, StatusDto>()
-            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type))
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Type)) // Явный маппинг для поля Type
             .ForMember(dest => dest.IsProtected, opt => opt.MapFrom(src => src.IsProtected))
             .ForMember(dest => dest.IsTerminal, opt => opt.MapFrom(src => src.IsTerminal))
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.ApplicationCount, opt => opt.Ignore());
         
-        // CreateStatusDto -> Status - явно указываем маппинг Type
+        // CreateStatusDto -> Status
         CreateMap<CreateStatusDto, Status>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
-            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+            .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+            .ForMember(dest => dest.Type, opt => opt.Ignore()) // Игнорируем тип при мапинге из CreateStatusDto
+            .ForMember(dest => dest.IsProtected, opt => opt.MapFrom(src => false))
+            .ForMember(dest => dest.IsTerminal, opt => opt.MapFrom(src => false));
         
-        // UpdateStatusDto -> Status - маппинг производится вручную в сервисе
+        // UpdateStatusDto -> Status
     }
 }

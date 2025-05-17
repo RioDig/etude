@@ -1,5 +1,8 @@
 ﻿using EtudeBackend.Features.TrainingRequests.DTOs;
+using EtudeBackend.Features.TrainingRequests.Entities;
+using EtudeBackend.Features.TrainingRequests.Repositories;
 using EtudeBackend.Features.TrainingRequests.Services;
+using EtudeBackend.Shared.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,13 +15,15 @@ public class CustomStatusController : ControllerBase
 {
     private readonly ICustomStatusService _statusService;
     private readonly ILogger<CustomStatusController> _logger;
+    private readonly IStatusRepository _statusRepository;
 
     public CustomStatusController(
         ICustomStatusService statusService,
-        ILogger<CustomStatusController> logger)
+        ILogger<CustomStatusController> logger, IStatusRepository statusRepository)
     {
         _statusService = statusService;
         _logger = logger;
+        _statusRepository = statusRepository;
     }
     
     /// <summary>
@@ -52,10 +57,10 @@ public class CustomStatusController : ControllerBase
         try
         {
             var status = await _statusService.GetStatusByIdAsync(id);
-                
+            
             if (status == null)
                 return NotFound(new { message = "Статус не найден" });
-                
+            
             return Ok(status);
         }
         catch (Exception ex)
@@ -65,6 +70,7 @@ public class CustomStatusController : ControllerBase
                 new { message = "Внутренняя ошибка сервера при получении статуса" });
         }
     }
+
     
     /// <summary>
     /// Создает новый кастомный статус
@@ -72,30 +78,37 @@ public class CustomStatusController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateStatus([FromBody] CreateStatusDto statusDto)
+    public async Task<StatusDto> CreateStatusAsync(CreateStatusDto statusDto)
     {
-        try
+        var existingStatus = await _statusRepository.GetByNameAsync(statusDto.Name);
+        if (existingStatus != null)
+            throw new ApiException($"Статус с именем '{statusDto.Name}' уже существует", 400);
+        
+        var status = new Status
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var createdStatus = await _statusService.CreateStatusAsync(statusDto);
-                
-            return CreatedAtAction(
-                nameof(GetStatusById), 
-                new { id = createdStatus.Id }, 
-                createdStatus);
-        }
-        catch (Exception ex)
+            Id = Guid.NewGuid(),
+            Name = statusDto.Name,
+            Description = statusDto.Description,
+            Type = "Processed", // Устанавливаем тип по умолчанию
+            IsProtected = false,
+            IsTerminal = false
+        };
+    
+        var createdStatus = await _statusRepository.AddAsync(status);
+    
+        // Создаем DTO вручную
+        var resultDto = new StatusDto
         {
-            _logger.LogError(ex, "Ошибка при создании нового статуса");
-            
-            if (ex.Message.Contains("уже существует") || ex.Message.Contains("Невалидный тип"))
-                return BadRequest(new { message = ex.Message });
-                
-            return StatusCode(StatusCodes.Status500InternalServerError, 
-                new { message = "Внутренняя ошибка сервера при создании статуса" });
-        }
+            Id = createdStatus.Id,
+            Name = createdStatus.Name,
+            Description = createdStatus.Description,
+            Type = createdStatus.Type, // Явно копируем тип
+            IsProtected = createdStatus.IsProtected,
+            IsTerminal = createdStatus.IsTerminal,
+            ApplicationCount = 0
+        };
+    
+        return resultDto;
     }
     
     /// <summary>
@@ -113,19 +126,19 @@ public class CustomStatusController : ControllerBase
                 return BadRequest(ModelState);
 
             var updatedStatus = await _statusService.UpdateStatusAsync(id, statusDto);
-                
+            
             if (updatedStatus == null)
                 return NotFound(new { message = "Статус не найден" });
-                
+            
             return Ok(updatedStatus);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обновлении статуса с ID: {Id}", id);
-            
-            if (ex.Message.Contains("защищенный") || ex.Message.Contains("уже существует") || ex.Message.Contains("Невалидный тип"))
+        
+            if (ex.Message.Contains("защищенный") || ex.Message.Contains("уже существует"))
                 return BadRequest(new { message = ex.Message });
-                
+            
             return StatusCode(StatusCodes.Status500InternalServerError, 
                 new { message = "Внутренняя ошибка сервера при обновлении статуса" });
         }
