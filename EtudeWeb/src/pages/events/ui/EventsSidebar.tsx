@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Sidebar, SidebarAction } from '@/widgets/sidebar'
 import { Typography } from '@/shared/ui/typography'
 import { Tag } from '@/shared/ui/tag'
@@ -14,12 +14,7 @@ import {
   useChangeApplicationStatus,
   useDeleteApplication
 } from '@/entities/event'
-import {
-  Application,
-  ApplicationStatusType,
-  CustomStatus,
-  StatusType
-} from '@/shared/types'
+import { Application, ApplicationStatusType, CustomStatus, StatusType } from '@/shared/types'
 import { useAuth } from '@/entities/session'
 import { useCustomStatuses } from '@/entities/customStatus'
 import { CourseTypeLabels } from '@/shared/labels/courseType'
@@ -47,17 +42,34 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   const [selectedStatusId, setSelectedStatusId] = useState('')
 
   const { data: eventDetails, isLoading, error } = useApplicationDetail(event?.application_id)
+  const { data: customStatuses, isLoading: isLoadingStatuses } = useCustomStatuses()
 
   const updateMutation = useUpdateApplication()
   const changeStatusMutation = useChangeApplicationStatus()
   const deleteMutation = useDeleteApplication()
 
-  const { data: customStatuses } = useCustomStatuses()
+  // Получаем статусы по типу
+  const getStatusIdByType = (statusType: StatusType): string => {
+    if (!customStatuses) return ''
+    const status = customStatuses.find((s) => s.type === statusType)
+    return status?.id || ''
+  }
 
+  // Отфильтрованные статусы для dropdown
   const filteredStatuses =
     customStatuses?.filter(
       (status) => status.type === StatusType.Processed && status.name !== eventDetails?.status.name
     ) || []
+
+  // Эффект для установки правильного ID статуса при инициализации
+  useEffect(() => {
+    if (customStatuses && modalType === 'changeStatus') {
+      // По умолчанию выбираем первый доступный статус
+      if (filteredStatuses.length > 0 && !selectedStatusId) {
+        setSelectedStatusId(filteredStatuses[0].id)
+      }
+    }
+  }, [customStatuses, filteredStatuses, modalType, selectedStatusId])
 
   const handleClose = () => {
     setModalType(null)
@@ -71,12 +83,21 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   }
 
   const handleApprove = () => {
-    if (!eventDetails) return
+    if (!eventDetails || !customStatuses) return
+
+    const approvalStatusId = getStatusIdByType(StatusType.Approvement)
+    if (!approvalStatusId) {
+      notification.error({
+        title: 'Ошибка',
+        description: 'Не удалось найти статус для подтверждения'
+      })
+      return
+    }
 
     changeStatusMutation.mutate(
       {
         id: eventDetails.application_id,
-        status: 'Approvement',
+        status: approvalStatusId, // Используем ID вместо названия
         comment: statusComment
       },
       {
@@ -99,12 +120,21 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   }
 
   const handleReject = () => {
-    if (!eventDetails) return
+    if (!eventDetails || !customStatuses) return
+
+    const rejectStatusId = getStatusIdByType(StatusType.Rejected)
+    if (!rejectStatusId) {
+      notification.error({
+        title: 'Ошибка',
+        description: 'Не удалось найти статус для отклонения'
+      })
+      return
+    }
 
     changeStatusMutation.mutate(
       {
         id: eventDetails.application_id,
-        status: 'Rejected',
+        status: rejectStatusId, // Используем ID вместо названия
         comment: statusComment
       },
       {
@@ -153,7 +183,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     changeStatusMutation.mutate(
       {
         id: eventDetails.application_id,
-        status: selectedStatusId,
+        status: selectedStatusId, // Здесь уже правильно используется ID
         comment: statusComment
       },
       {
@@ -177,12 +207,21 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   }
 
   const handleComplete = () => {
-    if (!eventDetails) return
+    if (!eventDetails || !customStatuses) return
+
+    const completeStatusId = getStatusIdByType(StatusType.Registered)
+    if (!completeStatusId) {
+      notification.error({
+        title: 'Ошибка',
+        description: 'Не удалось найти статус для отметки о выполнении'
+      })
+      return
+    }
 
     changeStatusMutation.mutate(
       {
         id: eventDetails.application_id,
-        status: 'Registered',
+        status: completeStatusId, // Используем ID вместо названия
         comment: statusComment
       },
       {
@@ -205,7 +244,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   }
 
   const getHeaderActions = (): SidebarAction[] => {
-    if (!eventDetails) return []
+    if (!eventDetails || isLoadingStatuses) return []
 
     const actions: SidebarAction[] = []
 
@@ -297,9 +336,13 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
       <Sidebar
         open={open}
         onClose={handleClose}
-        title={eventData.course.course_name}
-        description={`${CourseTypeLabels[eventData.course.course_type]}, ${CourseFormatLabels[eventData.course.course_format]}`}
-        badge={{ text: statusText, variant: statusVariant }}
+        title={eventData?.course.course_name || ''}
+        description={
+          eventData
+            ? `${CourseTypeLabels[eventData.course.course_type]}, ${CourseFormatLabels[eventData.course.course_format]}`
+            : ''
+        }
+        badge={eventData ? { text: statusText, variant: statusVariant } : undefined}
         headerActions={headerActions}
         footerActions={[
           {
@@ -489,7 +532,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
               <Button
                 variant="primary"
                 onClick={handleApprove}
-                disabled={changeStatusMutation.isPending}
+                disabled={changeStatusMutation.isPending || isLoadingStatuses}
               >
                 {changeStatusMutation.isPending ? (
                   <>
@@ -528,7 +571,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
               <Button
                 variant="primary"
                 onClick={handleReject}
-                disabled={changeStatusMutation.isPending || !statusComment}
+                disabled={changeStatusMutation.isPending || !statusComment || isLoadingStatuses}
               >
                 {changeStatusMutation.isPending ? (
                   <>
@@ -650,7 +693,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
               <Button
                 variant="primary"
                 onClick={handleComplete}
-                disabled={changeStatusMutation.isPending}
+                disabled={changeStatusMutation.isPending || isLoadingStatuses}
               >
                 {changeStatusMutation.isPending ? (
                   <>
@@ -678,5 +721,3 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     </>
   )
 }
-
-export default EventsSidebar

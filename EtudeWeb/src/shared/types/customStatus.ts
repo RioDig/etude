@@ -29,4 +29,5 @@ export interface CustomStatus {
    * Описание статуса
    */
   description: string
+  isProtected: boolean
 }

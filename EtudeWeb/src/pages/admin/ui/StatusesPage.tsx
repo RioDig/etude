@@ -81,9 +81,12 @@ export const StatusesPage: React.FC = () => {
   }
 
   const filteredStatuses =
-    statuses?.filter(
-      (status) => searchTerm === '' || status.name.toLowerCase().includes(searchTerm.toLowerCase())
-    ) || []
+    statuses
+      ?.filter((status) => !status.isProtected)
+      .filter(
+        (status) =>
+          searchTerm === '' || status.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ) || []
 
   const columns = [
     {

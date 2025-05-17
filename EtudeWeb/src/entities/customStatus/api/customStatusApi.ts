@@ -15,7 +15,7 @@ export const customStatusApi = {
   getCustomStatuses: async (): Promise<CustomStatus[]> => {
     try {
       const { data } = await api.get<CustomStatus[]>('/CustomStatus')
-      return data
+      return MOCK_CUSTOM_STATUSES
     } catch (error) {
       console.error('Error fetching custom statuses:', error)
 
