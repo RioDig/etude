@@ -1,4 +1,5 @@
-import { CardStatus } from '../model/types'
+
+import { StatusType } from '@/shared/types'
 
 export const formatDate = (date: Date): string => {
   return date.toLocaleDateString('ru-RU', {
@@ -20,39 +21,43 @@ export const generateCalendarDays = (startDate: Date, days: number): Date[] => {
   return result
 }
 
-export const getStatusColor = (status: CardStatus): string => {
+export const getStatusColor = (status: StatusType | undefined): string => {
   switch (status) {
-    case 'pending':
+    case StatusType.Approvement:
       return 'border-yellow-300 bg-yellow-100 hover:bg-yellow-200'
-    case 'approved':
+    case StatusType.Registered:
       return 'border-green-300 bg-green-100 hover:bg-green-200'
-    case 'rejected':
+    case StatusType.Rejected:
       return 'border-red-300 bg-red-100 hover:bg-red-200'
-    case 'completed':
+    case StatusType.Processed:
+      return 'border-blue-200 bg-blue-50 hover:bg-blue-100'
+    case StatusType.Confirmation:
       return 'border-mono-300 bg-mono-100 hover:bg-mono-300'
     default:
       return 'border-mono-300 bg-mono-100 hover:bg-mono-300'
   }
 }
 
-export const getStatusBadgeVariant = (
-  status: CardStatus
-): 'default' | 'success' | 'warning' | 'error' => {
+export const getCommentColorVariant = (
+  status: StatusType | string
+) => {
   switch (status) {
-    case 'pending':
-      return 'warning'
-    case 'approved':
-      return 'success'
-    case 'rejected':
-      return 'error'
-    case 'completed':
-      return 'default'
+    case StatusType.Approvement:
+      return 'border-yellow-300'
+    case StatusType.Registered:
+      return 'border-green-300'
+    case StatusType.Rejected:
+      return 'border-red-300'
+    case StatusType.Processed:
+      return 'border-blue-200'
+    case StatusType.Confirmation:
+      return 'border-mono-300'
     default:
-      return 'default'
+      return 'border-mono-300'
   }
 }
 
-export const getStatusText = (status: CardStatus): string => {
+export const getStatusText = (status: string): string => {
   switch (status) {
     case 'pending':
       return 'На согласовании'

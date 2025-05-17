@@ -5,14 +5,11 @@ import { Hint } from '@/shared/ui/hint'
 import { Badge } from '@/shared/ui/badge'
 import { Tag } from '@/shared/ui/tag'
 import { CalendarCard, CalendarViewMode } from '../model/types'
-import {
-  formatDate,
-  getStatusColor,
-  getStatusBadgeVariant,
-  getStatusText
-} from '../utils/calendar-helpers'
+import { formatDate, getStatusColor } from '../utils/calendar-helpers'
 import { CourseFormatLabels } from '@/shared/labels/courseFormat.ts'
 import { CourseTypeLabels } from '@/shared/labels/courseType.ts'
+import { StatusTypeLabels } from '@/shared/labels/statusType.ts'
+import { StatusType } from '@/shared/types'
 
 interface CalendarCardItemProps {
   card: CalendarCard
@@ -39,8 +36,30 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
   const showBadge = (colSpan > 1 || viewMode === 'week') && colWidth * colSpan > 350
   const showDates = colWidth * colSpan > 250
 
+  const getStatusVariant = (status: string) => {
+    switch (status) {
+      case StatusType.Confirmation:
+        return 'default'
+      case StatusType.Approvement:
+        return 'warning'
+      case StatusType.Rejected:
+        return 'error'
+      case StatusType.Registered:
+        return 'success'
+      case StatusType.Processed:
+        return 'system'
+      default:
+        return 'default'
+    }
+  }
+
   const hintContent = (
     <div className="max-w-[300px]">
+      {card.status && (
+        <Badge variant={getStatusVariant(card.status)} className="mb-2">
+          {StatusTypeLabels[card.status]}
+        </Badge>
+      )}
       <div className="mb-2">
         <h3 className="text-b3-semibold mb-1">{card.title}</h3>
         <p className="text-b4-regular text-mono-700">
@@ -53,7 +72,6 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
         <Tag>{CourseTypeLabels[card.type]}</Tag>
       </div>
       <p className="text-b4-regular mb-2">{card.description}</p>
-      {card.employee && <p className="text-b4-regular text-mono-700">Сотрудник: {card.employee}</p>}
       {card.trainingCenter && (
         <p className="text-b4-regular text-mono-700">Учебный центр: {card.trainingCenter}</p>
       )}
@@ -87,10 +105,10 @@ export const CalendarCardItem: React.FC<CalendarCardItemProps> = ({
               <div className="flex items-center gap-2 mb-[6px]">
                 {card.status && showBadge && (
                   <Badge
-                    variant={getStatusBadgeVariant(card.status)}
+                    variant={getStatusVariant(card.status)}
                     className="whitespace-nowrap shrink-0"
                   >
-                    {getStatusText(card.status)}
+                    {StatusTypeLabels[card.status]}
                   </Badge>
                 )}
 

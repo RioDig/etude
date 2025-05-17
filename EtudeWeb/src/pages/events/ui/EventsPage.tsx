@@ -14,33 +14,50 @@ import {
 import { EventsTable } from './EventsTable'
 import { EventsCalendar } from './EventsCalendar'
 import { EventsSidebar } from './EventsSidebar'
-import { useEvents } from '@/entities/event'
-import { Event } from '@/entities/event/model/types'
+import { useApplications } from '@/entities/event'
+import { Application, CourseFormat, CourseType, StatusType } from '@/shared/types'
 import { DatePicker } from '@/shared/ui/datepicker/Datepicker'
 import { createPortal } from 'react-dom'
+import { StatusTypeLabels } from '@/shared/labels/statusType'
+import { CourseTypeLabels } from '@/shared/labels/courseType'
+import { CourseFormatLabels } from '@/shared/labels/courseFormat'
+import { useQueryClient } from '@tanstack/react-query'
 
 export const EventsPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table')
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<Application | null>(null)
 
   const [currentDate, setCurrentDate] = useState<Date>(new Date())
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false)
   const [datePickerAnchor, setDatePickerAnchor] = useState<HTMLElement | null>(null)
 
-  const { data: events, isLoading, error } = useEvents()
-
+  const { data: events, isLoading, error } = useApplications()
+  const queryClient = useQueryClient()
   const filterOptions: FilterOption[] = [
+    {
+      id: 'status',
+      label: 'Статус',
+      type: 'dropdown',
+      options: [
+        { value: '', label: 'Все статусы' },
+        { value: StatusType.Confirmation, label: StatusTypeLabels[StatusType.Confirmation] },
+        { value: StatusType.Approvement, label: StatusTypeLabels[StatusType.Approvement] },
+        { value: StatusType.Rejected, label: StatusTypeLabels[StatusType.Rejected] },
+        { value: StatusType.Processed, label: StatusTypeLabels[StatusType.Processed] },
+        { value: StatusType.Registered, label: StatusTypeLabels[StatusType.Registered] }
+      ]
+    },
     {
       id: 'type',
       label: 'Тип',
       type: 'dropdown',
       options: [
         { value: '', label: 'Все типы' },
-        { value: 'conference', label: 'Конференция' },
-        { value: 'course', label: 'Курс' },
-        { value: 'webinar', label: 'Вебинар' },
-        { value: 'training', label: 'Тренинг' }
+        { value: CourseType.Course, label: CourseTypeLabels[CourseType.Course] },
+        { value: CourseType.Conference, label: CourseTypeLabels[CourseType.Conference] },
+        { value: CourseType.Certification, label: CourseTypeLabels[CourseType.Certification] },
+        { value: CourseType.Workshop, label: CourseTypeLabels[CourseType.Workshop] }
       ]
     },
     {
@@ -49,35 +66,32 @@ export const EventsPage: React.FC = () => {
       type: 'dropdown',
       options: [
         { value: '', label: 'Все форматы' },
-        { value: 'offline', label: 'Очно' },
-        { value: 'online', label: 'Онлайн' },
-        { value: 'mixed', label: 'Смешанный' }
+        { value: CourseFormat.Offline, label: CourseFormatLabels[CourseFormat.Offline] },
+        { value: CourseFormat.Online, label: CourseFormatLabels[CourseFormat.Online] }
       ]
     },
     {
-      id: 'category',
-      label: 'Категория',
+      id: 'track',
+      label: 'Направление',
       type: 'dropdown',
       options: [
         { value: '', label: 'Все категории' },
-        { value: 'hard-skills', label: 'Hard Skills' },
-        { value: 'soft-skills', label: 'Soft Skills' },
-        { value: 'management', label: 'Management' }
-      ]
-    },
-    {
-      id: 'status',
-      label: 'Статус',
-      type: 'dropdown',
-      options: [
-        { value: '', label: 'Все статусы' },
-        { value: 'pending', label: 'На согласовании' },
-        { value: 'approved', label: 'Согласовано' },
-        { value: 'rejected', label: 'Отклонено' },
-        { value: 'completed', label: 'Пройдено' }
+        { value: 'Hard Skills', label: 'Hard Skills' },
+        { value: 'Soft Skills', label: 'Soft Skills' },
+        { value: 'Management Skills', label: 'Management Skills' }
       ]
     }
   ]
+
+  const handleFilterChange = (_filterId: string, value: string | Date | null) => {
+    if (value === '' || value === null) {
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
+    }
+  }
+
+  const handleResetFilters = () => {
+    queryClient.invalidateQueries({ queryKey: ['applications'] })
+  }
 
   const viewModeOptions = [
     { id: 'table', label: 'Таблица', icon: <TableChartOutlined /> },
@@ -99,7 +113,7 @@ export const EventsPage: React.FC = () => {
     setCalendarViewMode(mode)
   }
 
-  const handleEventSelect = useCallback((event: Event) => {
+  const handleEventSelect = useCallback((event: Application) => {
     setSelectedEvent(event)
     setIsSidebarOpen(true)
   }, [])
@@ -199,7 +213,7 @@ export const EventsPage: React.FC = () => {
     <Container className="flex flex-col gap-6 h-full w-full">
       <div className="flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Typography variant="h2">Мероприятия</Typography>
+          <Typography variant="h2">Заявления</Typography>
           <Counter value={eventsCount} />
         </div>
         <Switch options={viewModeOptions} value={viewMode} onChange={handleViewModeChange} />
@@ -207,7 +221,13 @@ export const EventsPage: React.FC = () => {
 
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex-grow">
-          <Filter filters={filterOptions} pageId="events-page" className="flex-wrap" />
+          <Filter
+            filters={filterOptions}
+            pageId="events-page"
+            className="flex-wrap"
+            onReset={handleResetFilters}
+            onChange={handleFilterChange}
+          />
         </div>
 
         {viewMode === 'calendar' && (

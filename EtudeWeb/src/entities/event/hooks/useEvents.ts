@@ -1,100 +1,94 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { eventApi } from '../api/eventApi'
 import { usePageFilters } from '@/entities/filter'
-import { Event } from '../model/types'
+import { ApplicationStatusUpdate, ApplicationUpdate } from '@/shared/types'
 
 /**
- * Хук для получения списка мероприятий с учетом фильтров
+ * Хук для получения списка заявок с учетом фильтров
  */
-export const useEvents = () => {
+export const useApplications = () => {
+  // Получаем фильтры из хранилища Zustand
   const { filters } = usePageFilters('events-page')
 
+  // Преобразуем фильтры в массив для API
   const apiFilters = Object.entries(filters).reduce(
-    (acc, [key, value]) => {
+    (result, [key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        acc[key] = value
+        result[key] = String(value)
       }
-      return acc
+      return result
     },
-    {} as Record<string, any>
+    {} as Record<string, string>
   )
 
   return useQuery({
-    queryKey: ['events', apiFilters],
-    queryFn: () => eventApi.getEvents(apiFilters),
-    staleTime: 1000 * 60 * 5 // Данные считаются свежими 5 минут
+    queryKey: ['applications', apiFilters],
+    // @ts-expect-error hotfix
+    queryFn: () => eventApi.getApplications(apiFilters),
+    staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
+    refetchOnWindowFocus: true
   })
 }
 
 /**
- * Хук для получения детальной информации о мероприятии
+ * Хук для получения детальной информации о заявке
  */
-export const useEventDetails = (id?: string, options = {}) => {
+export const useApplicationDetail = (id?: string) => {
   return useQuery({
-    queryKey: ['event', id],
-    queryFn: () => eventApi.getEventById(id!),
+    queryKey: ['application', id],
+    queryFn: () => eventApi.getApplicationById(id!),
     enabled: !!id,
-    ...options
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: true
   })
 }
 
 /**
- * Хук для создания нового мероприятия
+ * Хук для обновления заявки
  */
-export const useCreateEvent = () => {
+export const useUpdateApplication = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (eventData: Partial<Event>) => eventApi.createEvent(eventData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+    mutationFn: ({ id, data }: { id: string; data: ApplicationUpdate }) =>
+      eventApi.updateApplication(id, data),
+    onSuccess: (_data, variables) => {
+      // Инвалидируем запросы для обновления данных в UI
+      queryClient.invalidateQueries({ queryKey: ['application', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
     }
   })
 }
 
 /**
- * Хук для обновления существующего мероприятия
+ * Хук для изменения статуса заявки
  */
-export const useUpdateEvent = () => {
+export const useChangeApplicationStatus = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Event> }) =>
-      eventApi.updateEvent(id, data),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['event', data.id] })
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+    mutationFn: (params: ApplicationStatusUpdate) => eventApi.changeApplicationStatus(params),
+    onSuccess: (_data, variables) => {
+      // Инвалидируем запросы для обновления данных в UI
+      queryClient.invalidateQueries({ queryKey: ['application', variables.id] })
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
     }
   })
 }
 
 /**
- * Хук для изменения статуса мероприятия
+ * Хук для удаления заявки
  */
-export const useChangeEventStatus = () => {
+export const useDeleteApplication = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: ({
-      id,
-      status,
-      reason
-    }: {
-      id: string
-      status: 'approved' | 'rejected' | 'completed'
-      reason?: string
-    }) => {
-      if (status === 'approved') {
-        return eventApi.approveEvent(id)
-      } else if (status === 'rejected') {
-        return eventApi.rejectEvent(id, reason || '')
-      } else {
-        return eventApi.updateEvent(id, { status })
-      }
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['event', data.id] })
-      queryClient.invalidateQueries({ queryKey: ['events'] })
+    mutationFn: (id: string) => eventApi.deleteApplication(id),
+    onSuccess: (_, id) => {
+      // Инвалидируем запросы для обновления данных в UI
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
+      // Удаляем детали заявки из кэша
+      queryClient.removeQueries({ queryKey: ['application', id] })
     }
   })
 }

@@ -5,12 +5,14 @@ import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 import { createPortal } from 'react-dom'
+import { SvgIconProps } from '@mui/material'
 
 export interface SidebarAction {
-  label: string
+  label?: string
   onClick: () => void
   variant?: 'primary' | 'secondary' | 'third'
   disabled?: boolean
+  icon?: React.ReactElement<SvgIconProps>
 }
 
 export interface SidebarProps {
@@ -102,7 +104,7 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
 
     actions.forEach((action) => {
       const tempButton = document.createElement('button')
-      tempButton.innerText = action.label
+      tempButton.innerText = action.label ?? ''
       tempButton.className = 'px-4 py-2'
       tempDiv.appendChild(tempButton)
 
@@ -137,7 +139,7 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
 
     actions.forEach((action) => {
       const tempButton = document.createElement('button')
-      tempButton.innerText = action.label
+      tempButton.innerText = action.label ?? ''
       tempButton.className = 'px-4 py-2'
       tempDiv2.appendChild(tempButton)
 
@@ -199,8 +201,9 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
             onClick={action.onClick}
             disabled={action.disabled}
             className="shrink-0"
+            leftIcon={action.label ? action.icon : undefined}
           >
-            {action.label}
+            {action.label ?? action.icon}
           </Button>
         ))}
 
@@ -228,7 +231,7 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
             anchorEl={moreButtonRef}
             position="bottom-right"
             defaultItems={hiddenActions.map((action) => ({
-              label: action.label,
+              label: action.label ?? '',
               onClick: () => {
                 action.onClick()
                 setIsDropdownOpen(false)
@@ -382,10 +385,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {footerActions.map((action, index) => {
                 const handleAction = () => {
                   if (
-                    action.label.toLowerCase().includes('закрыть') ||
-                    action.label.toLowerCase().includes('отмен') ||
-                    action.label.toLowerCase().includes('cancel') ||
-                    action.label.toLowerCase().includes('close')
+                    action.label?.toLowerCase().includes('закрыть') ||
+                    action.label?.toLowerCase().includes('отмен') ||
+                    action.label?.toLowerCase().includes('cancel') ||
+                    action.label?.toLowerCase().includes('close')
                   ) {
                     handleClose()
                   } else {

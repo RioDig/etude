@@ -55,7 +55,7 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
     useEffect(() => {
       if (initialEmployee && value && !searchTerm) {
         setSearchTerm(
-          initialEmployee.name + (initialEmployee.position ? `, ${initialEmployee.position}` : '')
+          `${initialEmployee.surname} ${initialEmployee.name} ${initialEmployee?.patronymic}, ${initialEmployee?.position}`
         )
         setSelectedEmployee(initialEmployee)
       }
@@ -74,7 +74,7 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
 
           const newOptions = employees.map((emp) => ({
             value: emp.id,
-            label: emp.name + (emp.position ? `, ${emp.position}` : ''),
+            label: `${emp.surname} ${emp.name} ${emp?.patronymic}, ${emp?.position}`,
             data: emp
           }))
 

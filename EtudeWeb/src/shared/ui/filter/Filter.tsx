@@ -126,7 +126,7 @@ export const Filter: React.FC<FilterProps> = ({
                   isActive ? 'text-mono-700 font-normal' : 'text-mono-900 font-medium'
                 )}
               >
-                {truncateText(filter.label, 10)}
+                {truncateText(filter.label, 12)}
               </span>
 
               <span

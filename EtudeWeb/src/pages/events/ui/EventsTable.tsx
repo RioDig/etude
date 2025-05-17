@@ -4,14 +4,17 @@ import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Tag } from '@/shared/ui/tag'
 import { Badge } from '@/shared/ui/badge'
 import { Spinner } from '@/shared/ui/spinner'
-import { Event } from '@/entities/event/model/types'
+import { Application, StatusType } from '@/shared/types'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
+import { CourseTypeLabels } from '@/shared/labels/courseType'
+import { CourseFormatLabels } from '@/shared/labels/courseFormat'
+import { StatusTypeLabels } from '@/shared/labels/statusType.ts'
 
 interface EventsTableProps {
-  events: Event[]
+  events: Application[]
   isLoading: boolean
   error?: string
-  onEventSelect: (event: Event) => void
+  onEventSelect: (event: Application) => void
 }
 
 export const EventsTable: React.FC<EventsTableProps> = ({
@@ -21,7 +24,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
   onEventSelect
 }) => {
   const [sortState, setSortState] = useState<SortState>({
-    field: 'startDate',
+    field: 'created_at',
     direction: 'desc'
   })
 
@@ -31,58 +34,80 @@ export const EventsTable: React.FC<EventsTableProps> = ({
 
   const columns = [
     {
-      id: 'status',
+      id: 'status.type',
       header: 'Статус',
       sortable: true,
-      width: '15%',
-      render: (event: Event) => {
-        const { text, variant } = getStatusInfo(event.status)
+      width: '12%',
+      render: (event: Application) => {
+        const { text, variant } = getStatusInfo(event.status.type)
         return <Badge variant={variant}>{text}</Badge>
       }
     },
     {
-      id: 'title',
+      id: 'course.course_name',
       header: 'Наименование',
-      accessor: 'title',
+      accessor: 'course.course_name',
       sortable: true,
-      width: '25%'
+      width: '20%'
     },
     {
-      id: 'type',
+      id: 'course.course_type',
       header: 'Тип',
       sortable: true,
-      width: '15%',
-      render: (event: Event) => getEventTypeName(event.type)
+      width: '10%',
+      render: (event: Application) => {
+        return <Tag>{CourseTypeLabels[event.course.course_type]}</Tag>
+      }
     },
     {
-      id: 'format',
+      id: 'course.course_format',
       header: 'Формат',
       sortable: true,
       width: '10%',
-      render: (event: Event) => {
-        return <Tag>{getFormatName(event.format)}</Tag>
+      render: (event: Application) => {
+        return <Tag>{CourseFormatLabels[event.course.course_format]}</Tag>
       }
     },
     {
-      id: 'category',
+      id: 'course.course_track',
       header: 'Направление',
       sortable: true,
       width: '15%',
-      render: (event: Event) => {
-        return <Tag>{getCategoryName(event.category)}</Tag>
+      render: (event: Application) => {
+        return <Tag>{event.course.course_track}</Tag>
       }
     },
     {
-      id: 'startDate',
+      id: 'course.course_startDate',
       header: 'Даты проведения',
       sortable: true,
-      accessor: 'startDate',
-      width: '20%',
-      render: (event: Event) => {
+      accessor: 'course.course_startDate',
+      width: '15%',
+      render: (event: Application) => {
         return (
           <span>
-            {formatDate(event.startDate)} - {formatDate(event.endDate)}
+            {formatDate(event.course.course_startDate)} - {formatDate(event.course.course_endDate)}
           </span>
+        )
+      }
+    },
+    {
+      id: 'course.course_learner.surname',
+      header: 'Участник',
+      sortable: true,
+      accessor: 'course.course_learner',
+      width: '20%',
+      render: (event: Application) => {
+        return (
+          <div className="flex flex-col">
+            <span>
+              {event.course.course_learner?.surname} {event.course.course_learner?.name}{' '}
+              {event.course.course_learner?.patronymic}
+            </span>
+            <span className="text-mono-600">
+              {event.course.course_learner?.position}, {event.course.course_learner?.department}
+            </span>
+          </div>
         )
       }
     }
@@ -90,50 +115,24 @@ export const EventsTable: React.FC<EventsTableProps> = ({
 
   const getStatusInfo = (status: string) => {
     switch (status) {
-      case 'pending':
-        return { text: 'На согласовании', variant: 'warning' as const }
-      case 'approved':
-        return { text: 'Согласовано', variant: 'success' as const }
-      case 'rejected':
-        return { text: 'Отклонено', variant: 'error' as const }
-      case 'completed':
-        return { text: 'Пройдено', variant: 'default' as const }
+      case StatusType.Confirmation:
+        return { text: StatusTypeLabels[StatusType.Confirmation], variant: 'default' as const }
+      case StatusType.Approvement:
+        return { text: StatusTypeLabels[StatusType.Approvement], variant: 'warning' as const }
+      case StatusType.Rejected:
+        return { text: StatusTypeLabels[StatusType.Rejected], variant: 'error' as const }
+      case StatusType.Registered:
+        return { text: StatusTypeLabels[StatusType.Registered], variant: 'success' as const }
+      case StatusType.Processed:
+        return { text: StatusTypeLabels[StatusType.Processed], variant: 'system' as const }
       default:
         return { text: status, variant: 'default' as const }
     }
   }
 
-  const getEventTypeName = (type: string) => {
-    const types = {
-      conference: 'Конференция',
-      course: 'Курс',
-      webinar: 'Вебинар',
-      training: 'Тренинг'
-    }
-    return types[type as keyof typeof types] || type
-  }
-
-  const getFormatName = (format: string) => {
-    const formats = {
-      offline: 'Очно',
-      online: 'Онлайн',
-      mixed: 'Смешанный'
-    }
-    return formats[format as keyof typeof formats] || format
-  }
-
-  const getCategoryName = (category: string) => {
-    const categories = {
-      'hard-skills': 'Hard Skills',
-      'soft-skills': 'Soft Skills',
-      management: 'Management'
-    }
-    return categories[category as keyof typeof categories] || category
-  }
-
-  const formatDate = (date: Date | string) => {
+  const formatDate = (date: string) => {
     if (!date) return ''
-    const dateObj = typeof date === 'string' ? new Date(date) : date
+    const dateObj = new Date(date)
     return dateObj.toLocaleDateString('ru-RU')
   }
 
@@ -163,7 +162,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
         onSort={handleSort}
         loading={isLoading}
         rowClassName="cursor-pointer"
-        onRowClick={(event: Event) => onEventSelect(event)}
+        onRowClick={(event: Application) => onEventSelect(event)}
         className="h-full flex flex-col"
         emptyComponent={isLoading ? loadingComponent : emptyComponent}
       />

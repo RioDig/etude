@@ -2,15 +2,15 @@ import React, { useRef } from 'react'
 import { Calendar } from '@/widgets/calendar'
 import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Spinner } from '@/shared/ui/spinner'
-import { Event } from '@/entities/event/model/types'
+import { Application } from '@/shared/types'
 import { CalendarCard } from '@/widgets/calendar/model/types'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 
 interface EventsCalendarProps {
-  events: Event[]
+  events: Application[]
   isLoading: boolean
   error?: string
-  onEventSelect: (event: Event) => void
+  onEventSelect: (event: Application) => void
   initialDate?: Date
   onDateChange?: (date: Date) => void
   viewMode?: 'week' | 'month'
@@ -27,23 +27,26 @@ export const EventsCalendar: React.FC<EventsCalendarProps> = ({
 }) => {
   useRef<Record<string, number>>({})
 
-  const transformEventsToCalendarCards = (events: Event[]): CalendarCard[] => {
+  const transformEventsToCalendarCards = (events: Application[]): CalendarCard[] => {
     return events.map((event) => ({
-      id: event.id,
-      title: event.title,
-      status: event.status,
-      startDate: new Date(event.startDate),
-      endDate: new Date(event.endDate),
-      description: event.description || '',
-      employee: event.employee || 'Не указан',
-      format: event.format,
-      track: event.category,
-      type: event.type
+      id: event.application_id,
+      title: event.course.course_name,
+      status: event.status.type,
+      startDate: new Date(event.course.course_startDate),
+      endDate: new Date(event.course.course_endDate),
+      description: event.course.course_description || '',
+      employee: event.course.course_learner
+        ? `${event.course.course_learner.surname} ${event.course.course_learner.name} ${event.course.course_learner.patronymic || ''}`.trim()
+        : 'Не указан',
+      format: event.course.course_format,
+      track: event.course.course_track,
+      type: event.course.course_type,
+      trainingCenter: event.course.course_trainingCenter
     }))
   }
 
   const handleCardClick = (card: CalendarCard) => {
-    const originalEvent = events.find((e) => e.id === card.id)
+    const originalEvent = events.find((e) => e.application_id === card.id)
     if (originalEvent) {
       onEventSelect(originalEvent)
     }
