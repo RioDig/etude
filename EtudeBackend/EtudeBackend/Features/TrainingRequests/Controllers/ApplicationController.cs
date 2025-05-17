@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using EtudeBackend.Features.Auth.Services;
 using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Services;
 using EtudeBackend.Features.Users.Repositories;
@@ -23,80 +24,304 @@ public class ApplicationController : ControllerBase
     private readonly IDistributedCache _cache;
     private readonly ILogger<ApplicationController> _logger;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IOrganizationService _organizationService;
 
     public ApplicationController(IApplicationService applicationService, IDistributedCache cache, 
-        ILogger<ApplicationController> logger, UserManager<ApplicationUser> userManager)
+        ILogger<ApplicationController> logger, UserManager<ApplicationUser> userManager, IOrganizationService organizationService)
     {
         _applicationService = applicationService;
         _cache = cache;
         _logger = logger;
         _userManager = userManager;
+        _organizationService = organizationService;
     }
     
     /// <summary>
     /// Получает список заявок с поддержкой фильтрации, сортировки и пагинации
     /// </summary>
     [HttpGet]
-    [ProducesResponseType<PagedResult<ApplicationDto>>(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetApplications(
-        [FromQuery] int page = 1,
-        [FromQuery] int perPage = 10,
-        [FromQuery] string? sort = null,
-        [FromQuery] string? order = null,
-        [FromQuery] Dictionary<string, string>? filters = null)
+[ProducesResponseType(typeof(List<ApplicationResponseDto>), StatusCodes.Status200OK)]
+public async Task<IActionResult> GetApplications(
+    [FromQuery] List<ApplicationFilterDto>? filters = null)
+{
+    try 
     {
-        var applications = await _applicationService.GetApplicationsAsync(page, perPage, sort, order, filters);
-        await _cache.SetValue("test", applications, 60, HttpContext.RequestAborted, _logger);
-        await _cache.GetValue<PagedResult<ApplicationDto>>("test", HttpContext.RequestAborted, _logger);
-        // _logger.LogError("test2");
-        return Ok(applications);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.FindFirstValue(ClaimTypes.Role) == "admin";
+        
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { message = "Необходима аутентификация" });
+        }
+        
+        // Преобразуем фильтры
+        var filterDict = new Dictionary<string, string>();
+        if (filters != null && filters.Count > 0)
+        {
+            foreach (var filter in filters)
+            {
+                ConvertFilter(filter, filterDict);
+            }
+        }
+        
+        if (!isAdmin)
+        {
+            filterDict["AuthorId"] = userId;
+        }
+        
+        var applications = await _applicationService.GetApplicationsAsync(
+            page: 1,
+            perPage: 1000, // Большое значение, чтобы получить все
+            sortBy: "CreatedAt",
+            orderBy: "desc",
+            filters: filterDict
+        );
+        
+        var responseItems = new List<ApplicationResponseDto>();
+        
+        foreach (var app in applications.Items)
+        {
+            var details = await _applicationService.GetApplicationByIdAsync(app.Id);
+            if (details != null)
+            {
+                responseItems.Add(MapToApplicationResponseDto(details));
+            }
+        }
+        
+        return Ok(responseItems);
     }
-    
-    /// <summary>
-    /// Получает детальную информацию о заявке по идентификатору
-    /// </summary>
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType<PagedResult<ApplicationDto>>(StatusCodes.Status200OK)]
-    [ProducesErrorResponseType(typeof(object))]
-    public async Task<IActionResult> GetApplicationById(Guid id)
+    catch (Exception ex)
     {
+        _logger.LogError(ex, "Ошибка при получении заявок на обучение");
+        return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
+    }
+}
+
+private void ConvertFilter(ApplicationFilterDto filter, Dictionary<string, string> filterDict)
+{
+    switch (filter.Name.ToLower())
+    {
+        case "status":
+            filterDict["status"] = filter.Value;
+            break;
+        case "type":
+            filterDict["type"] = filter.Value;
+            break;
+        case "format":
+            filterDict["format"] = filter.Value;
+            break;
+        case "track":
+            filterDict["track"] = filter.Value;
+            break;
+        case "learner":
+            filterDict["employee"] = filter.Value;
+            break;
+    }
+}
+
+private ApplicationResponseDto MapToApplicationResponseDto(ApplicationDetailDto detail)
+{
+    return new ApplicationResponseDto
+    {
+        ApplicationId = detail.Id,
+        CreatedAt = detail.CreatedAt,
+        Status = new ApplicationStatusDto
+        {
+            Name = detail.StatusName,
+            Type = DetermineStatusType(detail.StatusName)
+        },
+        Course = new ApplicationCourseDto
+        {
+            Id = detail.Course.Id,
+            Name = detail.Course.Name,
+            Description = detail.Course.Description,
+            Type = detail.Course.Type,
+            Track = detail.Course.Track,
+            Format = detail.Course.Format,
+            TrainingCenter = detail.Course.TrainingCenter,
+            StartDate = detail.Course.StartDate,
+            EndDate = detail.Course.EndDate,
+            Link = detail.Course.Link,
+            Price = detail.Course.Price,
+            EducationGoal = detail.Course.EducationGoal,
+            Learner = detail.Course.Learner
+        }
+    };
+}
+
+private string DetermineStatusType(string statusName)
+{
+    return statusName.ToLower() switch
+    {
+        "подтверждено" => "Confirmation",
+        "отклонено" => "Rejected",
+        "согласовано" => "Approvement",
+        "обработано" => "Processed",
+        "зарегистрировано" => "Registered",
+        _ => "Processed"
+    };
+}
+    
+ /// <summary>
+/// Получает детальную информацию о заявке по идентификатору
+/// </summary>
+[HttpGet("{id:guid}")]
+[ProducesResponseType(typeof(ApplicationDetailResponseDto), StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status404NotFound)]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+public async Task<IActionResult> GetApplicationById(Guid id)
+{
+    try
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var isAdmin = User.FindFirstValue(ClaimTypes.Role) == "admin";
+        
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized(new { message = "Необходима аутентификация" });
+        }
+        
         var application = await _applicationService.GetApplicationByIdAsync(id);
             
         if (application == null)
-            return NotFound();
+            return NotFound(new { message = "Заявка не найдена" });
+        
+        if (!isAdmin && application.Author.Id != userId)
+        {
+            bool isApprover = application.Approvers.Any(a => a.Id == userId);
             
-        return Ok(application);
+            if (!isApprover)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { message = "У вас нет доступа к этой заявке" });
+            }
+        }
+
+        string comment = await _applicationService.GetLatestCommentAsync(id);
+
+        var response = new ApplicationDetailResponseDto
+        {
+            ApplicationId = application.Id,
+            CreatedAt = application.CreatedAt,
+            Comment = comment,
+            Status = new ApplicationStatusDto
+            {
+                Name = application.StatusName,
+                Type = DetermineStatusType(application.StatusName)
+            },
+            Author = application.Author,
+            Approvers = application.Approvers ?? new List<UserBasicDto>(),
+            Course = new ApplicationCourseDto
+            {
+                Id = application.Course.Id,
+                Name = application.Course.Name,
+                Description = application.Course.Description,
+                Type = application.Course.Type,
+                Track = application.Course.Track,
+                Format = application.Course.Format,
+                TrainingCenter = application.Course.TrainingCenter,
+                StartDate = application.Course.StartDate,
+                EndDate = application.Course.EndDate,
+                Link = application.Course.Link ?? string.Empty,
+                Price = application.Course.Price,
+                EducationGoal = application.Course.EducationGoal,
+                Learner = application.Course.Learner
+            }
+        };
+        
+        return Ok(response);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Ошибка при получении заявки по ID: {Id}", id);
+        return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
+    }
+}
+ 
+ 
+private List<int> ParseApproverIds(List<string> approverIds)
+{
+    var result = new List<int>();
+    
+    foreach (var id in approverIds)
+    {
+        if (int.TryParse(id, out var intId))
+        {
+            result.Add(intId);
+            continue;
+        }
+        
+        if (Guid.TryParse(id, out var guidId))
+        {
+            var bytes = guidId.ToByteArray();
+            var intValue = BitConverter.ToInt32(bytes, 0);
+            result.Add(Math.Abs(intValue));
+        }
     }
     
-    /// <summary>
-    /// Создает новую заявку на обучение
-    /// </summary>
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesErrorResponseType(typeof(ModelStateDictionary))]
-    public async Task<IActionResult> CreateApplication([FromBody] CreateApplicationDto applicationDto)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-        
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-            return Unauthorized(new { message = "Невозможно идентифицировать текущего пользователя" });
+    return result;
+}
 
-        try
+    /// <summary>
+/// Создает новую заявку на обучение
+    /// </summary>
+[HttpPost]
+[ProducesResponseType(StatusCodes.Status201Created)]
+[ProducesErrorResponseType(typeof(ModelStateDictionary))]
+public async Task<IActionResult> CreateApplication([FromBody] CreateApplicationRequestDto requestDto)
+    {
+    if (!ModelState.IsValid)
+        return BadRequest(ModelState);
+    
+    var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    if (string.IsNullOrEmpty(userIdClaim))
+        return Unauthorized(new { message = "Невозможно идентифицировать текущего пользователя" });
+
+    try
+    {
+        var applicationDto = new CreateApplicationDto
         {
-            var createdApplication = await _applicationService.CreateApplicationAsync(applicationDto, userIdClaim);
-        
-            return CreatedAtAction(
-                nameof(GetApplicationById), 
-                new { id = createdApplication.Id }, 
-                createdApplication);
-        }
-        catch (ApiException ex)
+            Name = requestDto.Name,
+            Description = requestDto.Description,
+            Type = requestDto.Type,
+            Track = requestDto.Track,
+            Format = requestDto.Format,
+            TrainingCenter = requestDto.TrainingCenter,
+            StartDate = requestDto.StartDate,
+            EndDate = requestDto.EndDate,
+            Price = requestDto.Price,
+            EducationGoal = requestDto.EducationGoal,
+            ApproverIds = ParseApproverIds(requestDto.Approvers)
+        };
+
+        if (Guid.TryParse(requestDto.LearnerId, out var learnerId))
         {
-            return StatusCode(ex.StatusCode, new { message = ex.Message });
+            applicationDto.EmployeeId = learnerId;
         }
+        else
+        {
+            if (int.TryParse(requestDto.LearnerId, out var learnerIntId))
+            {
+                applicationDto.EmployeeId = new Guid(learnerIntId, 0, 0, new byte[8]);
+            }
+            else
+            {
+                return BadRequest(new { message = "Некорректный формат идентификатора обучающегося" });
+            }
+        }
+
+        var createdApplication = await _applicationService.CreateApplicationAsync(applicationDto, userIdClaim);
+    
+        return CreatedAtAction(
+            nameof(GetApplicationById), 
+            new { id = createdApplication.Id }, 
+            createdApplication);
     }
+    catch (ApiException ex)
+    {
+        return StatusCode(ex.StatusCode, new { message = ex.Message });
+    }
+}
     
     /// <summary>
     /// Обновляет существующую заявку
@@ -109,7 +334,6 @@ public class ApplicationController : ControllerBase
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-
         var updatedApplication = await _applicationService.UpdateApplicationAsync(id, applicationDto);
             
         if (updatedApplication == null)
@@ -136,7 +360,7 @@ public class ApplicationController : ControllerBase
             return NotFound();
             
         return Ok(updatedApplication);
-    }
+}
     
     /// <summary>
     /// Удаляет заявку

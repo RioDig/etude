@@ -26,9 +26,8 @@ public class Course
     public DateOnly StartDate { get; set; }
     
     public DateOnly EndDate { get; set; }
-
-    [Column(TypeName = "decimal(10,2)")]
-    public decimal Price { get; set; } = 0; 
+    
+    public string Price { get; set; } 
     
     [Column(TypeName = "text")]
     public string EducationGoal { get; set; } = string.Empty;

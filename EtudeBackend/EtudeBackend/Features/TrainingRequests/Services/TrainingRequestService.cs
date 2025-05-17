@@ -1,4 +1,4 @@
-﻿﻿using AutoMapper;
+﻿using AutoMapper;
 using EtudeBackend.Features.TrainingRequests.DTOs;
 using EtudeBackend.Features.TrainingRequests.Entities;
 using EtudeBackend.Features.TrainingRequests.Repositories;
@@ -71,8 +71,8 @@ public class TrainingRequestService : ITrainingRequestService
         if (requestDto.EndDate.HasValue)
             request.EndDate = requestDto.EndDate.Value;
             
-        if (requestDto.Price.HasValue)
-            request.Price = requestDto.Price.Value;
+        if (!string.IsNullOrEmpty(requestDto.Price))
+            request.Price = requestDto.Price;
             
         if (requestDto.IsActive.HasValue)
             request.IsActive = requestDto.IsActive.Value;

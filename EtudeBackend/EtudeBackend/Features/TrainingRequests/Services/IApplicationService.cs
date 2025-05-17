@@ -21,4 +21,6 @@ public interface IApplicationService
     Task<ApplicationDetailDto?> ChangeApplicationStatusAsync(Guid id, ChangeStatusDto statusDto);
     
     Task<bool> DeleteApplicationAsync(Guid id);
+    
+    Task<string> GetLatestCommentAsync(Guid applicationId);
 }

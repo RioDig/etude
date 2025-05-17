@@ -183,15 +183,21 @@ public class ApplicationService : IApplicationService
         if (applicationDto.EndDate.HasValue)
             course.EndDate = applicationDto.EndDate.Value;
             
-        if (applicationDto.Price.HasValue)
-            course.Price = applicationDto.Price.Value;
-            
+        if (!string.IsNullOrEmpty(applicationDto.Price))
+            course.Price = applicationDto.Price;
+        
+        if (applicationDto.Link != null)
+            course.Link = applicationDto.Link;
+        
+        if (applicationDto.EducationGoal != null)
+            course.EducationGoal = applicationDto.EducationGoal;
+        
         course.UpdatedAt = DateTimeOffset.UtcNow;
         await _courseRepository.UpdateAsync(course);
         
-        if (applicationDto.ApproverIds != null)
+        if (applicationDto.Approvers != null)
         {
-            string approversJson = System.Text.Json.JsonSerializer.Serialize(applicationDto.ApproverIds);
+            string approversJson = System.Text.Json.JsonSerializer.Serialize(applicationDto.Approvers);
         }
         
         application.UpdatedAt = DateTimeOffset.UtcNow;
@@ -289,7 +295,7 @@ public class ApplicationService : IApplicationService
     private IQueryable<Application> ApplySorting(IQueryable<Application> query, string? sortBy, string? orderBy)
     {
         if (string.IsNullOrEmpty(sortBy))
-            return query.OrderByDescending(a => a.CreatedAt); // По умолчанию сортируем по дате создания
+            return query.OrderByDescending(a => a.CreatedAt);
         
         bool isAscending = string.IsNullOrEmpty(orderBy) || orderBy.ToLower() != "desc";
         
@@ -322,5 +328,61 @@ public class ApplicationService : IApplicationService
             return result;
             
         throw new ApiException($"Недопустимое значение '{value}' для типа {typeof(T).Name}", 400);
+    }
+    
+    
+    public async Task<string> GetLatestCommentAsync(Guid applicationId)
+    {
+        var application = await _applicationRepository.GetApplicationWithDetailsAsync(applicationId);
+        if (application == null || string.IsNullOrEmpty(application.ApprovalHistory))
+            return string.Empty;
+    
+        try
+        {
+            // Разделяем историю по строкам
+            var historyEntries = application.ApprovalHistory.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+        
+            if (historyEntries.Length == 0)
+                return string.Empty;
+        
+            // Берем последнюю запись
+            var lastEntryJson = historyEntries[historyEntries.Length - 1];
+        
+            // Десериализуем последнюю запись
+            var lastEntry = System.Text.Json.JsonSerializer.Deserialize<ApprovalHistoryEntry>(
+                lastEntryJson,
+                new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+            );
+        
+            return lastEntry?.Comment ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при извлечении комментария из истории одобрения");
+            return string.Empty;
+        }
+    }
+    
+    private string MapCourseType(CourseType type)
+    {
+        return type switch
+        {
+            CourseType.Training => "Course",
+            CourseType.Conference => "Conference",
+            CourseType.Certification => "Certification",
+            CourseType.Workshop => "Workshop",
+            _ => "Course"
+        };
+}
+    
+    private string MapCourseTrack(CourseTrack track)
+    {
+        return track switch
+        {
+            CourseTrack.Soft => "Soft Skills",
+            CourseTrack.Hard => "Hard Skills",
+            CourseTrack.Management => "Management Skills",
+            _ => "Hard Skills"
+        };
     }
 }

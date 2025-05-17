@@ -29,7 +29,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
             .HasColumnType("text");
 
         builder.Property(c => c.Price)
-            .HasColumnType("decimal(10,2)");
+            .HasColumnType("text");
         
         builder.Property(c => c.Type)
             .IsRequired()
