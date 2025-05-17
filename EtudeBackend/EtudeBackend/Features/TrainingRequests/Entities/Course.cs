@@ -46,7 +46,7 @@ public class Course
 
 public enum CourseType
 {
-    Training, // Курс
+    Course, // Курс
     Conference, // Конференция
     Certification, // Сертификация
     Workshop, // Мастер-класс
@@ -55,9 +55,9 @@ public enum CourseType
 
 public enum CourseTrack
 {
-    Soft,
-    Hard,
-    Management,
+    SoftSkills,
+    HardSkills,
+    ManagementSkills,
     NotImplemented
 }
 

@@ -79,7 +79,7 @@ public class ApplicationMappingProfile : Profile
     {
         return type switch
         {
-            CourseType.Training => "Course",
+            CourseType.Course => "Course",
             CourseType.Conference => "Conference",
             CourseType.Certification => "Certification",
             CourseType.Workshop => "Workshop",
@@ -91,10 +91,10 @@ public class ApplicationMappingProfile : Profile
     {
         return track switch
         {
-            CourseTrack.Soft => "Soft Skills",
-            CourseTrack.Hard => "Hard Skills",
-            CourseTrack.Management => "Management Skills",
-            _ => "Hard Skills"
+            CourseTrack.SoftSkills => "SoftSkills",
+            CourseTrack.HardSkills => "HardSkills",
+            CourseTrack.ManagementSkills => "ManagementSkills",
+            _ => "HardSkills Skills"
         };
     }
 

@@ -339,8 +339,8 @@ public async Task<IActionResult> CreateApplication([FromBody] CreateApplicationR
         {
             Name = requestDto.Name,
             Description = requestDto.Description ?? string.Empty,
-            Type = requestDto.Type ?? "Training", // Значение по умолчанию, если не указано
-            Track = requestDto.Track ?? "Hard", // Значение по умолчанию, если не указано
+            Type = requestDto.Type ?? "Course", // Значение по умолчанию, если не указано
+            Track = requestDto.Track ?? "HardSkills", // Значение по умолчанию, если не указано
             Format = requestDto.Format ?? "Online", // Значение по умолчанию, если не указано
             TrainingCenter = requestDto.TrainingCenter ?? string.Empty,
             StartDate = requestDto.StartDate,

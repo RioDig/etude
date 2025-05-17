@@ -376,7 +376,7 @@ public class ApplicationService : IApplicationService
     {
         return type switch
         {
-            CourseType.Training => "Course",
+            CourseType.Course => "Course",
             CourseType.Conference => "Conference",
             CourseType.Certification => "Certification",
             CourseType.Workshop => "Workshop",
@@ -388,10 +388,10 @@ public class ApplicationService : IApplicationService
     {
         return track switch
         {
-            CourseTrack.Soft => "Soft Skills",
-            CourseTrack.Hard => "Hard Skills",
-            CourseTrack.Management => "Management Skills",
-            _ => "Hard Skills"
+            CourseTrack.SoftSkills => "SoftSkills Skills",
+            CourseTrack.HardSkills => "HardSkills Skills",
+            CourseTrack.ManagementSkills => "ManagementSkills Skills",
+            _ => "HardSkills Skills"
         };
     }
 }

@@ -77,6 +77,7 @@ public class UserService : IUserService
             {
                 userDto.Department = $"{employee.Department}, {companyName}";
                 userDto.IsLeader = employee.IsLeader;
+                userDto.Position = employee.Position;
             }
             else
             {
