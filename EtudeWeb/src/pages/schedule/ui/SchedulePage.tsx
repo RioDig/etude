@@ -77,7 +77,7 @@ export const SchedulePage: React.FC = () => {
   return (
     <Container className="flex flex-col gap-6 h-full">
       <div className="flex justify-between items-center">
-        <Typography variant="h2">Расписание мероприятий</Typography>
+        <Typography variant="h2">Расписание мероприятий и сторонних курсов</Typography>
       </div>
 
       <div className="flex items-center justify-between flex-wrap gap-4">

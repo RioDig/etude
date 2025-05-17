@@ -13,7 +13,7 @@ export const AdminPage: React.FC = () => {
   const activePath = location.pathname.split('/admin/')[1] || 'templates'
 
   const navItems = [
-    { path: 'templates', label: 'Шаблоны курсов' },
+    { path: 'templates', label: 'Мероприятия' },
     { path: 'statuses', label: 'Дополнительные статусы' },
     { path: 'reports', label: 'Отчетность' }
   ]

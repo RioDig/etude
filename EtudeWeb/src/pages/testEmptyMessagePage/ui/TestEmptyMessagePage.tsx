@@ -9,18 +9,18 @@ const TestEmptyMessagePage = () => {
       <EmptyMessage
         variant="large"
         imageUrl={EmptyStateSvg}
-        title="Нет шаблонов курсов"
-        description="Вы можете создать шаблон курса"
-        actionButton={<Button leftIcon={<Add />}>Создать шаблон</Button>}
+        title="Нет мероприятий"
+        description="Вы можете создать мероприятий"
+        actionButton={<Button leftIcon={<Add />}>Создать мероприятие</Button>}
         className="mr-5"
       />
 
       <EmptyMessage
         variant="small"
         imageUrl={EmptyStateSvg}
-        title="Нет шаблонов курсов"
-        description="Вы можете создать шаблон курса"
-        actionButton={<Button leftIcon={<Add />}>Создать шаблон</Button>}
+        title="Нет мероприятий"
+        description="Вы можете создать мероприятий"
+        actionButton={<Button leftIcon={<Add />}>Создать мероприятие</Button>}
       />
     </div>
   )

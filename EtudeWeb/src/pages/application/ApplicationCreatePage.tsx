@@ -205,7 +205,7 @@ export const ApplicationCreatePage: React.FC = () => {
           {!showForm ? (
             <>
               <Button variant="secondary" onClick={handleCreateCustomEvent}>
-                Предложить свое мероприятие
+                Предложить сторонний курс или мероприятие
               </Button>
               <Button onClick={handleNext} disabled={!selectedTemplateId}>
                 Далее

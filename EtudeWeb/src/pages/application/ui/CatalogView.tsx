@@ -142,7 +142,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           description="Не удалось загрузить список мероприятий. Пожалуйста, попробуйте позже или создайте свое мероприятие."
           actionButton={
             <Button leftIcon={<Add />} onClick={onCreateCustomEvent}>
-              Предложить свое мероприятие
+              Предложить сторонний курс или мероприятие
             </Button>
           }
         />
@@ -155,10 +155,10 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
           variant="large"
           imageUrl={EmptyStateSvg}
           title="В каталоге пока нет мероприятий"
-          description="Вы можете предложить свое мероприятие для проведения"
+          description="Вы можете предложить сторонний курс или мероприятие для проведения"
           actionButton={
             <Button leftIcon={<Add />} onClick={onCreateCustomEvent}>
-              Предложить свое мероприятие
+              Предложить сторонний курс или мероприятие
             </Button>
           }
         />

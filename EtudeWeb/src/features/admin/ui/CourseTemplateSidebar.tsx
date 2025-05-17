@@ -101,14 +101,14 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
           onSuccess: () => {
             notification.success({
               title: 'Успешно',
-              description: 'Шаблон курса успешно обновлен'
+              description: 'Мероприятие успешно обновлено'
             })
             onClose()
           },
           onError: () => {
             notification.error({
               title: 'Ошибка',
-              description: 'Не удалось обновить шаблон курса'
+              description: 'Не удалось обновить мероприятие'
             })
           }
         }
@@ -118,14 +118,14 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
         onSuccess: () => {
           notification.success({
             title: 'Успешно',
-            description: 'Шаблон курса успешно создан'
+            description: 'Мероприятие успешно создано'
           })
           onClose()
         },
         onError: () => {
           notification.error({
             title: 'Ошибка',
-            description: 'Не удалось создать шаблон курса'
+            description: 'Не удалось создать мероприятие'
           })
         }
       })
@@ -168,7 +168,7 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
     <Sidebar
       open={open}
       onClose={onClose}
-      title={template ? 'Редактирование шаблона курса' : 'Добавление шаблона курса'}
+      title={template ? 'Редактирование мероприятия' : 'Добавление мероприятия'}
       footerActions={sidebarActions}
     >
       <div className="space-y-6">

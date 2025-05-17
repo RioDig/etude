@@ -113,14 +113,14 @@ export const TemplatesPage: React.FC = () => {
         onSuccess: () => {
           notification.success({
             title: 'Успешно',
-            description: 'Шаблон курса успешно удален'
+            description: 'Мероприятие успешно удалено'
           })
           setIsDeleteModalOpen(false)
         },
         onError: () => {
           notification.error({
             title: 'Ошибка',
-            description: 'Не удалось удалить шаблон курса'
+            description: 'Не удалось удалить мероприятие'
           })
         }
       })
@@ -245,9 +245,9 @@ export const TemplatesPage: React.FC = () => {
     <EmptyMessage
       variant="small"
       imageUrl={EmptyStateSvg}
-      title={error ? 'Ошибка загрузки данных' : 'Нет шаблонов курсов'}
+      title={error ? 'Ошибка загрузки данных' : 'Нет мероприятий'}
       description={
-        error ? String(error) : 'По заданным фильтрам нет шаблонов курсов, либо их нет в системе'
+        error ? String(error) : 'По заданным фильтрам нет мероприятий, либо их нет в системе'
       }
       className={'my-auto'}
     />
@@ -255,16 +255,16 @@ export const TemplatesPage: React.FC = () => {
 
   const loadingComponent = (
     <div className="flex justify-center items-center h-64">
-      <Spinner size="large" label="Загрузка шаблонов..." />
+      <Spinner size="large" label="Загрузка мероприятий..." />
     </div>
   )
 
   return (
     <div className="flex flex-col gap-6 h-full">
       <div className="flex justify-between items-center">
-        <Typography variant={'h1'}>Шаблоны курсов</Typography>
+        <Typography variant={'h1'}>Мероприятия</Typography>
         <Button variant="primary" leftIcon={<Add />} onClick={handleAddTemplate}>
-          Добавить шаблон
+          Добавить мероприятие
         </Button>
       </div>
 
@@ -295,7 +295,7 @@ export const TemplatesPage: React.FC = () => {
       <Modal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseDeleteModal}
-        title="Удаление шаблона курса"
+        title="Удаление мероприятия"
         actions={
           <>
             <Button variant="secondary" onClick={handleCloseDeleteModal}>
@@ -319,7 +319,7 @@ export const TemplatesPage: React.FC = () => {
         }
       >
         <Typography variant="b3Regular">
-          Вы действительно хотите удалить шаблон курса "{selectedTemplate?.course_template_name}"?
+          Вы действительно хотите удалить мероприятие "{selectedTemplate?.course_template_name}"?
           Это действие нельзя отменить.
         </Typography>
       </Modal>
