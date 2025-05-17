@@ -12,46 +12,53 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
   const { user } = useAuth()
 
-  const [duration, setDuration] = useState<Date | null>(
-    currentApplication?.duration ? new Date(currentApplication.duration) : null
+  const [startDate, setStartDate] = useState<Date | null>(
+    currentApplication?.startDate ? new Date(currentApplication.startDate) : null
   )
-  const [goal, setGoal] = useState(currentApplication?.goal || '')
-  const [cost, setCost] = useState(currentApplication?.cost || '')
+  const [endDate, setEndDate] = useState<Date | null>(
+    currentApplication?.endDate ? new Date(currentApplication.endDate) : null
+  )
+  const [educationGoal, setEducationGoal] = useState(currentApplication?.educationGoal || '')
+  const [price, setPrice] = useState(currentApplication?.price || '')
 
   useEffect(() => {
     if (user) {
-      updateApplicationData({ participants: [user.id] })
+      updateApplicationData({ learner_id: user.id })
     }
   }, [user, updateApplicationData])
 
   const validateForm = () => {
-    const isValid = duration !== null && goal !== '' && cost !== '' && !!user
+    const isValid = !!startDate && !!endDate && !!educationGoal && !!price && !!user
     onValidChange(isValid)
     return isValid
   }
 
   useEffect(() => {
     validateForm()
-  }, [duration, goal, cost, user])
+  }, [startDate, endDate, educationGoal, price, user])
 
-  const handleDateChange = (date: Date | null) => {
-    setDuration(date)
+  const handleStartDateChange = (date: Date | null) => {
+    setStartDate(date)
     if (date) {
-      const formattedDate = date.toISOString().split('T')[0] // Формат YYYY-MM-DD
-      updateApplicationData({ duration: formattedDate })
-    } else {
-      updateApplicationData({ duration: '' })
+      updateApplicationData({ startDate: date.toISOString() })
     }
   }
 
-  const handleGoalChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setGoal(e.target.value)
-    updateApplicationData({ goal: e.target.value })
+  const handleEndDateChange = (date: Date | null) => {
+    setEndDate(date)
+    if (date) {
+      updateApplicationData({ endDate: date.toISOString() })
+    }
   }
 
-  const handleCostChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setCost(e.target.value)
-    updateApplicationData({ cost: e.target.value })
+  const handleEducationGoalChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setEducationGoal(e.target.value)
+    updateApplicationData({ educationGoal: e.target.value })
+  }
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPrice(e.target.value)
+    updateApplicationData({ price: e.target.value })
   }
 
   return (
@@ -60,50 +67,58 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
         Заполните данные о проведении мероприятия. Поля, отмеченные *, обязательны для заполнения.
       </Typography>
 
-      <div className="grid grid-cols-1 gap-6">
-        {/* Срок прохождения */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Control.DateInput
-          label="Срок прохождения"
+          label="Дата начала"
           required
-          value={duration}
-          onChange={handleDateChange}
-          placeholder="Введите срок прохождения"
+          value={startDate}
+          onChange={handleStartDateChange}
+          placeholder="Выберите дату начала"
         />
 
-        {/* Цель участия */}
-        <Control.Textarea
-          label="Цель участия"
+        <Control.DateInput
+          label="Дата окончания"
           required
-          value={goal}
-          onChange={handleGoalChange}
-          placeholder="Введите цель участия"
-          rows={3}
+          value={endDate}
+          onChange={handleEndDateChange}
+          placeholder="Выберите дату окончания"
         />
 
-        {/* Стоимость участия */}
+        <div className="md:col-span-2">
+          <Control.Textarea
+            label="Цель участия"
+            required
+            value={educationGoal}
+            onChange={handleEducationGoalChange}
+            placeholder="Введите цель участия"
+            rows={3}
+          />
+        </div>
+
         <Control.Input
           label="Стоимость участия"
           required
-          value={cost}
-          onChange={handleCostChange}
+          value={price}
+          onChange={handlePriceChange}
           placeholder="Введите стоимость участия"
           hint="Укажите стоимость в рублях"
         />
-
-        {/* Информация об участнике */}
-        {user && (
-          <div className="bg-mono-100 p-4 rounded-md">
-            <Typography variant="b3Semibold" className="mb-2">
-              Участник:
-            </Typography>
-            <Typography variant="b3Regular">
-              {user.surname} {user.name}
-              {user.position && `, ${user.position}`}
-              {user.department && ` (${user.department})`}
-            </Typography>
-          </div>
-        )}
       </div>
+
+      {user && (
+        <div className="bg-mono-100 p-4 rounded-md">
+          <Typography variant="b3Semibold" className="mb-2">
+            Участник:
+          </Typography>
+          <Typography variant="b3Regular">
+            {user.surname} {user.name}
+            {user.position && `, ${user.position}`}
+            {user.department && ` (${user.department})`}
+          </Typography>
+        </div>
+      )}
     </div>
   )
 }
+
+export default Step2Form

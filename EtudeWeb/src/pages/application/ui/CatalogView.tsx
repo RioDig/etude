@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { EventCard } from '@/shared/ui/eventCard'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
@@ -7,86 +7,117 @@ import { Filter, FilterOption } from '@/shared/ui/filter'
 import { Add } from '@mui/icons-material'
 import { Spinner } from '@/shared/ui/spinner'
 import { useApplicationCatalog } from '@/entities/application/hooks/useApplicationCatalog'
-import { ApplicationEvent } from '@/entities/application/model/applicationStore'
+import { CourseTemplate } from '@/shared/types'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
-import {
-  EVENT_TYPES,
-  EVENT_CATEGORIES,
-  EVENT_FORMATS
-} from '@/entities/application/model/constants'
+import { useQueryClient } from '@tanstack/react-query'
+import { FilterValue, usePageFilters } from '@/entities/filter'
+import { Control } from '@/shared/ui/controls'
+import useDebounce from '@/shared/hooks/useDebounce.ts'
 
 interface CatalogViewProps {
-  onSelectEvent: (event: ApplicationEvent) => void
+  onSelectTemplate: (template: CourseTemplate) => void
   onCreateCustomEvent: () => void
-  selectedEventId: string | null
+  selectedTemplateId: string | null
 }
 
 export const CatalogView: React.FC<CatalogViewProps> = ({
-  onSelectEvent,
+  onSelectTemplate,
   onCreateCustomEvent,
-  selectedEventId
+  selectedTemplateId
 }) => {
-  const { data: events, isLoading, error } = useApplicationCatalog()
+  const [searchTerm, setSearchTerm] = useState<string>('')
+  const { data: templates, isLoading, error } = useApplicationCatalog()
+  const debouncedSearchTerm = useDebounce(searchTerm, 300)
+  const queryClient = useQueryClient()
 
   const filterOptions: FilterOption[] = [
     {
       id: 'type',
       label: 'Тип',
       type: 'dropdown',
-      defaultValue: 'Все',
       options: [
         { value: '', label: 'Все типы' },
-        { value: 'conference', label: 'Конференция' },
-        { value: 'course', label: 'Курс' },
-        { value: 'webinar', label: 'Вебинар' },
-        { value: 'training', label: 'Тренинг' }
+        { value: 'Course', label: 'Курс' },
+        { value: 'Conference', label: 'Конференция' },
+        { value: 'Certification', label: 'Сертификация' },
+        { value: 'Workshop', label: 'Мастер-класс' }
       ]
     },
     {
       id: 'format',
       label: 'Формат',
       type: 'dropdown',
-      defaultValue: 'Все',
       options: [
         { value: '', label: 'Все форматы' },
-        { value: 'offline', label: 'Очно' },
-        { value: 'online', label: 'Онлайн' },
-        { value: 'mixed', label: 'Смешанный' }
+        { value: 'Offline', label: 'Очно' },
+        { value: 'Online', label: 'Онлайн' }
       ]
     },
     {
-      id: 'category',
-      label: 'Категория',
+      id: 'track',
+      label: 'Направление',
       type: 'dropdown',
-      defaultValue: 'Все',
       options: [
-        { value: '', label: 'Все категории' },
-        { value: 'hard-skills', label: 'Hard skills' },
-        { value: 'soft-skills', label: 'Soft skills' },
-        { value: 'management', label: 'Management' }
+        { value: '', label: 'Все направления' },
+        { value: 'Hard Skills', label: 'Hard Skills' },
+        { value: 'Soft Skills', label: 'Soft Skills' },
+        { value: 'Management Skills', label: 'Management Skills' }
       ]
     }
   ]
 
-  const handleEventSelect = (event: ApplicationEvent) => {
-    onSelectEvent(event)
+  const { setFilter } = usePageFilters('application-catalog')
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
+
+  useEffect(() => {
+    setFilter('name', debouncedSearchTerm)
+  }, [debouncedSearchTerm])
+
+  const handleFilterChange = (_filterId: string, value: FilterValue) => {
+    if (value === '') {
+      queryClient.invalidateQueries({ queryKey: ['courseTemplates', 'catalog'] })
+    }
+  }
+
+  const handleResetFilters = () => {
+    setSearchTerm('')
+    queryClient.invalidateQueries({ queryKey: ['courseTemplates', 'catalog'] })
+  }
+
+  const handleTemplateSelect = (template: CourseTemplate) => {
+    onSelectTemplate(template)
   }
 
   const getReadableType = (type: string): string => {
-    return EVENT_TYPES[type as keyof typeof EVENT_TYPES] || type
-  }
-
-  const getReadableCategory = (category: string): string => {
-    return EVENT_CATEGORIES[category as keyof typeof EVENT_CATEGORIES] || category
+    const types: Record<string, string> = {
+      Course: 'Курс',
+      Conference: 'Конференция',
+      Certification: 'Сертификация',
+      Workshop: 'Мастер-класс'
+    }
+    return types[type] || type
   }
 
   const getReadableFormat = (format: string): string => {
-    return EVENT_FORMATS[format as keyof typeof EVENT_FORMATS] || format
+    const formats: Record<string, string> = {
+      Offline: 'Очно',
+      Online: 'Онлайн'
+    }
+    return formats[format] || format
   }
 
   const renderFilters = () => (
     <div className="mb-4">
-      <Filter filters={filterOptions} pageId="application-catalog" className="flex-wrap" />
+      <Filter
+        filters={filterOptions}
+        pageId="application-catalog"
+        className="flex-wrap"
+        onChange={handleFilterChange}
+        onReset={handleResetFilters}
+      />
     </div>
   )
 
@@ -118,7 +149,7 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
       )
     }
 
-    if (!events || events.length === 0) {
+    if (!templates || templates.length === 0) {
       return (
         <EmptyMessage
           variant="large"
@@ -137,26 +168,26 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
     return (
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {events.map((event) => (
+          {templates.map((template) => (
             <EventCard
-              key={event.id}
-              id={event.id}
-              title={event.title}
-              description={event.description || ''}
-              startDate={event.startDate}
-              endDate={event.endDate}
+              key={template.course_template_id}
+              id={template.course_template_id}
+              title={template.course_template_name}
+              description={template.course_template_description || ''}
+              startDate={template.course_template_startDate || new Date().toISOString()}
+              endDate={template.course_template_endDate || new Date().toISOString()}
               tags={[
-                { id: '1', label: getReadableType(event.type) },
-                { id: '2', label: getReadableFormat(event.format) },
-                { id: '3', label: getReadableCategory(event.category) }
+                { id: '1', label: getReadableType(template.course_template_type) },
+                { id: '2', label: getReadableFormat(template.course_template_format) },
+                { id: '3', label: template.course_template_track }
               ]}
-              isSelected={selectedEventId === event.id}
-              onClick={() => handleEventSelect(event)}
+              isSelected={selectedTemplateId === template.course_template_id}
+              onClick={() => handleTemplateSelect(template)}
             />
           ))}
         </div>
 
-        {selectedEventId && (
+        {selectedTemplateId && (
           <div className="mt-4 text-center">
             <Typography variant="b3Regular" className="text-mono-600">
               Нажмите "Далее" для перехода к заполнению заявления
@@ -168,8 +199,15 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
   }
 
   return (
-    <div className="flex flex-col gap-6 h-full">
+    <div className="flex flex-col h-full">
       {renderFilters()}
+      <div className="w-full mb-4">
+        <Control.Input
+          placeholder="Поиск по названию мероприятия..."
+          value={searchTerm}
+          onChange={handleSearch}
+        />
+      </div>
 
       <div className="overflow-auto flex-1">{renderCatalogContent()}</div>
     </div>

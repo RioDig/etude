@@ -1,49 +1,33 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-
-export interface ApplicationEvent {
-  id: string
-  title: string
-  description?: string
-  type: string
-  format: string
-  category: string
-  startDate: Date
-  endDate: Date
-}
+import { CourseType, CourseTrack, CourseFormat, StatusType } from '@/shared/types'
+import { Employee } from '@/shared/api/employeeAutocomplete'
 
 export interface Approver {
   id: string
-  userId: string
-  employeeData?: {
-    id: string
-    name: string
-    position?: string
-    department?: string
-  }
+  user_id: string
+  employeeData?: Employee
 }
 
 export interface ApplicationData {
-  // О мероприятии (Шаг 1)
-  type?: string
-  title?: string
-  category?: string
-  format?: string
-  link?: string
+  name?: string
   description?: string
+  type?: CourseType
+  track?: CourseTrack
+  format?: CourseFormat
+  link?: string
 
-  // О проведении (Шаг 2)
-  duration?: string
-  goal?: string
-  cost?: string
-  participants?: string[]
+  startDate?: string
+  endDate?: string
+  educationGoal?: string
+  price?: string
+  trainingCenter?: string
+  learner_id?: string
 
-  // Согласующие (Шаг 3)
   approvers?: Approver[]
 
-  // Системные поля
   id?: string
-  status?: 'draft' | 'pending' | 'approved' | 'rejected'
+  status?: StatusType
   createdAt?: string
   updatedAt?: string
 }
@@ -51,30 +35,25 @@ export interface ApplicationData {
 interface ApplicationState {
   activeStep: number
   currentApplication: ApplicationData | null
-  selectedEventId: string | null
+  selectedTemplateId: string | null
 
-  // Действия
   setActiveStep: (step: number) => void
-  selectEvent: (eventId: string) => void
+  selectTemplate: (templateId: string) => void
   updateApplicationData: (data: Partial<ApplicationData>) => void
   reset: () => void
 }
 
-// Создаем хранилище состояния заявления
 export const useApplicationStore = create<ApplicationState>()(
   devtools(
     (set) => ({
       activeStep: 0,
       currentApplication: null,
-      selectedEventId: null,
+      selectedTemplateId: null,
 
-      // Установка активного шага
       setActiveStep: (step) => set({ activeStep: step }),
 
-      // Выбор мероприятия из каталога
-      selectEvent: (eventId) => set({ selectedEventId: eventId }),
+      selectTemplate: (templateId) => set({ selectedTemplateId: templateId }),
 
-      // Обновление данных заявления
       updateApplicationData: (data) =>
         set((state) => ({
           currentApplication: {
@@ -83,12 +62,11 @@ export const useApplicationStore = create<ApplicationState>()(
           }
         })),
 
-      // Сброс данных заявления
       reset: () =>
         set({
           activeStep: 0,
           currentApplication: null,
-          selectedEventId: null
+          selectedTemplateId: null
         })
     }),
     { name: 'application-store' }

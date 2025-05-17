@@ -11,10 +11,10 @@ import { Step2Form } from './ui/Step2Form'
 import { Step3Form } from './ui/Step3Form'
 import { ConfirmationView } from './ui/ConfirmationView'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
-import { ApplicationEvent } from '@/entities/application'
+import { CourseTemplate } from '@/shared/types'
 import { Spinner } from '@/shared/ui/spinner'
 import { notification } from '@/shared/lib/notification'
-import { useApplicationSubmit } from '@/entities/application'
+import { useApplicationSubmit } from '@/entities/application/hooks/useApplicationSubmit'
 
 export const ApplicationCreatePage: React.FC = () => {
   const navigate = useNavigate()
@@ -23,16 +23,16 @@ export const ApplicationCreatePage: React.FC = () => {
     currentApplication,
     reset,
     setActiveStep,
-    selectEvent,
+    selectTemplate,
     updateApplicationData,
-    activeStep: stepFromStore
+    activeStep: stepFromStore,
+    selectedTemplateId
   } = useApplicationStore()
 
   const { mutate: submitApplication, isPending: isSubmitting } = useApplicationSubmit()
 
   const [showForm, setShowForm] = useState(false)
   const [formIsValid, setFormIsValid] = useState(false)
-  const [selectedEventId, setSelectedEventId] = useState<string | null>(null)
 
   useEffect(() => {
     return () => {
@@ -43,7 +43,7 @@ export const ApplicationCreatePage: React.FC = () => {
   const steps = [{ label: 'О мероприятии' }, { label: 'О проведении' }, { label: 'Согласующие' }]
 
   const handleNext = () => {
-    if (!showForm && selectedEventId) {
+    if (!showForm && selectedTemplateId) {
       setShowForm(true)
       setActiveStep(0)
     } else if (stepFromStore < steps.length) {
@@ -61,39 +61,41 @@ export const ApplicationCreatePage: React.FC = () => {
 
   const handleGoToCatalog = () => {
     reset()
-
     setShowForm(false)
-
-    setSelectedEventId(null)
   }
 
-  const handleSelectEvent = (event: ApplicationEvent) => {
-    setSelectedEventId(event.id)
-    selectEvent(event.id)
+  const handleSelectTemplate = (template: CourseTemplate) => {
+    selectTemplate(template.course_template_id)
 
     updateApplicationData({
-      type: event.type,
-      title: event.title,
-      category: event.category,
-      format: event.format,
-      description: event.description
+      name: template.course_template_name,
+      description: template.course_template_description,
+      type: template.course_template_type,
+      track: template.course_template_track,
+      format: template.course_template_format,
+      trainingCenter: template.course_template_trainingCenter,
+      startDate: template.course_template_startDate,
+      endDate: template.course_template_endDate,
+      link: template.course_template_link
     })
   }
 
   const handleCreateCustomEvent = () => {
     setShowForm(true)
     setActiveStep(0)
-    setSelectedEventId(null)
+    selectTemplate('')
 
     updateApplicationData({
-      type: '',
-      title: '',
-      category: '',
-      format: '',
+      name: '',
       description: '',
+      type: undefined,
+      track: undefined,
+      format: undefined,
+      trainingCenter: '',
+      startDate: '',
+      endDate: '',
       link: ''
     })
-    selectEvent('')
   }
 
   const handleFormValidChange = (isValid: boolean) => {
@@ -137,9 +139,9 @@ export const ApplicationCreatePage: React.FC = () => {
     if (!showForm) {
       return (
         <CatalogView
-          onSelectEvent={handleSelectEvent}
+          onSelectTemplate={handleSelectTemplate}
           onCreateCustomEvent={handleCreateCustomEvent}
-          selectedEventId={selectedEventId}
+          selectedTemplateId={selectedTemplateId}
         />
       )
     }
@@ -147,7 +149,10 @@ export const ApplicationCreatePage: React.FC = () => {
     switch (stepFromStore) {
       case 0:
         return (
-          <Step1Form onValidChange={handleFormValidChange} isEventSelected={!!selectedEventId} />
+          <Step1Form
+            onValidChange={handleFormValidChange}
+            isTemplateSelected={!!selectedTemplateId}
+          />
         )
       case 1:
         return <Step2Form onValidChange={handleFormValidChange} />
@@ -202,7 +207,7 @@ export const ApplicationCreatePage: React.FC = () => {
               <Button variant="secondary" onClick={handleCreateCustomEvent}>
                 Предложить свое мероприятие
               </Button>
-              <Button onClick={handleNext} disabled={!selectedEventId}>
+              <Button onClick={handleNext} disabled={!selectedTemplateId}>
                 Далее
               </Button>
             </>

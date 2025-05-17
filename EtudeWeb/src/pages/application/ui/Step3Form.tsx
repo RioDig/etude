@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Typography } from '@/shared/ui/typography'
 import { Button } from '@/shared/ui/button'
 import { Add, Delete } from '@mui/icons-material'
-import { useApplicationStore } from '@/entities/application/model/applicationStore'
+import { useApplicationStore, Approver } from '@/entities/application/model/applicationStore'
 import { AutocompleteSelect } from '@/shared/ui/autocompleteSelect'
 import { Employee } from '@/shared/api/employeeAutocomplete'
 
@@ -10,43 +10,33 @@ interface Step3FormProps {
   onValidChange: (isValid: boolean) => void
 }
 
-interface Approver {
-  id: string
-  userId: string
-  employeeData?: Employee
-}
-
 export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   const { currentApplication, updateApplicationData } = useApplicationStore()
 
   const [approvers, setApprovers] = useState<Approver[]>(() => {
     if (currentApplication?.approvers && currentApplication.approvers.length > 0) {
-      return currentApplication.approvers.map((approver) => ({
-        ...approver,
-        employeeData: approver.employeeData || undefined
-      }))
+      return currentApplication.approvers
     }
-    return [{ id: '1', userId: '' }]
+    return [{ id: '1', user_id: '' }]
   })
 
   const validateForm = () => {
-    const isValid = approvers.length > 0 && approvers.every((approver) => approver.userId !== '')
+    const isValid = approvers.length > 0 && approvers.every((approver) => approver.user_id !== '')
     onValidChange(isValid)
     return isValid
   }
 
   useEffect(() => {
     validateForm()
-
     updateApplicationData({ approvers })
   }, [approvers, updateApplicationData])
 
   const getExcludeIds = (currentApproverId: string): string[] => {
-    return approvers.filter((a) => a.id !== currentApproverId && a.userId).map((a) => a.userId)
+    return approvers.filter((a) => a.id !== currentApproverId && a.user_id).map((a) => a.user_id)
   }
 
   const handleAddApprover = () => {
-    setApprovers([...approvers, { id: Date.now().toString(), userId: '' }])
+    setApprovers([...approvers, { id: Date.now().toString(), user_id: '' }])
   }
 
   const handleRemoveApprover = (id: string) => {
@@ -58,7 +48,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
   const handleApproverChange = (id: string, value: string, employeeData?: Employee) => {
     setApprovers(
       approvers.map((approver) =>
-        approver.id === id ? { ...approver, userId: value, employeeData } : approver
+        approver.id === id ? { ...approver, user_id: value, employeeData } : approver
       )
     )
   }
@@ -70,7 +60,6 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
       </Typography>
 
       <div className="flex flex-col gap-4">
-        {/* Список согласующих */}
         {approvers.map((approver, index) => (
           <div key={approver.id} className="flex items-center gap-4">
             <div className="w-6 h-6 rounded-full bg-mono-200 flex items-center justify-center">
@@ -79,7 +68,7 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
 
             <div className="flex-grow">
               <AutocompleteSelect
-                value={approver.userId}
+                value={approver.user_id}
                 onChange={(value, employeeData) =>
                   handleApproverChange(approver.id, value, employeeData)
                 }
@@ -100,7 +89,6 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
           </div>
         ))}
 
-        {/* Кнопка добавления согласующего */}
         <div className="mt-2">
           <Button variant="secondary" leftIcon={<Add />} onClick={handleAddApprover}>
             Добавить сотрудника
@@ -110,3 +98,5 @@ export const Step3Form: React.FC<Step3FormProps> = ({ onValidChange }) => {
     </div>
   )
 }
+
+export default Step3Form

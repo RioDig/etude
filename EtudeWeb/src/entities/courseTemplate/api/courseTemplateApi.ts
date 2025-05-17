@@ -23,6 +23,8 @@ export const courseTemplateApi = {
 
       if (filters && Object.keys(filters).length > 0) {
         const filterArray: CourseTemplateFilter[] = Object.entries(filters)
+        // @ts-expect-error hotfix
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
           .filter(([_, value]) => value !== null && value !== undefined && value !== '')
           .map(([key, value]) => ({
             name: key,
@@ -32,7 +34,7 @@ export const courseTemplateApi = {
         filterParams = { filter: JSON.stringify(filterArray) }
       }
 
-      const { data } = await api.get<CourseTemplate[]>('/CourseTemplate', {
+      const { data } = await api.get<CourseTemplate[]>('/CourseTemplate1', {
         params: filterParams
       })
 

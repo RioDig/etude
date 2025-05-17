@@ -4,6 +4,7 @@ import { Button } from '@/shared/ui/button'
 import { Edit } from '@mui/icons-material'
 import { useApplicationStore } from '@/entities/application/model/applicationStore'
 import { Tag } from '@/shared/ui/tag'
+import { CourseType, CourseTrack, CourseFormat } from '@/shared/types'
 
 interface SectionProps {
   title: string
@@ -45,65 +46,35 @@ export const ConfirmationView: React.FC = () => {
   const { currentApplication, setActiveStep } = useApplicationStore()
 
   const getEventType = () => {
-    switch (currentApplication?.type) {
-      case 'conference':
-        return 'Конференция'
-      case 'course':
-        return 'Курс'
-      case 'webinar':
-        return 'Вебинар'
-      case 'training':
-        return 'Тренинг'
-      default:
-        return currentApplication?.type || ''
+    const types: Record<string, string> = {
+      [CourseType.Course]: 'Курс',
+      [CourseType.Conference]: 'Конференция',
+      [CourseType.Certification]: 'Сертификация',
+      [CourseType.Workshop]: 'Мастер-класс'
     }
+    return types[currentApplication?.type as string] || currentApplication?.type || ''
   }
 
-  const getCategory = () => {
-    switch (currentApplication?.category) {
-      case 'hard-skills':
-        return 'Hard Skills'
-      case 'soft-skills':
-        return 'Soft Skills'
-      case 'management':
-        return 'Management'
-      default:
-        return currentApplication?.category || ''
+  const getTrack = () => {
+    const tracks: Record<string, string> = {
+      [CourseTrack.HardSkills]: 'Hard Skills',
+      [CourseTrack.SoftSkills]: 'Soft Skills',
+      [CourseTrack.ManagementSkills]: 'Management Skills'
     }
+    return tracks[currentApplication?.track as string] || currentApplication?.track || ''
   }
 
   const getFormat = () => {
-    switch (currentApplication?.format) {
-      case 'offline':
-        return 'Очно'
-      case 'online':
-        return 'Онлайн'
-      case 'mixed':
-        return 'Смешанный'
-      default:
-        return currentApplication?.format || ''
+    const formats: Record<string, string> = {
+      [CourseFormat.Offline]: 'Очно',
+      [CourseFormat.Online]: 'Онлайн'
     }
+    return formats[currentApplication?.format as string] || currentApplication?.format || ''
   }
 
-  const getParticipants = () => {
-    if (!currentApplication?.participants || currentApplication.participants.length === 0) {
-      return 'Не выбраны'
-    }
-
-    const participantMap: Record<string, string> = {
-      '1': 'Иванов Иван Иванович',
-      '2': 'Петров Петр Петрович',
-      '3': 'Сидорова Елена Викторовна',
-      '4': 'Козлов Алексей Сергеевич'
-    }
-
-    return (
-      <div className="flex flex-col gap-2">
-        {currentApplication.participants.map((id) => (
-          <div key={id}>{participantMap[id] || id}</div>
-        ))}
-      </div>
-    )
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return 'Не указана'
+    return new Date(dateString).toLocaleDateString('ru-RU')
   }
 
   const getApprovers = () => {
@@ -111,17 +82,14 @@ export const ConfirmationView: React.FC = () => {
       return 'Не выбраны'
     }
 
-    const approverMap: Record<string, string> = {
-      '1': 'Иванов Иван Иванович (Руководитель группы дизайна)',
-      '2': 'Петров Петр Петрович (Руководитель отдела разработки)',
-      '3': 'Сидорова Елена Викторовна (Руководитель HR)',
-      '4': 'Михайлов Михаил Михайлович (Технический директор)'
-    }
-
     return (
       <div className="flex flex-col gap-2">
         {currentApplication.approvers.map((approver) => (
-          <div key={approver.id}>{approverMap[approver.userId] || approver.userId}</div>
+          <div key={approver.id}>
+            {approver.employeeData
+              ? `${approver.employeeData.surname} ${approver.employeeData.name}${approver.employeeData.patronymic ? ` ${approver.employeeData.patronymic}` : ''}${approver.employeeData.position ? ` (${approver.employeeData.position})` : ''}`
+              : approver.user_id}
+          </div>
         ))}
       </div>
     )
@@ -130,7 +98,7 @@ export const ConfirmationView: React.FC = () => {
   const eventTags = (
     <div className="flex flex-wrap gap-2">
       <Tag>{getEventType()}</Tag>
-      <Tag>{getCategory()}</Tag>
+      <Tag>{getTrack()}</Tag>
       <Tag>{getFormat()}</Tag>
     </div>
   )
@@ -148,11 +116,15 @@ export const ConfirmationView: React.FC = () => {
   return (
     <div className="flex flex-col gap-4">
       <Section title="О мероприятии" onEdit={() => setActiveStep(0)}>
+        <DataRow label="Наименование" value={currentApplication.name || ''} />
         <DataRow label="Тип" value={getEventType()} />
-        <DataRow label="Наименование" value={currentApplication.title || ''} />
-        <DataRow label="Направление" value={getCategory()} />
+        <DataRow label="Направление" value={getTrack()} />
         <DataRow label="Формат" value={getFormat()} />
-        <DataRow label="Ссылка" value={currentApplication.link || 'Не указана'} />
+        <DataRow label="Учебный центр" value={currentApplication.trainingCenter || 'Не указан'} />
+        <DataRow
+          label="Ссылка или место проведения"
+          value={currentApplication.link || 'Не указана'}
+        />
 
         <div className="mt-2">
           <Typography variant="b3Regular" className="text-mono-700 mb-2">
@@ -172,20 +144,13 @@ export const ConfirmationView: React.FC = () => {
       </Section>
 
       <Section title="Данные о проведении" onEdit={() => setActiveStep(1)}>
-        <DataRow
-          label="Срок прохождения"
-          value={
-            currentApplication.duration
-              ? new Date(currentApplication.duration).toLocaleDateString('ru-RU')
-              : 'Не указан'
-          }
-        />
-        <DataRow label="Цель участия" value={currentApplication.goal || 'Не указана'} />
+        <DataRow label="Дата начала" value={formatDate(currentApplication.startDate)} />
+        <DataRow label="Дата окончания" value={formatDate(currentApplication.endDate)} />
+        <DataRow label="Цель участия" value={currentApplication.educationGoal || 'Не указана'} />
         <DataRow
           label="Стоимость участия"
-          value={currentApplication.cost ? `${currentApplication.cost} рублей` : 'Не указана'}
+          value={currentApplication.price ? `${currentApplication.price} рублей` : 'Не указана'}
         />
-        <DataRow label="Сотрудники" value={getParticipants()} />
       </Section>
 
       <Section title="Согласующие" onEdit={() => setActiveStep(2)}>

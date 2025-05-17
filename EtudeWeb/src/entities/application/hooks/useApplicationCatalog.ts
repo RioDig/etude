@@ -1,45 +1,42 @@
 import { useQuery } from '@tanstack/react-query'
-import { applicationApi } from '../api/applicationApi'
+import { courseTemplateApi } from '@/entities/courseTemplate/api/courseTemplateApi'
 import { usePageFilters } from '@/entities/filter'
 
 /**
- * Хук для получения данных каталога мероприятий с учетом фильтрации
+ * Хук для получения данных каталога шаблонов курсов с учетом фильтрации
  */
 export const useApplicationCatalog = () => {
   const { filters } = usePageFilters('application-catalog')
 
   const apiFilters = Object.entries(filters).reduce(
-    (acc, [key, value]) => {
+    (result, [key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        acc[key] = value
+        result[key] = String(value)
       }
-      return acc
+      return result
     },
-    {} as Record<string, any>
+    {} as Record<string, string>
   )
 
   return useQuery({
-    queryKey: ['applications', 'catalog', filters],
-    queryFn: () => applicationApi.getEventsCatalog(apiFilters),
+    queryKey: ['courseTemplates', 'catalog', apiFilters],
+    // @ts-expect-error hotfix
+    queryFn: () => courseTemplateApi.getCourseTemplates(apiFilters),
     staleTime: 1000 * 60 * 5,
+    gcTime: 1000 * 5,
     refetchOnWindowFocus: false
   })
 }
 
 /**
- * Хук для получения данных конкретного мероприятия по ID
+ * Хук для получения данных шаблона курса по ID
  */
-export const useApplicationEvent = (eventId: string | null) => {
+export const useApplicationTemplate = (templateId: string | null) => {
   return useQuery({
-    queryKey: ['applications', 'event', eventId],
-    queryFn: () => applicationApi.getEventById(eventId as string),
-    enabled: !!eventId,
+    queryKey: ['courseTemplate', templateId],
+    queryFn: () => courseTemplateApi.getCourseTemplateById(templateId!),
+    enabled: !!templateId,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false
   })
 }
-
-/**
- * Хук для создания или обновления заявления
- * (Можно использовать useMutation из React Query)
- */
