@@ -7,6 +7,7 @@ using EtudeBackend.Shared.Exceptions;
 using EtudeBackend.Shared.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Transactions;
 using EtudeBackend.Shared.Data;
 using Microsoft.AspNetCore.Identity;
@@ -49,6 +50,7 @@ public class ApplicationService : IApplicationService
         if (perPage < 1) perPage = 10;
         if (perPage > 100) perPage = 100;
 
+        // Начинаем с базового запроса
         IQueryable<Application> query = _applicationRepository.GetAllQuery()
             .Include(a => a.Status)
             .Include(a => a.Course);
@@ -82,82 +84,96 @@ public class ApplicationService : IApplicationService
     }
 
     public async Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto, string userId)
-{
-    using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-    
-    try 
     {
-        var course = new Course
-        {
-            Id = Guid.NewGuid(),
-            Name = applicationDto.Name,
-            Description = applicationDto.Description,
-            Type = ParseEnum<CourseType>(applicationDto.Type),
-            Track = ParseEnum<CourseTrack>(applicationDto.Track),
-            Format = ParseEnum<CourseFormat>(applicationDto.Format),
-            TrainingCenter = applicationDto.TrainingCenter,
-            EmployeeId = applicationDto.EmployeeId,
-            StartDate = applicationDto.StartDate,
-            EndDate = applicationDto.EndDate,
-            Link = applicationDto.Link,
-            Price = applicationDto.Price,
-            EducationGoal = applicationDto.EducationGoal,
-            IsActive = true,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
         
-        await _courseRepository.AddAsync(course);
-        
-        // Получаем статус "Confirmation" по умолчанию, если не указан другой
-        Guid statusId = applicationDto.StatusId;
-        if (statusId == Guid.Empty)
+        try 
         {
-            var confirmationStatus = await _statusRepository.GetByTypeAsync("Confirmation");
-            if (confirmationStatus == null)
+            // Получаем данные обучающегося
+            var learner = await _userManager.FindByIdAsync(applicationDto.LearnerId);
+            if (learner == null)
             {
-                throw new ApiException("Статус с типом 'Confirmation' не найден в системе", 500);
+                throw new ApiException($"Обучающийся с ID {applicationDto.LearnerId} не найден в системе", 400);
             }
-            statusId = confirmationStatus.Id;
-        }
-        
-        var approverIdStrings = applicationDto.ApproverIds
-            .Select(id => id.ToString())
-            .ToList();
             
-        string approversJson = System.Text.Json.JsonSerializer.Serialize(approverIdStrings);
-        
-        var application = new Application
-        {
-            Id = Guid.NewGuid(),
-            CourseId = course.Id,
-            AuthorId = userId,
-            StatusId = statusId,
-            ApprovalHistory = string.Empty,
-            Approvers = approversJson,
-            CreatedAt = DateTimeOffset.UtcNow,
-            SoloDocId = Guid.NewGuid() 
-        };
-        
-        await _applicationRepository.AddAsync(application);
+            _logger.LogInformation("Найден обучающийся: {LearnerId} - {Name} {Surname}", 
+                learner.Id, learner.Name, learner.Surname);
+            
+            var course = new Course
+            {
+                Id = Guid.NewGuid(),
+                Name = applicationDto.Name,
+                Description = applicationDto.Description,
+                Type = ParseEnum<CourseType>(applicationDto.Type),
+                Track = ParseEnum<CourseTrack>(applicationDto.Track),
+                Format = ParseEnum<CourseFormat>(applicationDto.Format),
+                TrainingCenter = applicationDto.TrainingCenter,
+                EmployeeId = Guid.Parse(applicationDto.LearnerId), // Преобразуем строку ID в Guid
+                StartDate = applicationDto.StartDate,
+                EndDate = applicationDto.EndDate,
+                Link = applicationDto.Link,
+                Price = applicationDto.Price,
+                EducationGoal = applicationDto.EducationGoal,
+                IsActive = true,
+                CreatedAt = DateTimeOffset.UtcNow, 
+                Learner = learner
+            };
+            
+            _logger.LogInformation("Создаем курс для обучающегося {LearnerId}, EmployeeId: {EmployeeId}", 
+                applicationDto.LearnerId, course.EmployeeId);
+            
+            await _courseRepository.AddAsync(course);
+            
+            // Получаем статус по умолчанию, если не указан другой
+            Guid statusId = applicationDto.StatusId;
+            if (statusId == Guid.Empty)
+            {
+                var confirmationStatus = await _statusRepository.GetByTypeAsync("Confirmation");
+                if (confirmationStatus == null)
+                {
+                    throw new ApiException("Статус с типом 'Confirmation' не найден в системе", 500);
+                }
+                statusId = confirmationStatus.Id;
+            }
+            
+            // Сериализуем список ID согласующих
+            string approversJson = JsonSerializer.Serialize(applicationDto.ApproverIds);
+            
+            _logger.LogInformation("Сохраняем список согласующих: {Approvers}", approversJson);
+            
+            var application = new Application
+            {
+                Id = Guid.NewGuid(),
+                CourseId = course.Id,
+                AuthorId = userId,
+                StatusId = statusId,
+                ApprovalHistory = string.Empty,
+                Approvers = approversJson,
+                CreatedAt = DateTimeOffset.UtcNow,
+                SoloDocId = Guid.NewGuid() 
+            };
+            
+            await _applicationRepository.AddAsync(application);
 
-        var createdApplication = await GetApplicationByIdAsync(application.Id);
-        if (createdApplication == null)
-            throw new ApiException("Ошибка при создании заявки", 500);
-        
-        transaction.Complete();
-        
-        _logger.LogInformation("Создана новая заявка с ID {ApplicationId} пользователем {UserId}", 
-            application.Id, userId);
-        
-        return createdApplication;
+            var createdApplication = await GetApplicationByIdAsync(application.Id);
+            if (createdApplication == null)
+                throw new ApiException("Ошибка при создании заявки", 500);
+            
+            transaction.Complete();
+            
+            _logger.LogInformation("Создана новая заявка с ID {ApplicationId} пользователем {UserId}", 
+                application.Id, userId);
+            
+            return createdApplication;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при создании заявки пользователем {UserId}: {Message}", userId, ex.Message);
+            
+            throw;
+        }
     }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Ошибка при создании заявки пользователем {UserId}", userId);
-        
-        throw;
-    }
-}
+    
 
     public async Task<ApplicationDetailDto?> UpdateApplicationAsync(Guid id, UpdateApplicationDto applicationDto)
     {
@@ -278,14 +294,71 @@ public class ApplicationService : IApplicationService
             switch (filter.Key.ToLower())
             {
                 case "status":
-                    query = query.Where(a => a.Status.Name.Contains(filter.Value));
+                    // Проверяем сначала точное совпадение по типу
+                    if (query.Any(a => a.Status.Type == filter.Value))
+                    {
+                        query = query.Where(a => a.Status.Type == filter.Value);
+                    }
+                    // Затем проверяем точное совпадение по имени
+                    else if (query.Any(a => a.Status.Name == filter.Value))
+                    {
+                        query = query.Where(a => a.Status.Name == filter.Value);
+                    }
+                    // Если точных совпадений нет, ищем частичные совпадения
+                    else
+                    {
+                        query = query.Where(a => a.Status.Type.Contains(filter.Value) || 
+                                                a.Status.Name.Contains(filter.Value));
+                    }
                     break;
                 case "author":
-                    query = query.Where(a => a.Author.Surname.Contains(filter.Value) ||
-                                           a.Author.Name.Contains(filter.Value) ||
-                                           a.Author.Patronymic.Contains(filter.Value));
+                case "authorid":
+                    query = query.Where(a => a.AuthorId == filter.Value);
                     break;
-                case "course":
+                case "type":
+                    // Проверяем тип курса
+                    if (Enum.TryParse<CourseType>(filter.Value, true, out var courseType))
+                    {
+                        query = query.Where(a => a.Course.Type == courseType);
+                    }
+                    else
+                    {
+                        // Если не удалось распарсить как enum, пробуем искать по строковому значению
+                        query = query.Where(a => a.Course.Type.ToString().Contains(filter.Value));
+                    }
+                    break;
+                case "track":
+                    // Проверяем направление курса
+                    if (Enum.TryParse<CourseTrack>(filter.Value, true, out var courseTrack))
+                    {
+                        query = query.Where(a => a.Course.Track == courseTrack);
+                    }
+                    else
+                    {
+                        query = query.Where(a => a.Course.Track.ToString().Contains(filter.Value));
+                    }
+                    break;
+                case "format":
+                    // Проверяем формат курса
+                    if (Enum.TryParse<CourseFormat>(filter.Value, true, out var courseFormat))
+                    {
+                        query = query.Where(a => a.Course.Format == courseFormat);
+                    }
+                    else
+                    {
+                        query = query.Where(a => a.Course.Format.ToString().Contains(filter.Value));
+                    }
+                    break;
+                case "employee":
+                case "learner":
+                    // Если это поиск по сотруднику, проверяем EmployeeId в курсе
+                    Guid employeeId;
+                    if (Guid.TryParse(filter.Value, out employeeId))
+                    {
+                        query = query.Where(a => a.Course.EmployeeId == employeeId);
+                    }
+                    break;
+                case "coursename":
                     query = query.Where(a => a.Course.Name.Contains(filter.Value));
                     break;
                 case "datefrom":

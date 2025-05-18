@@ -62,7 +62,7 @@ public class ApplicationMappingProfile : Profile
             .ForMember(dest => dest.Learner, opt => opt.Ignore()); // Будет заполнено отдельно
     }
 
-    private static string DetermineStatusType(string statusName)
+    private string DetermineStatusType(string statusName)
     {
         return statusName.ToLower() switch
         {

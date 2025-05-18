@@ -77,6 +77,7 @@ public static class OrganizationServiceExtensions
         };
     }
     
+    
     private static string ExtractLastName(string fullName)
     {
         var parts = fullName.Split(' ');

@@ -314,6 +314,9 @@ namespace EtudeBackend.Shared.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("LearnerId")
+                        .HasColumnType("text");
+
                     b.Property<string>("Link")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -352,6 +355,8 @@ namespace EtudeBackend.Shared.Data.Migrations
                     b.HasIndex("Format");
 
                     b.HasIndex("IsActive");
+
+                    b.HasIndex("LearnerId");
 
                     b.HasIndex("StartDate");
 
@@ -505,6 +510,10 @@ namespace EtudeBackend.Shared.Data.Migrations
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Department")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -762,6 +771,15 @@ namespace EtudeBackend.Shared.Data.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("EtudeBackend.Features.TrainingRequests.Entities.Course", b =>
+                {
+                    b.HasOne("EtudeBackend.Shared.Data.ApplicationUser", "Learner")
+                        .WithMany()
+                        .HasForeignKey("LearnerId");
+
+                    b.Navigation("Learner");
                 });
 
             modelBuilder.Entity("EtudeBackend.Features.TrainingRequests.Entities.UserStatistics", b =>

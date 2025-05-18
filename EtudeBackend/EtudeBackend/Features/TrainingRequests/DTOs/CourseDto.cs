@@ -18,6 +18,7 @@ public class CourseDto
     public bool IsActive { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
+    public UserBasicDto Learner { get; set; } = new UserBasicDto();
 
     // Дополнительные поля для связей
     public int ApplicationCount { get; set; }

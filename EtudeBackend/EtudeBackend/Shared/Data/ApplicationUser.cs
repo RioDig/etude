@@ -9,6 +9,7 @@ public class ApplicationUser : IdentityUser
     public string? Patronymic { get; set; }
     public string OrgEmail { get; set; } = string.Empty;
     public string Position { get; set; } = string.Empty;
+    public string Department { get; set; } = string.Empty;
     public int RoleId { get; set; }
     public string? SoloUserId { get; set; }
     public bool IsActive { get; set; } = true;

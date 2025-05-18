@@ -25,12 +25,19 @@ public class ApplicationDetailDto
 
 public class UserBasicDto
 {
+    [JsonPropertyName("id")]
     public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("surname")]
     public string Surname { get; set; } = string.Empty;
+    [JsonPropertyName("patronymic")]
     public string? Patronymic { get; set; }
+    [JsonPropertyName("position")]
     public string Position { get; set; } = string.Empty;
+    [JsonPropertyName("department")]
     public string Department { get; set; } = string.Empty;
+    [JsonPropertyName("isLeader")]
     public bool IsLeader { get; set; } = false;
 }
 
@@ -59,6 +66,7 @@ public class CourseBasicDto
     
     [JsonPropertyName("course_endDate")]
     public DateOnly EndDate { get; set; }
+    public UserBasicDto Learner { get; set; } = new UserBasicDto();
 }
 
 public class CourseDetailDto : CourseBasicDto
@@ -86,15 +94,18 @@ public class CreateApplicationDto
     public string Type { get; set; } = string.Empty;
     public string Track { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;
-    public Guid EmployeeId { get; set; }
+    public string LearnerId { get; set; } = string.Empty; // ID обучающегося как строка
     public string TrainingCenter { get; set; } = string.Empty;
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
     public string Link { get; set; } = string.Empty;
-    public string Price { get; set; }
+    public string Price { get; set; } = string.Empty;
     public string EducationGoal { get; set; } = string.Empty;
     public string AuthorId { get; set; } = string.Empty;
-    public List<int> ApproverIds { get; set; } = new List<int>();
+    
+    // ID согласующих
+    public List<string> ApproverIds { get; set; } = new List<string>();
+    
     public Guid StatusId { get; set; }
 }
 
@@ -178,6 +189,7 @@ public class ApplicationResponseDto
     
     [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; }
+    
     public ApplicationStatusDto Status { get; set; } = new();
     public ApplicationCourseDto Course { get; set; } = new();
 }
@@ -222,23 +234,41 @@ public class ApprovalHistoryEntry
 
 public class CreateApplicationRequestDto
 {
+    [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
-    public string Track { get; set; } = string.Empty;
-    public string Format { get; set; } = string.Empty;
-    public string TrainingCenter { get; set; } = string.Empty;
+    
+    [JsonPropertyName("description")]
+    public string? Description { get; set; }
+    
+    [JsonPropertyName("type")]
+    public string? Type { get; set; }
+    
+    [JsonPropertyName("track")]
+    public string? Track { get; set; }
+    
+    [JsonPropertyName("format")]
+    public string? Format { get; set; }
+    
+    [JsonPropertyName("trainingCenter")]
+    public string? TrainingCenter { get; set; }
+    
+    [JsonPropertyName("startDate")]
     public DateOnly StartDate { get; set; }
+    
+    [JsonPropertyName("endDate")]
     public DateOnly EndDate { get; set; }
-    public string Link { get; set; } = string.Empty;
-    public string Price { get; set; }
-    public string EducationGoal { get; set; } = string.Empty;
     
-    [JsonPropertyName("learner_id")]
+    [JsonPropertyName("link")]
+    public string? Link { get; set; }
+    
+    [JsonPropertyName("price")]
+    public string? Price { get; set; }
+    
+    [JsonPropertyName("educationGoal")]
+    public string? EducationGoal { get; set; }
+    
+    [JsonPropertyName("learnerId")]
     public string LearnerId { get; set; } = string.Empty;
-    
-    [JsonPropertyName("author_id")]
-    public string AuthorId { get; set; } = string.Empty;
     
     [JsonPropertyName("approvers")]
     public List<string> Approvers { get; set; } = new List<string>();

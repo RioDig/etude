@@ -159,38 +159,35 @@ public class OrganizationService : IOrganizationService
         return employees;
     }
     
-    public async Task<EmployeeDto?> GetEmployeeByIdAsync(string employeeId)
+    public async Task<EmployeeDto?> GetEmployeeByUserIdAsync(string userId)
     {
         try
         {
-            var structure = await GetOrganizationStructureAsync();
-        
-            // Проверяем руководителей и сотрудников всех отделов
-            foreach (var department in structure.Company.Departments)
+            // Обращаемся напрямую к API EtudeAuth для получения информации о пользователе по ID
+            var user = await _etudeAuthApiService.GetUserInfoByIdAsync(userId);
+            if (user == null)
             {
-                // Проверяем руководителя отдела
-                if (IsEmployeeMatch(department.Manager, employeeId))
-                {
-                    return MapToEmployeeDto(department.Manager.Name, department.Manager.Email, 
-                        department.Manager.Position, department.Name, true);
-                }
-            
-                // Проверяем сотрудников отдела
-                foreach (var employee in department.Employees)
-                {
-                    if (IsEmployeeMatch(employee, employeeId))
-                    {
-                        return MapToEmployeeDto(employee.Name, employee.Email, 
-                            employee.Position, department.Name, false);
-                    }
-                }
+                _logger.LogWarning("Пользователь с ID {UserId} не найден в EtudeAuth", userId);
+                return null;
             }
-        
-            return null;
+
+            // Формируем объект EmployeeDto на основе полученной информации
+            var employee = new EmployeeDto
+            {
+                Id = userId, // Используем переданный ID как идентификатор
+                Name = user.Name,
+                Surname = user.Surname,
+                Patronymic = user.Patronymic,
+                Position = user.Position,
+                Department = user.Department ?? "Не указано",
+                IsLeader = user.IsLeader ?? false
+            };
+
+            return employee;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Ошибка при поиске сотрудника по ID: {EmployeeId}", employeeId);
+            _logger.LogError(ex, "Ошибка при получении информации о пользователе с ID {UserId} из EtudeAuth", userId);
             return null;
         }
     }

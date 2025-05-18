@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.Runtime.Serialization;
+using EtudeBackend.Features.TrainingRequests.DTOs;
+using EtudeBackend.Shared.Data;
 
 namespace EtudeBackend.Features.TrainingRequests.Entities;
 
@@ -40,6 +42,8 @@ public class Course
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset? UpdatedAt { get; set; }
+    
+    public ApplicationUser Learner { get; set; }
 
     public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
     public virtual ICollection<UserStatistics> Statistics { get; set; } = new List<UserStatistics>();

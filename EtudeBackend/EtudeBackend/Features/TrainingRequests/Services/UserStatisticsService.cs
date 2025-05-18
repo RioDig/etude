@@ -134,7 +134,7 @@ public class UserStatisticsService : IUserStatisticsService
                             EndDate = course.EndDate,
                             Price = course.Price,
                             EducationGoal = course.EducationGoal,
-                            Link = string.Empty,
+                            Link = course.Link,
                             Learner = learner != null ? new UserBasicDto
                             {
                                 Id = learner.Id,
@@ -142,7 +142,7 @@ public class UserStatisticsService : IUserStatisticsService
                                 Surname = learner.Surname,
                                 Patronymic = learner.Patronymic,
                                 Position = learner.Position,
-                                Department = string.Empty,
+                                Department = learner.Department,
                                 IsLeader = false
                             } : new UserBasicDto()
                         }

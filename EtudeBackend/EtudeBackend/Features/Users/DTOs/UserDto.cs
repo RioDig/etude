@@ -1,4 +1,6 @@
-﻿namespace EtudeBackend.Features.Users.DTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace EtudeBackend.Features.Users.DTOs;
 
 public class UserDto
 {
@@ -55,4 +57,31 @@ public class EmployeeInfoDto
     public string Name { get; set; }
     public string Position { get; set; }
     public string Email { get; set; }
+}
+
+public class UserDetailDto
+{
+    [JsonPropertyName("id")]
+    public string Id { get; set; } = string.Empty;
+    
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = string.Empty;
+    
+    [JsonPropertyName("surname")]
+    public string Surname { get; set; } = string.Empty;
+    
+    [JsonPropertyName("patronymic")]
+    public string? Patronymic { get; set; }
+    
+    [JsonPropertyName("org_email")]
+    public string OrgEmail { get; set; } = string.Empty;
+    
+    [JsonPropertyName("position")]
+    public string Position { get; set; } = string.Empty;
+    
+    [JsonPropertyName("department")]
+    public string? Department { get; set; }
+    
+    [JsonPropertyName("is_leader")]
+    public bool? IsLeader { get; set; }
 }

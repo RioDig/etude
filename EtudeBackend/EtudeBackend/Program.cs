@@ -1,11 +1,17 @@
 using EtudeBackend.Features.TrainingRequests.Services;
 using EtudeBackend.Shared.Extensions;
 using EtudeBackend.Shared.Middleware;
+using EtudeBackend.Shared.ModelBinders;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<MvcOptions>(options =>
+{
+    options.ModelBinderProviders.Insert(0, new JsonQueryBinderProvider());
+});
 
 builder.Services.AddControllers();
 

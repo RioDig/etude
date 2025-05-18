@@ -26,13 +26,28 @@ public class CourseTemplateController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTemplates([FromQuery] List<CourseTemplateFilterDto>? filter = null)
+    public async Task<IActionResult> GetAllTemplates([FromQuery] string? filters = null)
     {
         try
         {
-            if (filter != null && filter.Count > 0)
+            List<CourseTemplateFilterDto>? filterDtos = null;
+        
+            if (!string.IsNullOrEmpty(filters))
             {
-                var templates = await _templateService.GetTemplatesByFiltersAsync(filter);
+                try
+                {
+                    filterDtos = System.Text.Json.JsonSerializer.Deserialize<List<CourseTemplateFilterDto>>(filters);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Ошибка при десериализации фильтров: {Filters}", filters);
+                    return BadRequest(new { message = "Неверный формат фильтров" });
+                }
+            }
+        
+            if (filterDtos != null && filterDtos.Count > 0)
+            {
+                var templates = await _templateService.GetTemplatesByFiltersAsync(filterDtos);
                 return Ok(templates);
             }
             else

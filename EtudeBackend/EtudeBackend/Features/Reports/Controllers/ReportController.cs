@@ -24,11 +24,26 @@ public class ReportController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(List<ReportInfoDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetReports([FromQuery] List<ReportFilterDto>? filter = null)
+    public async Task<IActionResult> GetReports([FromQuery] string? filters = null)
     {
         try
         {
-            var reports = await _reportService.GetAllReportsAsync(filter);
+            List<ReportFilterDto>? filterDtos = null;
+        
+            if (!string.IsNullOrEmpty(filters))
+            {
+                try
+                {
+                    filterDtos = System.Text.Json.JsonSerializer.Deserialize<List<ReportFilterDto>>(filters);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Ошибка при десериализации фильтров: {Filters}", filters);
+                    return BadRequest(new { message = "Неверный формат фильтров" });
+                }
+            }
+        
+            var reports = await _reportService.GetAllReportsAsync(filterDtos);
             return Ok(reports);
         }
         catch (Exception ex)

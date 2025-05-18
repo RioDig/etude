@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using EtudeBackend.Features.Auth.Models;
 using EtudeBackend.Features.Users.DTOs;
+using EtudeBackend.Features.Users.DTOs;
 using Microsoft.Extensions.Configuration;
 
 namespace EtudeBackend.Features.Auth.Services;
@@ -55,6 +56,29 @@ public class EtudeAuthApiService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении сотрудника с ID {EmployeeId} из EtudeAuth", id);
+            return null;
+        }
+    }
+    
+    public async Task<UserDetailDto?> GetUserInfoByIdAsync(string userId)
+    {
+        try
+        {
+            var response = await _httpClient.GetAsync($"{_baseUrl}/api/users/{userId}");
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Не удалось получить информацию о пользователе с ID {UserId}. Код ответа: {StatusCode}", 
+                    userId, response.StatusCode);
+                return null;
+            }
+
+            var userInfo = await response.Content.ReadFromJsonAsync<UserDetailDto>();
+            return userInfo;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении информации о пользователе с ID {UserId} из EtudeAuth", userId);
             return null;
         }
     }

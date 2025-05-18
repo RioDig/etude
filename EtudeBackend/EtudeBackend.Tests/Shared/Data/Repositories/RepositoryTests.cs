@@ -34,7 +34,7 @@ namespace EtudeBackend.Tests.Shared.Data.Repositories
             {
                 Id = Guid.NewGuid(),
                 Name = "Test Course 1",
-                Type = CourseType.Training,
+                Type = CourseType.Course,
                 StartDate = new DateOnly(2025, 1, 1),
                 EndDate = new DateOnly(2025, 1, 10)
             };
@@ -69,7 +69,7 @@ namespace EtudeBackend.Tests.Shared.Data.Repositories
             {
                 Id = courseId,
                 Name = "Test Course",
-                Type = CourseType.Training,
+                Type = CourseType.Course,
                 StartDate = new DateOnly(2025, 1, 1),
                 EndDate = new DateOnly(2025, 1, 10)
             };
@@ -94,7 +94,7 @@ namespace EtudeBackend.Tests.Shared.Data.Repositories
             {
                 Id = Guid.NewGuid(),
                 Name = "New Course",
-                Type = CourseType.Training,
+                Type = CourseType.Course,
                 StartDate = new DateOnly(2025, 3, 1),
                 EndDate = new DateOnly(2025, 3, 10)
             };
@@ -121,7 +121,7 @@ namespace EtudeBackend.Tests.Shared.Data.Repositories
             {
                 Id = courseId,
                 Name = "Original Course",
-                Type = CourseType.Training,
+                Type = CourseType.Course,
                 StartDate = new DateOnly(2025, 4, 1),
                 EndDate = new DateOnly(2025, 4, 10)
             };
@@ -150,7 +150,7 @@ namespace EtudeBackend.Tests.Shared.Data.Repositories
             {
                 Id = courseId,
                 Name = "Course to Delete",
-                Type = CourseType.Training,
+                Type = CourseType.Course,
                 StartDate = new DateOnly(2025, 5, 1),
                 EndDate = new DateOnly(2025, 5, 10)
             };
@@ -175,7 +175,7 @@ namespace EtudeBackend.Tests.Shared.Data.Repositories
             {
                 Id = courseId,
                 Name = "Existing Course",
-                Type = CourseType.Training,
+                Type = CourseType.Course,
                 StartDate = new DateOnly(2025, 6, 1),
                 EndDate = new DateOnly(2025, 6, 10)
             };
