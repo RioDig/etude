@@ -113,9 +113,14 @@ public class CourseTemplateService : ICourseTemplateService
 
         if (templateDto.StartDate.HasValue)
             template.StartDate = templateDto.StartDate.Value;
+        else
+            template.StartDate = null;
+
 
         if (templateDto.EndDate.HasValue)
             template.EndDate = templateDto.EndDate.Value;
+        else
+            template.EndDate = null;
 
         if (templateDto.Link != null)
             template.Link = templateDto.Link;

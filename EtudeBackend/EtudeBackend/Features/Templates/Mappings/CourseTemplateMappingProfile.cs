@@ -1,4 +1,6 @@
-﻿using AutoMapper;
+﻿using System.Reflection;
+using System.Runtime.Serialization;
+using AutoMapper;
 using EtudeBackend.Features.Templates.DTOs;
 using EtudeBackend.Features.Templates.Entities;
 using EtudeBackend.Features.TrainingRequests.Entities;

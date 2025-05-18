@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
+using System.Runtime.Serialization;
 
 namespace EtudeBackend.Features.TrainingRequests.Entities;
 
@@ -46,24 +47,41 @@ public class Course
 
 public enum CourseType
 {
+    [EnumMember(Value = "Course")]
     Course, // Курс
+    
+    [EnumMember(Value = "Conference")]
     Conference, // Конференция
+    
+    [EnumMember(Value = "Certification")]
     Certification, // Сертификация
+    
+    [EnumMember(Value = "Workshop")]
     Workshop, // Мастер-класс
+
     NotImplemented
 }
 
 public enum CourseTrack
 {
+    [EnumMember(Value = "Soft Skills")]
     SoftSkills,
+    
+    [EnumMember(Value = "Hard Skills")]
     HardSkills,
+    
+    [EnumMember(Value = "Management Skills")]
     ManagementSkills,
+    
     NotImplemented
 }
 
 public enum CourseFormat
 {
+    [EnumMember(Value = "Online")]
     Online,
+    
+    [EnumMember(Value = "Offline")]
     Offline,
     NotImplemented
 }

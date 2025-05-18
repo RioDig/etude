@@ -20,9 +20,9 @@ public class CourseTemplate
 
     public string TrainingCenter { get; set; } = string.Empty;
 
-    public DateOnly StartDate { get; set; }
+    public DateOnly? StartDate { get; set; }
 
-    public DateOnly EndDate { get; set; }
+    public DateOnly? EndDate { get; set; }
 
     public string Link { get; set; } = string.Empty;
 
