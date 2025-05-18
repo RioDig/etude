@@ -267,7 +267,7 @@ public class CreateApplicationRequestDto
     [JsonPropertyName("educationGoal")]
     public string? EducationGoal { get; set; }
     
-    [JsonPropertyName("learnerId")]
+    [JsonPropertyName("learner_id")]
     public string LearnerId { get; set; } = string.Empty;
     
     [JsonPropertyName("approvers")]

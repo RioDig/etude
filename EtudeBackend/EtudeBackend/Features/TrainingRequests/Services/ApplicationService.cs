@@ -137,10 +137,6 @@ public class ApplicationService : IApplicationService
             }
             
             // Сериализуем список ID согласующих
-            string approversJson = JsonSerializer.Serialize(applicationDto.ApproverIds);
-            
-            _logger.LogInformation("Сохраняем список согласующих: {Approvers}", approversJson);
-            
             var application = new Application
             {
                 Id = Guid.NewGuid(),
@@ -148,7 +144,7 @@ public class ApplicationService : IApplicationService
                 AuthorId = userId,
                 StatusId = statusId,
                 ApprovalHistory = string.Empty,
-                Approvers = approversJson,
+                Approvers = applicationDto.ApproverIds,
                 CreatedAt = DateTimeOffset.UtcNow,
                 SoloDocId = Guid.NewGuid() 
             };
@@ -223,6 +219,7 @@ public class ApplicationService : IApplicationService
 
         if (applicationDto.Approvers != null)
         {
+            application.Approvers = applicationDto.Approvers;
             string approversJson = System.Text.Json.JsonSerializer.Serialize(applicationDto.Approvers);
         }
 

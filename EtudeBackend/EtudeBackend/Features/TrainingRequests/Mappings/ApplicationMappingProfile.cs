@@ -123,7 +123,7 @@ public class ApplicationMappingProfile : Profile
             List<UserBasicDto> destMember,
             ResolutionContext context)
         {
-            if (string.IsNullOrEmpty(source.Approvers))
+            if (source.Approvers.Count == 0)
                 return new List<UserBasicDto>();
 
             try
@@ -133,8 +133,8 @@ public class ApplicationMappingProfile : Profile
                 try
                 {
                     // Сначала пробуем как список int
-                    var intIds = System.Text.Json.JsonSerializer.Deserialize<List<int>>(source.Approvers);
-                    if (intIds != null)
+                    var intIds = source.Approvers;
+                    if (intIds.Count > 0)
                     {
                         approverIds = intIds.Select(id => id.ToString()).ToList();
                     }
@@ -145,7 +145,7 @@ public class ApplicationMappingProfile : Profile
                 }
                 catch
                 {
-                    approverIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(source.Approvers) ?? new List<string>();
+                    approverIds = source.Approvers;
                 }
 
                 if (approverIds.Count == 0)

@@ -560,14 +560,14 @@ public class ApplicationController : ControllerBase
         // Получаем и заполняем список согласующих
         List<UserBasicDto> approvers = new List<UserBasicDto>();
         
-        if (detailedApplication != null && !string.IsNullOrEmpty(detailedApplication.Approvers))
+        if (detailedApplication != null && detailedApplication.Approvers.Count > 0)
         {
             try
             {
                 // Десериализуем список ID согласующих
-                var approverIds = JsonSerializer.Deserialize<List<string>>(detailedApplication.Approvers);
+                var approverIds = detailedApplication.Approvers;
                 
-                if (approverIds != null && approverIds.Count > 0)
+                if (approverIds.Count > 0)
                 {
                     foreach (var approverId in approverIds)
                     {

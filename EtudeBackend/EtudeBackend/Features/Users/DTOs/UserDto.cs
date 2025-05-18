@@ -79,7 +79,7 @@ public class UserDetailDto
     [JsonPropertyName("position")]
     public string Position { get; set; } = string.Empty;
     
-    [JsonPropertyName("department")]
+    [JsonPropertyName("department_name")]
     public string? Department { get; set; }
     
     [JsonPropertyName("is_leader")]

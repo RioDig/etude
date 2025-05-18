@@ -134,31 +134,38 @@ public class ReportService : IReportService
             var learnerEmployee = await _organizationService.GetEmployeeByEmailAsync(authorUser.OrgEmail);
             
             var approversList = new List<User>();
-            if (!string.IsNullOrEmpty(application.Approvers))
+            if (application.Approvers.Count > 0)
             {
                 try
                 {
-                    List<string> approverIds;
+                    List<string> approverIds = null;
+                    
+                    
                     try
                     {
-                        var intIds = System.Text.Json.JsonSerializer.Deserialize<List<int>>(application.Approvers);
-                        if (intIds != null)
+                        foreach (var approver in application.Approvers)
                         {
-                            approverIds = intIds.Select(id => id.ToString()).ToList();
+                            var intIds = System.Text.Json.JsonSerializer.Deserialize<List<int>>(approver);
+                            if (intIds != null)
+                            {
+                                approverIds = intIds.Select(id => id.ToString()).ToList();
+                            }
+                            else
+                            {
+                                approverIds = new List<string>();
+                            }
                         }
-                        else
-                        {
-                            approverIds = new List<string>();
-                        }
+                        
                     }
                     catch
                     {
-                        approverIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(application.Approvers) ?? new List<string>();
+                        approverIds = application.Approvers;
                     }
+                    
 
                     foreach (var approverId in approverIds)
                     {
-                        var approverInfo = await _organizationService.GetEmployeeByIdAsync(approverId);
+                        var approverInfo = await _organizationService.GetEmployeeByUserIdAsync(approverId);
                         if (approverInfo != null)
                         {
                             approversList.Add(new User

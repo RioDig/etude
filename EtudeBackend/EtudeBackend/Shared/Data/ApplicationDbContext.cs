@@ -1,4 +1,5 @@
-﻿using EtudeBackend.Features.TrainingRequests.Entities;
+﻿using System.Text.Json;
+using EtudeBackend.Features.TrainingRequests.Entities;
 using EtudeBackend.Features.Users.Entities;
 using EtudeBackend.Features.Logging.Entities;
 using EtudeBackend.Features.Reports.DTOs;
@@ -33,6 +34,11 @@ namespace EtudeBackend.Shared.Data
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+            modelBuilder.Entity<Application>()
+                .Property(e => e.Approvers)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null) ?? new List<string>());
         }
     }
 }
