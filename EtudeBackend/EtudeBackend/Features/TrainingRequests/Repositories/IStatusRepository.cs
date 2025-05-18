@@ -6,6 +6,7 @@ namespace EtudeBackend.Features.TrainingRequests.Repositories;
 public interface IStatusRepository : IRepository<Status>
 {
     Task<Status?> GetByNameAsync(string name);
+    Task<Status?> GetByTypeAsync(string name);
     Task<List<Status>> GetProtectedStatusesAsync();
     Task<List<Status>> GetTerminalStatusesAsync();
 }

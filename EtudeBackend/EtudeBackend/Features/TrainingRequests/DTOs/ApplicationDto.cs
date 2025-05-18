@@ -89,8 +89,10 @@ public class CreateApplicationDto
     public string TrainingCenter { get; set; } = string.Empty;
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
+    public string Link { get; set; } = string.Empty;
     public string Price { get; set; }
     public string EducationGoal { get; set; } = string.Empty;
+    public string AuthorId { get; set; } = string.Empty;
     public List<int> ApproverIds { get; set; } = new List<int>();
     public Guid StatusId { get; set; }
 }
@@ -228,5 +230,6 @@ public class CreateApplicationRequestDto
     public string Price { get; set; }
     public string EducationGoal { get; set; } = string.Empty;
     public string LearnerId { get; set; } = string.Empty;
+    public string AuthorId { get; set; } = string.Empty;
     public List<string> Approvers { get; set; } = new List<string>();
 }

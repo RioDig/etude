@@ -100,7 +100,7 @@ public class ReportService : IReportService
 
     public async Task<byte[]> GenerateReportAsync()
     {
-        var registeredStatus = await _statusRepository.GetByNameAsync("Registered");
+        var registeredStatus = await _statusRepository.GetByTypeAsync("Registered");
         if (registeredStatus == null)
         {
             _logger.LogError("Статус 'Registered' не найден в системе");

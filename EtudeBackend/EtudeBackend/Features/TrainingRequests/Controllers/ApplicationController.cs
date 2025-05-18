@@ -313,7 +313,7 @@ public async Task<IActionResult> CreateApplication([FromBody] CreateApplicationR
         }
 
         // Получаем статус "Confirmation" для новой заявки
-        var confirmationStatus = await _statusRepository.GetByNameAsync("Confirmation");
+        var confirmationStatus = await _statusRepository.GetByTypeAsync("Confirmation");
         if (confirmationStatus == null)
         {
             _logger.LogError("Статус 'Confirmation' не найден в системе");
@@ -346,8 +346,10 @@ public async Task<IActionResult> CreateApplication([FromBody] CreateApplicationR
             TrainingCenter = requestDto.TrainingCenter ?? string.Empty,
             StartDate = requestDto.StartDate,
             EndDate = requestDto.EndDate,
+            Link = requestDto.Link ?? string.Empty,
             Price = requestDto.Price ?? "0",
             EducationGoal = requestDto.EducationGoal ?? string.Empty,
+            AuthorId = requestDto.AuthorId ?? string.Empty,
             ApproverIds = ParseApproverIds(requestDto.Approvers),
             StatusId = confirmationStatus.Id,
             EmployeeId = learnerId

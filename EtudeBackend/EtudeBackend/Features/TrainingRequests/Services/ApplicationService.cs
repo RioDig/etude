@@ -99,6 +99,7 @@ public class ApplicationService : IApplicationService
             EmployeeId = applicationDto.EmployeeId,
             StartDate = applicationDto.StartDate,
             EndDate = applicationDto.EndDate,
+            Link = applicationDto.Link,
             Price = applicationDto.Price,
             EducationGoal = applicationDto.EducationGoal,
             IsActive = true,
@@ -111,10 +112,10 @@ public class ApplicationService : IApplicationService
         Guid statusId = applicationDto.StatusId;
         if (statusId == Guid.Empty)
         {
-            var confirmationStatus = await _statusRepository.GetByNameAsync("Confirmation");
+            var confirmationStatus = await _statusRepository.GetByTypeAsync("Confirmation");
             if (confirmationStatus == null)
             {
-                throw new ApiException("Статус 'Confirmation' не найден в системе", 500);
+                throw new ApiException("Статус с типом 'Confirmation' не найден в системе", 500);
             }
             statusId = confirmationStatus.Id;
         }

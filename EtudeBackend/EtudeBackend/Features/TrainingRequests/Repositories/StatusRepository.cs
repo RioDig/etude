@@ -17,6 +17,11 @@ public class StatusRepository : Repository<Status>, IStatusRepository
             .FirstOrDefaultAsync(s => s.Name == name);
     }
 
+    public async Task<Status?> GetByTypeAsync(string type)
+    {
+        return await _dbSet.FirstOrDefaultAsync(s => s.Type == type);
+    }
+
     public async Task<List<Status>> GetProtectedStatusesAsync()
     {
         return await _dbSet

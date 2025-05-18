@@ -57,7 +57,7 @@ public class DocumentApprovalService : BackgroundService
         try
         {
             // Получаем статус "Approvement"
-            var approvementStatus = await statusRepository.GetByNameAsync("Approvement");
+            var approvementStatus = await statusRepository.GetByTypeAsync("Approvement");
             if (approvementStatus == null)
             {
                 _logger.LogWarning("Статус 'Approvement' не найден в системе");
@@ -65,7 +65,7 @@ public class DocumentApprovalService : BackgroundService
             }
 
             // Получаем статус "Processed" для последующего изменения
-            var processedStatus = await statusRepository.GetByNameAsync("Processed");
+            var processedStatus = await statusRepository.GetByTypeAsync("Processed");
             if (processedStatus == null)
             {
                 _logger.LogWarning("Статус 'Processed' не найден в системе");
