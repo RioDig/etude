@@ -62,7 +62,7 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
   const handleDateChange = (field: string, date: Date | null) => {
     setFormValues((prev) => ({
       ...prev,
-      [field]: date ? date.toISOString().split('T')[0] : ''
+      [field]: date ? date.toISOString().split('T')[0] : null
     }))
   }
 
@@ -154,9 +154,9 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
   ]
 
   const trackOptions = [
-    { value: 'Hard Skills', label: 'Hard Skills' },
-    { value: 'Soft Skills', label: 'Soft Skills' },
-    { value: 'Management Skills', label: 'Management Skills' }
+    { value: 'HardSkills', label: 'Hard Skills' },
+    { value: 'SoftSkills', label: 'Soft Skills' },
+    { value: 'ManagementSkills', label: 'Management Skills' }
   ]
 
   const formatOptions = [

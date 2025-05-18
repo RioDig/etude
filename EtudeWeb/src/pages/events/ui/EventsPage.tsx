@@ -76,9 +76,9 @@ export const EventsPage: React.FC = () => {
       type: 'dropdown',
       options: [
         { value: '', label: 'Все категории' },
-        { value: 'Hard Skills', label: 'Hard Skills' },
-        { value: 'Soft Skills', label: 'Soft Skills' },
-        { value: 'Management Skills', label: 'Management Skills' }
+        { value: 'HardSkills', label: 'Hard Skills' },
+        { value: 'SoftSkills', label: 'Soft Skills' },
+        { value: 'ManagementSkills', label: 'Management Skills' }
       ]
     }
   ]

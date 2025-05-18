@@ -45,17 +45,17 @@ export enum CourseTrack {
   /**
    * Профессиональные навыки
    */
-  HardSkills = 'Hard Skills',
+  HardSkills = 'HardSkills',
 
   /**
    * Гибкие навыки
    */
-  SoftSkills = 'Soft Skills',
+  SoftSkills = 'SoftSkills',
 
   /**
    * Управленческие навыки
    */
-  ManagementSkills = 'Management Skills'
+  ManagementSkills = 'ManagementSkills'
 }
 
 /**

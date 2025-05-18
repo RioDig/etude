@@ -303,9 +303,9 @@ export const TestCalendarPage: React.FC = () => {
             </Tag>
             <Tag>
               {selectedCard.track === 'hard-skills'
-                ? 'Hard Skills'
+                ? 'HardSkills'
                 : selectedCard.track === 'soft-skills'
-                  ? 'Soft Skills'
+                  ? 'SoftSkills'
                   : 'Management'}
             </Tag>
             <Tag>

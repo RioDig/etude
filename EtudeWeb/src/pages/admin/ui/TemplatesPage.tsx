@@ -18,6 +18,8 @@ import { notification } from '@/shared/lib/notification'
 import { CourseTemplateSidebar } from '@/features/admin/ui/CourseTemplateSidebar'
 import { useQueryClient } from '@tanstack/react-query'
 import { FilterValue } from '@/entities/filter'
+import { CourseTypeLabels } from '@/shared/labels/courseType.ts'
+import { CourseTrackLabels } from '@/shared/labels/courseTrack.ts'
 
 export const TemplatesPage: React.FC = () => {
   const [sortState, setSortState] = useState<SortState>({
@@ -69,9 +71,9 @@ export const TemplatesPage: React.FC = () => {
       type: 'dropdown',
       options: [
         { value: '', label: 'Все направления' },
-        { value: 'Hard Skills', label: 'Hard Skills' },
-        { value: 'Soft Skills', label: 'Soft Skills' },
-        { value: 'Management Skills', label: 'Management Skills' }
+        { value: 'HardSkills', label: 'Hard Skills' },
+        { value: 'SoftSkills', label: 'Soft Skills' },
+        { value: 'ManagementSkills', label: 'Management Skills' }
       ]
     }
   ]
@@ -160,6 +162,16 @@ export const TemplatesPage: React.FC = () => {
       width: '25%'
     },
     {
+      id: 'course_template_type',
+      header: 'Тип',
+      accessor: 'course_template_type',
+      sortable: true,
+      width: '10%',
+      render: (template: CourseTemplate) => {
+        return CourseTypeLabels[template.course_template_type]
+      }
+    },
+    {
       id: 'course_template_format',
       header: 'Формат',
       accessor: 'course_template_format',
@@ -178,7 +190,10 @@ export const TemplatesPage: React.FC = () => {
       header: 'Направление',
       accessor: 'course_template_track',
       sortable: true,
-      width: '15%'
+      width: '15%',
+      render: (template: CourseTemplate) => {
+        return CourseTrackLabels[template.course_template_track]
+      }
     },
     {
       id: 'course_template_trainingCenter',
