@@ -71,7 +71,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
       render: (event: Application) => {
         const { text, variant } = getStatusInfo(event.status.type)
         return (
-          <div className='flex gap-2'>
+          <div className='space-y-2'>
             {getBadges(event.status, variant).map((badge, index) => (
               <Badge variant={badge.variant} key={index}>
                 {badge.text}
