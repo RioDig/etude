@@ -31,7 +31,7 @@ public class AutocompleteController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetEmployeeAutocomplete(
         [FromQuery] string? term,
-        [FromQuery] string[]? idsToRemove)
+        [FromQuery] string? idsToRemove)
     {
         try
         {
@@ -84,7 +84,8 @@ public class AutocompleteController : ControllerBase
 
             if (idsToRemove != null && idsToRemove.Length > 0)
             {
-                filteredEmployees = filteredEmployees.Where(e => !idsToRemove.Contains(e.Id)).ToList();
+                var ids = idsToRemove.Split(',');
+                filteredEmployees = filteredEmployees.Where(e => !ids.Contains(e.Id)).ToList();
             }
 
             const int maxResults = 8;
