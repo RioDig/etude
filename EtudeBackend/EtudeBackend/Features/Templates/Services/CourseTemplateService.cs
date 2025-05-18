@@ -62,12 +62,24 @@ public class CourseTemplateService : ICourseTemplateService
     {
         try
         {
+            // Преобразуем список фильтров в словарь для передачи в репозиторий
             var filterDictionary = filters.ToDictionary(
                 f => f.Name.ToLower(),
                 f => f.Value
             );
 
+            // Логируем используемые фильтры для диагностики
+            foreach (var filter in filterDictionary)
+            {
+                _logger.LogInformation("Применяем фильтр: {FilterName} = {FilterValue}", filter.Key, filter.Value);
+            }
+
+            // Вызываем метод репозитория для фильтрации
             var templates = await _repository.FilterByAsync(filterDictionary);
+            
+            // Логируем количество найденных шаблонов
+            _logger.LogInformation("Найдено {Count} шаблонов по заданным фильтрам", templates.Count);
+            
             return _mapper.Map<List<CourseTemplateDto>>(templates);
         }
         catch (Exception ex)

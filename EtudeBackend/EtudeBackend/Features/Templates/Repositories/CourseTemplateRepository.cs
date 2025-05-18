@@ -28,7 +28,10 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                 .ToListAsync();
         }
 
-        return new List<CourseTemplate>();
+        return await _dbSet
+            .Where(ct => ct.Type.ToString().ToLower().Contains(type.ToLower()))
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<List<CourseTemplate>> GetByTrackAsync(string track)
@@ -41,7 +44,10 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                 .ToListAsync();
         }
 
-        return new List<CourseTemplate>();
+        return await _dbSet
+            .Where(ct => ct.Track.ToString().ToLower().Contains(track.ToLower()))
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<List<CourseTemplate>> GetByFormatAsync(string format)
@@ -54,7 +60,10 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                 .ToListAsync();
         }
 
-        return new List<CourseTemplate>();
+        return await _dbSet
+            .Where(ct => ct.Format.ToString().ToLower().Contains(format.ToLower()))
+            .OrderByDescending(ct => ct.CreatedAt)
+            .ToListAsync();
     }
 
     public async Task<List<CourseTemplate>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate)
@@ -74,12 +83,16 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
             switch (filter.Key.ToLower())
             {
                 case "name":
-                    query = query.Where(ct => ct.Name.Contains(filter.Value));
+                    query = query.Where(ct => ct.Name.ToLower().Contains(filter.Value.ToLower()));
                     break;
                 case "type":
                     if (Enum.TryParse<CourseType>(filter.Value, true, out var courseType))
                     {
                         query = query.Where(ct => ct.Type == courseType);
+                    }
+                    else
+                    {
+                        query = query.Where(ct => ct.Type.ToString().ToLower().Contains(filter.Value.ToLower()));
                     }
                     break;
                 case "track":
@@ -87,15 +100,23 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                     {
                         query = query.Where(ct => ct.Track == courseTrack);
                     }
+                    else
+                    {
+                        query = query.Where(ct => ct.Track.ToString().ToLower().Contains(filter.Value.ToLower()));
+                    }
                     break;
                 case "format":
                     if (Enum.TryParse<CourseFormat>(filter.Value, true, out var courseFormat))
                     {
                         query = query.Where(ct => ct.Format == courseFormat);
                     }
+                    else
+                    {
+                        query = query.Where(ct => ct.Format.ToString().ToLower().Contains(filter.Value.ToLower()));
+                    }
                     break;
                 case "trainingcenter":
-                    query = query.Where(ct => ct.TrainingCenter.Contains(filter.Value));
+                    query = query.Where(ct => ct.TrainingCenter.ToLower().Contains(filter.Value.ToLower()));
                     break;
                 case "startdate":
                     if (DateOnly.TryParse(filter.Value, out var startDate))
@@ -107,6 +128,12 @@ public class CourseTemplateRepository : Repository<CourseTemplate>, ICourseTempl
                     if (DateOnly.TryParse(filter.Value, out var endDate))
                     {
                         query = query.Where(ct => ct.EndDate <= endDate);
+                    }
+                    break;
+                case "id":
+                    if (Guid.TryParse(filter.Value, out var templateId))
+                    {
+                        query = query.Where(ct => ct.Id == templateId);
                     }
                     break;
             }

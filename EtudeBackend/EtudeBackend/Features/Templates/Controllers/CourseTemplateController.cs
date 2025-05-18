@@ -1,5 +1,6 @@
 ﻿using EtudeBackend.Features.Templates.DTOs;
 using EtudeBackend.Features.Templates.Services;
+using EtudeBackend.Features.TrainingRequests.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,28 +27,51 @@ public class CourseTemplateController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTemplates([FromQuery] string? filters = null)
+    public async Task<IActionResult> GetAllTemplates([FromQuery][JsonFilters] List<FilterItem>? filters = null)
     {
         try
         {
-            List<CourseTemplateFilterDto>? filterDtos = null;
+            List<CourseTemplateFilterDto>? templateFilters = null;
         
-            if (!string.IsNullOrEmpty(filters))
+            if (filters != null && filters.Count > 0)
             {
-                try
+                templateFilters = new List<CourseTemplateFilterDto>();
+                
+                foreach (var filter in filters)
                 {
-                    filterDtos = System.Text.Json.JsonSerializer.Deserialize<List<CourseTemplateFilterDto>>(filters);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Ошибка при десериализации фильтров: {Filters}", filters);
-                    return BadRequest(new { message = "Неверный формат фильтров" });
+                    switch (filter.Name.ToLower())
+                    {
+                        case "name":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "name", Value = filter.Value });
+                            break;
+                        case "type":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "type", Value = filter.Value });
+                            break;
+                        case "format":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "format", Value = filter.Value });
+                            break;
+                        case "track":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "track", Value = filter.Value });
+                            break;
+                        case "trainingcenter":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "trainingcenter", Value = filter.Value });
+                            break;
+                        case "startdate":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "startdate", Value = filter.Value });
+                            break;
+                        case "enddate":
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "enddate", Value = filter.Value });
+                            break;
+                        default:
+                            _logger.LogWarning("Неизвестный фильтр: {FilterName}", filter.Name);
+                            break;
+                    }
                 }
             }
         
-            if (filterDtos != null && filterDtos.Count > 0)
+            if (templateFilters != null && templateFilters.Count > 0)
             {
-                var templates = await _templateService.GetTemplatesByFiltersAsync(filterDtos);
+                var templates = await _templateService.GetTemplatesByFiltersAsync(templateFilters);
                 return Ok(templates);
             }
             else
