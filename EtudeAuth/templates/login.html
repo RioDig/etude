@@ -132,18 +132,8 @@
                 <input type="password" id="password" name="password" required>
             </div>
 
-            {% if error %}
-            <div class="error-message">
-                {{ error }}
-            </div>
-            {% endif %}
-
             <button type="submit">Войти</button>
         </form>
-
-        <div class="register-link">
-            <p>Ещё нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
-        </div>
 
         <div class="app-info">
             <h3>Приложение "{{ client_name }}" запрашивает доступ к:</h3>
