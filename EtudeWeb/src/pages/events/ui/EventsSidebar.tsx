@@ -86,6 +86,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     if (!eventDetails || !customStatuses) return
 
     const approvalStatusId = getStatusIdByType(StatusType.Approvement)
+
     if (!approvalStatusId) {
       notification.error({
         title: 'Ошибка',

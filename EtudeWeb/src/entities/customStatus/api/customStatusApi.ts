@@ -19,8 +19,7 @@ export const customStatusApi = {
     } catch (error) {
       console.error('Error fetching custom statuses:', error)
 
-      await delay(800)
-      return MOCK_CUSTOM_STATUSES
+      throw new Error('Error fetching custom statuses')
     }
   },
 

@@ -493,19 +493,19 @@ public async Task<IActionResult> ChangeApplicationStatus([FromBody] ChangeStatus
                 };
 
                 // Вызов сервиса EtudeAuth для создания документа
-                var result = await _etudeAuthApiService.CreateDocumentAsync(docModel);
+                // var result = await _etudeAuthApiService.CreateDocumentAsync(docModel);
                 
-                if (!result.Success)
-                {
-                    return BadRequest(new { message = "Не удалось создать документ в системе согласования: " + result.Message });
-                }
-                
-                // Если нужно сохранить DocumentId из EtudeAuth
-                if (!string.IsNullOrEmpty(result.DocumentId))
-                {
-                    // Здесь можно было бы сохранить полученный DocumentId если это нужно
-                    _logger.LogInformation("Документ создан в EtudeAuth с ID: {DocumentId}", result.DocumentId);
-                }
+                // if (!result.Success)
+                // {
+                //     return BadRequest(new { message = "Не удалось создать документ в системе согласования: " + result.Message });
+                // }
+                //
+                // // Если нужно сохранить DocumentId из EtudeAuth
+                // if (!string.IsNullOrEmpty(result.DocumentId))
+                // {
+                //     // Здесь можно было бы сохранить полученный DocumentId если это нужно
+                //     _logger.LogInformation("Документ создан в EtudeAuth с ID: {DocumentId}", result.DocumentId);
+                // }
             }
             catch (Exception ex)
             {
