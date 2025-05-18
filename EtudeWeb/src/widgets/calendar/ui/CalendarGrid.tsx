@@ -63,7 +63,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
           </div>
 
           {/* Контент с вертикальным скроллом */}
-          <div className="overflow-y-auto flex-1">
+          <div className="overflow-y-scroll flex-1">
             <div
               className="relative"
               style={{

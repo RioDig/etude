@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reportApi } from '../api/reportApi'
 import { usePageFilters } from '@/entities/filter'
+import { formatDate } from '@/shared/utils/formatDate.ts'
 
 export const useReports = () => {
   const { filters } = usePageFilters('admin-reports')
@@ -8,7 +9,7 @@ export const useReports = () => {
   const apiFilters = Object.entries(filters).reduce(
     (result, [key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
-        result[key] = String(value)
+        result[key] = value instanceof Date ? formatDate(value) : String(value)
       }
       return result
     },

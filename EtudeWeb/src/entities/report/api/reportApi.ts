@@ -2,6 +2,7 @@ import axios from 'axios'
 import { API_URL } from '@/shared/config'
 import { Report, ReportFilterParam } from '@/shared/types'
 import { MOCK_REPORTS, delay } from './mockData'
+import { formatDate } from '@/shared/utils/formatDate.ts'
 
 const api = axios.create({
   baseURL: API_URL,

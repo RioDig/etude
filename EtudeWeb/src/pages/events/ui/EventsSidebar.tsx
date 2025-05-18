@@ -35,7 +35,7 @@ type ModalType = 'edit' | 'approve' | 'reject' | 'delete' | 'changeStatus' | 'co
 
 export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, event }) => {
   const { user } = useAuth()
-  const isAdmin = user?.role !== 'admin'
+  const isAdmin = user?.role === 'admin'
 
   const [modalType, setModalType] = useState<ModalType>(null)
   const [statusComment, setStatusComment] = useState('')
