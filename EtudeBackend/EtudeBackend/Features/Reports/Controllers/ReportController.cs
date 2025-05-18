@@ -1,5 +1,6 @@
 ﻿using EtudeBackend.Features.Reports.DTOs;
 using EtudeBackend.Features.Reports.Service;
+using EtudeBackend.Features.TrainingRequests.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,26 +25,32 @@ public class ReportController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(List<ReportInfoDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetReports([FromQuery] string? filters = null)
+    public async Task<IActionResult> GetReports([FromQuery][JsonFilters] List<FilterItem>? filters = null)
     {
         try
         {
-            List<ReportFilterDto>? filterDtos = null;
-        
-            if (!string.IsNullOrEmpty(filters))
+            List<ReportFilterDto>? reportFilters = null;
+    
+            if (filters != null && filters.Count > 0)
             {
-                try
+                reportFilters = new List<ReportFilterDto>();
+            
+                foreach (var filter in filters)
                 {
-                    filterDtos = System.Text.Json.JsonSerializer.Deserialize<List<ReportFilterDto>>(filters);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Ошибка при десериализации фильтров: {Filters}", filters);
-                    return BadRequest(new { message = "Неверный формат фильтров" });
+                    switch (filter.Name.ToLower())
+                    {
+                        case "filter_type":
+                            reportFilters.Add(new ReportFilterDto { Name = "filter_type", Value = filter.Value });
+                            break;
+                        case "date":
+                            reportFilters.Add(new ReportFilterDto { Name = "date", Value = filter.Value });
+                            break;
+                        // Добавьте другие фильтры при необходимости
+                    }
                 }
             }
-        
-            var reports = await _reportService.GetAllReportsAsync(filterDtos);
+    
+            var reports = await _reportService.GetAllReportsAsync(reportFilters);
             return Ok(reports);
         }
         catch (Exception ex)

@@ -54,16 +54,38 @@ public class ReportService : IReportService
             {
                 switch (filter.Name.ToLower())
                 {
+                    case "id":
+                        // Фильтр по ID
+                        if (Guid.TryParse(filter.Value, out var reportId))
+                        {
+                            query = query.Where(r => r.Id == reportId);
+                        }
+                        break;
                     case "filter_type":
+                        // Фильтр по типу отчета
                         query = query.Where(r => r.ReportType == filter.Value);
                         break;
                     case "date":
+                        // Фильтр по дате создания
                         if (DateOnly.TryParse(filter.Value, out var filterDate))
                         {
                             var startDate = new DateTimeOffset(filterDate.Year, filterDate.Month, filterDate.Day, 0, 0, 0, TimeSpan.Zero);
                             var endDate = startDate.AddDays(1);
 
                             query = query.Where(r => r.CreatedAt >= startDate && r.CreatedAt < endDate);
+                        }
+                        break;
+                    // Можно добавить дополнительные типы фильтров здесь
+                    case "date_from":
+                        if (DateTimeOffset.TryParse(filter.Value, out var dateFrom))
+                        {
+                            query = query.Where(r => r.CreatedAt >= dateFrom);
+                        }
+                        break;
+                    case "date_to":
+                        if (DateTimeOffset.TryParse(filter.Value, out var dateTo))
+                        {
+                            query = query.Where(r => r.CreatedAt <= dateTo);
                         }
                         break;
                 }
@@ -98,6 +120,7 @@ public class ReportService : IReportService
         return await File.ReadAllBytesAsync(filePath);
     }
 
+    // Остальной код ReportService остается без изменений
     public async Task<byte[]> GenerateReportAsync()
     {
         var registeredStatus = await _statusRepository.GetByTypeAsync("Registered");
@@ -139,7 +162,6 @@ public class ReportService : IReportService
                 try
                 {
                     List<string> approverIds = null;
-                    
                     
                     try
                     {
