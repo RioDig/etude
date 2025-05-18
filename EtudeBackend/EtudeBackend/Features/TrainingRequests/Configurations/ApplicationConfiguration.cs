@@ -45,11 +45,6 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
             .HasForeignKey(a => a.CourseId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(a => a.Status)
-            .WithMany(s => s.Applications)
-            .HasForeignKey(a => a.StatusId)
-            .OnDelete(DeleteBehavior.Restrict);
-
         builder.HasOne(a => a.Author)
             .WithMany(u => u.Applications)
             .HasForeignKey(a => a.AuthorId)

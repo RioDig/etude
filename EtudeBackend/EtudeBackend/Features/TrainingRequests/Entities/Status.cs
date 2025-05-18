@@ -14,6 +14,4 @@ public class Status
     
     public bool IsTerminal { get; set; } = false;
     
-    // Навигационное свойство для связи с заявками
-    public virtual ICollection<Application> Applications { get; set; } = new List<Application>();
 }

@@ -1,9 +1,10 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { applicationApi } from '../api/applicationApi'
 import { ApplicationCreateData } from '@/shared/types/applicationCreate'
 import { ApplicationData } from '@/entities/application'
 
 export const useApplicationSubmit = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (applicationData: ApplicationData) => {
       const createData: ApplicationCreateData = {
@@ -22,7 +23,7 @@ export const useApplicationSubmit = () => {
         author_id: applicationData.learner_id || '1',
         approvers: applicationData.approvers?.map((a) => a.user_id)
       }
-
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
       return applicationApi.createApplication(createData)
     }
   })

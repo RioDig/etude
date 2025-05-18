@@ -42,34 +42,11 @@ export const eventApi = {
         filterParams = { filter: JSON.stringify(filterArray) }
       }
       const { data } = await api.get<Application[]>('/Application', { params: filterParams })
-      return MOCK_APPLICATIONS
+      return data
     } catch (error) {
       console.error('Ошибка при получении списка заявок:', error)
 
-      await delay(800)
-
-      if (filters && filters.length > 0) {
-        return MOCK_APPLICATIONS.filter((app) => {
-          return filters.every((filter) => {
-            switch (filter.name) {
-              case 'status':
-                return app.status.type === filter.value
-              case 'type':
-                return app.course.course_type === filter.value
-              case 'format':
-                return app.course.course_format === filter.value
-              case 'track':
-                return app.course.course_track === filter.value
-              case 'learner':
-                return app.course.course_learner?.id === filter.value
-              default:
-                return true
-            }
-          })
-        })
-      }
-
-      return MOCK_APPLICATIONS
+      throw new Error(`Ошибка при получении списка заявок: ${error}`)
     }
   },
 

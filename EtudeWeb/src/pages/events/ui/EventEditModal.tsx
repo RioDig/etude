@@ -133,8 +133,8 @@ export const EventEditModal: React.FC<EventEditModalProps> = ({
       startDate: startDate ? formatDate(startDate) : '',
       endDate: endDate ? formatDate(endDate) : '',
       approvers: approverIds,
-      learner_id: userId,
-      author_id: userId
+      // learner_id: userId,
+      // author_id: userId
     }
 
     updateMutation.mutate(

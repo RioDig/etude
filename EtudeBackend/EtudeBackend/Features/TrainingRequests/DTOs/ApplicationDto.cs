@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using EtudeBackend.Features.TrainingRequests.Entities;
 
 namespace EtudeBackend.Features.TrainingRequests.DTOs;
 
@@ -15,7 +16,7 @@ public class ApplicationDetailDto
 {
     public Guid Id { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
-    public Guid StatusId { get; set; }
+    public Status Status { get; set; }
     public string StatusName { get; set; } = string.Empty;
     public UserBasicDto Author { get; set; } = new UserBasicDto();
     public List<UserBasicDto> Approvers { get; set; } = new List<UserBasicDto>();
@@ -115,6 +116,9 @@ public class UpdateApplicationDto
 
 public class ChangeStatusDto
 {
+    public Guid Id { get; set; }
+    
+    [JsonPropertyName("status")]
     public Guid StatusId { get; set; }
     public string? Comment { get; set; }
 }

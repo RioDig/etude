@@ -135,8 +135,8 @@ public class ApplicationController : ControllerBase
             CreatedAt = detail.CreatedAt,
             Status = new ApplicationStatusDto
             {
-                Name = detail.StatusName,
-                Type = DetermineStatusType(detail.StatusName)
+                Name = detail.Status.Name,
+                Type = detail.Status.Type
             },
             Course = new ApplicationCourseDto
             {
@@ -214,8 +214,8 @@ public class ApplicationController : ControllerBase
                 Comment = comment,
                 Status = new ApplicationStatusDto
                 {
-                    Name = application.StatusName,
-                    Type = DetermineStatusType(application.StatusName)
+                    Name = application.Status.Name,
+                    Type = application.Status.Type
                 },
                 Author = application.Author,
                 Approvers = application.Approvers ?? new List<UserBasicDto>(),
@@ -432,23 +432,23 @@ private ApplicationDetailResponseDto MapToApplicationDetailResponseDto(Applicati
         return Ok(updatedApplication);
     }
 
-    [HttpPatch("{id:guid}/changeStatus")]
+    [HttpPatch("changeStatus")]
 [ProducesResponseType(StatusCodes.Status200OK)]
 [ProducesResponseType(StatusCodes.Status404NotFound)]
 [ProducesResponseType(StatusCodes.Status400BadRequest)]
-public async Task<IActionResult> ChangeApplicationStatus(Guid id, [FromBody] ChangeStatusDto statusDto)
+public async Task<IActionResult> ChangeApplicationStatus([FromBody] ChangeStatusDto statusDto)
 {
     if (!ModelState.IsValid)
         return BadRequest(ModelState);
 
     try
     {
-        var application = await _applicationService.GetApplicationByIdAsync(id);
+        var application = await _applicationService.GetApplicationByIdAsync(statusDto.Id);
         if (application == null)
             return NotFound(new { message = "Заявка не найдена" });
 
         // Получаем текущий статус
-        var currentStatus = await _statusRepository.GetByIdAsync(application.StatusId);
+        var currentStatus = await _statusRepository.GetByIdAsync(application.Status.Id);
         if (currentStatus == null)
             return StatusCode(500, new { message = "Текущий статус заявки не найден" });
 
@@ -515,7 +515,7 @@ public async Task<IActionResult> ChangeApplicationStatus(Guid id, [FromBody] Cha
         }
 
         // Меняем статус заявки
-        var updatedApplication = await _applicationService.ChangeApplicationStatusAsync(id, statusDto);
+        var updatedApplication = await _applicationService.ChangeApplicationStatusAsync(statusDto.Id, statusDto);
         if (updatedApplication == null)
             return NotFound(new { message = "Не удалось обновить статус заявки" });
                 
@@ -523,7 +523,7 @@ public async Task<IActionResult> ChangeApplicationStatus(Guid id, [FromBody] Cha
     }
     catch (Exception ex)
     {
-        _logger.LogError(ex, "Неожиданная ошибка при изменении статуса заявки {ApplicationId}", id);
+        _logger.LogError(ex, "Неожиданная ошибка при изменении статуса заявки {ApplicationId}", statusDto.Id);
         return StatusCode(500, new { message = "Произошла внутренняя ошибка сервера" });
     }
 }

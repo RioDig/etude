@@ -17,7 +17,7 @@ public class ApplicationMappingProfile : Profile
         // Application -> ApplicationDetailDto
         CreateMap<Application, ApplicationDetailDto>()
             .ForMember(dest => dest.StatusName, opt => opt.MapFrom(src => src.Status.Name))
-            .ForMember(dest => dest.StatusId, opt => opt.MapFrom(src => src.StatusId))
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
             .ForMember(dest => dest.Author, opt => opt.MapFrom(src => src.Author))
             .ForMember(dest => dest.Course, opt => opt.MapFrom<CourseResolver>())
             .ForMember(dest => dest.Approvers, opt => opt.MapFrom<ApproversValueResolver>());
