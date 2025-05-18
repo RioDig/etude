@@ -48,37 +48,7 @@ export const applicationApi = {
     } catch (error) {
       console.error('Error creating application:', error)
 
-      await delay(1000)
-
-      return {
-        application_id: `app-${Date.now()}`,
-        created_at: new Date().toISOString(),
-        status: {
-          name: 'На рассмотрении',
-          type: 'Pending'
-        },
-        course: {
-          course_id: `course-${Date.now()}`,
-          course_name: applicationData.name,
-          course_description: applicationData.description || '',
-          course_type: applicationData.type,
-          course_track: applicationData.track,
-          course_format: applicationData.format,
-          course_trainingCenter: applicationData.trainingCenter || '',
-          course_startDate: applicationData.startDate,
-          course_endDate: applicationData.endDate,
-          course_link: applicationData.link || '',
-          course_price: applicationData.price ? Number(applicationData.price) : undefined,
-          course_educationGoal: applicationData.educationGoal || '',
-          course_learner: {
-            id: applicationData.learner_id,
-            name: 'Текущий',
-            surname: 'Пользователь',
-            position: 'Должность',
-            department: 'Отдел'
-          }
-        }
-      }
+      throw new Error(`Error creating application:${error}`)
     }
   },
 

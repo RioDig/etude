@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { scheduleApi } from '../api/scheduleApi'
 import { usePageFilters } from '@/entities/filter'
 import { CalendarCard } from '@/widgets/calendar/model/types'

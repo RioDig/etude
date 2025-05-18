@@ -158,6 +158,7 @@ class AuthToken(BaseModel):
     expires_at: int
 
 class EmployeeInfo(BaseModel):
+    id: uuid.UUID
     name: str
     position: str
     email: str

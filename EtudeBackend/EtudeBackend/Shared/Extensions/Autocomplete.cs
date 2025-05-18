@@ -43,7 +43,7 @@ public class AutocompleteController : ControllerBase
             {
                 var manager = new EmployeeDto
                 {
-                    Id = department.Manager.Email,
+                    Id = department.Manager.Id,
                     Name = ExtractFirstName(department.Manager.Name),
                     Surname = ExtractLastName(department.Manager.Name),
                     Patronymic = ExtractMiddleName(department.Manager.Name),
@@ -57,7 +57,7 @@ public class AutocompleteController : ControllerBase
                 {
                     allEmployees.Add(new EmployeeDto
                     {
-                        Id = employee.Email,
+                        Id = employee.Id,
                         Name = ExtractFirstName(employee.Name),
                         Surname = ExtractLastName(employee.Name),
                         Patronymic = ExtractMiddleName(employee.Name),

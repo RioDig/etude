@@ -29,7 +29,7 @@ export const scheduleApi = {
         params: apiFilters.length ? { filter: JSON.stringify(apiFilters) } : undefined
       })
 
-      return MOCK_SCHEDULE_TEMPLATES.filter(
+      return data.filter(
         (template) => template.course_template_startDate && template.course_template_endDate
       )
     } catch (error) {

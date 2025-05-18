@@ -51,6 +51,7 @@ public class DepartmentStructureDto
 
 public class EmployeeInfoDto
 {
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Position { get; set; }
     public string Email { get; set; }

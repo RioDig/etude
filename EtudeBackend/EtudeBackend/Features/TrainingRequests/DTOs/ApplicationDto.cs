@@ -229,7 +229,13 @@ public class CreateApplicationRequestDto
     public string Link { get; set; } = string.Empty;
     public string Price { get; set; }
     public string EducationGoal { get; set; } = string.Empty;
+    
+    [JsonPropertyName("learner_id")]
     public string LearnerId { get; set; } = string.Empty;
+    
+    [JsonPropertyName("author_id")]
     public string AuthorId { get; set; } = string.Empty;
+    
+    [JsonPropertyName("approvers")]
     public List<string> Approvers { get; set; } = new List<string>();
 }

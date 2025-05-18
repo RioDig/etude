@@ -166,6 +166,15 @@ export const AutocompleteSelect = forwardRef<HTMLDivElement, AutocompleteSelectP
       } as never)
     }
 
+    if (dropdownOptions.length === 0) {
+      dropdownOptions.push({
+        value: '__more_items__',
+        label: 'Сотрудники не найдены, измените запрос',
+        data: {} as Employee,
+        disabled: true
+      } as never)
+    }
+
     return (
       <Control.Root className={className} testId={testId} ref={ref}>
         <Control.Label label={label} required={required} hint={hint} htmlFor="autocomplete-input" />

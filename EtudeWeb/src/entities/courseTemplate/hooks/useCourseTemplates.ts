@@ -54,6 +54,8 @@ export const useUpdateCourseTemplate = () => {
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['courseTemplates'] })
       queryClient.invalidateQueries({ queryKey: ['courseTemplate', data.course_template_id] })
+
+      queryClient.invalidateQueries({ queryKey: ['schedule'] })
     }
   })
 }

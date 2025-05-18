@@ -1608,6 +1608,7 @@ async def get_organization_structure(
         dept_structure = {
             "name": department.name,
             "manager": {
+                "id": manager.id,
                 "name": f"{manager.surname} {manager.name} {manager.patronymic if manager.patronymic else ''}".strip(),
                 "position": manager.position,
                 "email": manager.org_email,
@@ -1620,6 +1621,7 @@ async def get_organization_structure(
         # Добавляем сотрудников
         for employee in employees:
             dept_structure["employees"].append({
+                "id": employee.id,
                 "name": f"{employee.surname} {employee.name} {employee.patronymic if employee.patronymic else ''}".strip(),
                 "position": employee.position,
                 "email": employee.org_email,

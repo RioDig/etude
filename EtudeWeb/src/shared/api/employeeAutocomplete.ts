@@ -67,7 +67,7 @@ export const employeeAutocompleteApi = {
   ): Promise<EmployeeAutocompleteResponse> => {
     try {
       const { data } = await axios.get<EmployeeAutocompleteResponse>(
-        `${API_URL}/Autocomplete/employee1`,
+        `${API_URL}/Autocomplete/employee`,
         {
           params: {
             term,
