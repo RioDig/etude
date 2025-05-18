@@ -25,25 +25,25 @@ public class ReportController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(List<ReportInfoDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetReports([FromQuery][JsonFilters] List<FilterItem>? filters = null)
+    public async Task<IActionResult> GetReports([FromQuery][JsonFilters] List<FilterItem>? filter = null)
     {
         try
         {
             List<ReportFilterDto>? reportFilters = null;
     
-            if (filters != null && filters.Count > 0)
+            if (filter != null && filter.Count > 0)
             {
                 reportFilters = new List<ReportFilterDto>();
             
-                foreach (var filter in filters)
+                foreach (var fltr in filter)
                 {
-                    switch (filter.Name.ToLower())
+                    switch (fltr.Name.ToLower())
                     {
                         case "filter_type":
-                            reportFilters.Add(new ReportFilterDto { Name = "filter_type", Value = filter.Value });
+                            reportFilters.Add(new ReportFilterDto { Name = "filter_type", Value = fltr.Value });
                             break;
                         case "date":
-                            reportFilters.Add(new ReportFilterDto { Name = "date", Value = filter.Value });
+                            reportFilters.Add(new ReportFilterDto { Name = "date", Value = fltr.Value });
                             break;
                         // Добавьте другие фильтры при необходимости
                     }
