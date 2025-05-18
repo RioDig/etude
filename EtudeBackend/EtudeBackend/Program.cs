@@ -51,6 +51,12 @@ builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.Ap
     };
 });
 
+int changeIntervalSeconds = builder.Configuration.GetValue<int>("StatusChange:IntervalSeconds", 30);
+builder.Services.AddHostedService(provider => new AutoStatusChangeService(
+    provider.GetRequiredService<IServiceScopeFactory>(),
+    provider.GetRequiredService<ILogger<AutoStatusChangeService>>(),
+    TimeSpan.FromSeconds(changeIntervalSeconds)
+));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
