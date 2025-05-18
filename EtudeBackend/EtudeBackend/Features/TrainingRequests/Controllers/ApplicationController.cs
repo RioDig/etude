@@ -60,7 +60,7 @@ public class ApplicationController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(List<ApplicationResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetApplications([FromQuery][JsonFilters] List<FilterItem>? filters = null)
+    public async Task<IActionResult> GetApplications([FromQuery][JsonFilters] List<FilterItem>? filter = null)
     {
         try
         {
@@ -74,11 +74,11 @@ public class ApplicationController : ControllerBase
 
             // Преобразуем фильтры
             var filterDict = new Dictionary<string, string>();
-            if (filters != null && filters.Count > 0)
+            if (filter != null && filter.Count > 0)
             {
-                foreach (var filter in filters)
+                foreach (var fltr in filter)
                 {
-                    ConvertFilter(filter, filterDict);
+                    ConvertFilter(fltr, filterDict);
                 }
             }
 
