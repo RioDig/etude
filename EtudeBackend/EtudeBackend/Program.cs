@@ -84,7 +84,7 @@ if (app.Environment.IsDevelopment())
 
 // Use CORS
 app.UseCors("AllowAll");
-
+app.UseStaticFiles();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

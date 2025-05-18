@@ -1,4 +1,5 @@
-﻿using EtudeBackend.Features.Reports.DTOs;
+﻿using EtudeBackend.Data;
+using EtudeBackend.Features.Reports.DTOs;
 using EtudeBackend.Features.Reports.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,14 +8,17 @@ namespace EtudeBackend.Features.Reports.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
+
 public class ReportController : ControllerBase
 {
+    private readonly IWebHostEnvironment _env;
+    
     private readonly IReportService _reportService;
 
-    public ReportController(IReportService reportService)
+    public ReportController(IReportService reportService, IWebHostEnvironment env)
     {
         _reportService = reportService;
+        _env = env;
     }
 
     /// <summary>
@@ -38,11 +42,21 @@ public class ReportController : ControllerBase
     {
         try
         {
-            var fileContent = await _reportService.DownloadReportAsync(id);
-            return File(
-                fileContent,
-                "text/plain",
-                $"report-{id}.txt");
+            // var fileContent = await _reportService.DownloadReportAsync(id);
+            // return File(
+            //     fileContent,
+            //     "text/plain",
+            //     $"report-{id}.txt");
+            
+            var fileName = $"{id}.xlsx";
+            var fullPath = Path.Combine(_env.WebRootPath, "reports", fileName);
+
+            if (!System.IO.File.Exists(fullPath))
+                return NotFound("Файл не найден");
+
+            return File(System.IO.File.ReadAllBytes(fullPath),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
         }
         catch (KeyNotFoundException ex)
         {
@@ -60,11 +74,25 @@ public class ReportController : ControllerBase
     {
         try
         {
-            var fileContent = await _reportService.GenerateReportAsync();
-            return File(
-                fileContent,
-                "text/plain",
-                $"report-{DateTime.Now:yyyyMMdd}.txt");
+            // var fileContent = await _reportService.GenerateReportAsync();
+            // return File(
+            //     fileContent,
+            //     "text/plain",
+            //     $"report-{DateTime.Now:yyyyMMdd}.txt");
+            
+            var trainings = MockData.GetSampleTrainings();
+            var fileName = $"{Guid.NewGuid()}.xlsx";
+            var savePath = Path.Combine(_env.WebRootPath, "reports");
+
+            if (!Directory.Exists(savePath))
+                Directory.CreateDirectory(savePath);
+
+            var fullPath = Path.Combine(savePath, fileName);
+            ReportGenerator.GenerateCompletedTrainingsReport(trainings, fullPath);
+
+            return File(System.IO.File.ReadAllBytes(fullPath),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
         }
         catch (Exception ex)
         {
