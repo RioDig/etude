@@ -38,8 +38,7 @@ export const useNavItems = (): NavItem[] => {
       variant: 'third'
     })
 
-    if (user.role !== USER_ROLES.admin) {
-      // TODO: не забыть вернуть равенство
+    if (user.role === USER_ROLES.admin) {
       items.push({
         id: 'admin',
         label: 'Администрирование',
