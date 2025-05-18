@@ -409,7 +409,7 @@ src/
 1. Клонируйте репозиторий:
 ```bash
 git clone https://github.com/yourusername/etude.git
-cd etude/frontend
+cd etude/EtudeWeb
 ```
 2. Включите Corepack для управления версиями Yarn:
 ```
@@ -509,7 +509,7 @@ docker-compose down
 
 Для связи с командой разработчиков используйте следующие контактные данные:
 
-**Репозиторий проекта:** [github.com/ussc/etude](https://github.com/ussc/etude)
+**Репозиторий проекта:** [github.com/ussc/etude](https://github.com/RioDig/etude)
 
 ## Заказчик
 
