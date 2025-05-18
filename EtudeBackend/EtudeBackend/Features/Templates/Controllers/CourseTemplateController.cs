@@ -27,43 +27,43 @@ public class CourseTemplateController : ControllerBase
     /// </summary>
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllTemplates([FromQuery][JsonFilters] List<FilterItem>? filters = null)
+    public async Task<IActionResult> GetAllTemplates([FromQuery][JsonFilters] List<FilterItem>? filter = null)
     {
         try
         {
             List<CourseTemplateFilterDto>? templateFilters = null;
         
-            if (filters != null && filters.Count > 0)
+            if (filter != null && filter.Count > 0)
             {
                 templateFilters = new List<CourseTemplateFilterDto>();
                 
-                foreach (var filter in filters)
+                foreach (var fltr in filter)
                 {
-                    switch (filter.Name.ToLower())
+                    switch (fltr.Name.ToLower())
                     {
                         case "name":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "name", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "name", Value = fltr.Value });
                             break;
                         case "type":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "type", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "type", Value = fltr.Value });
                             break;
                         case "format":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "format", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "format", Value = fltr.Value });
                             break;
                         case "track":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "track", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "track", Value = fltr.Value });
                             break;
                         case "trainingcenter":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "trainingcenter", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "trainingcenter", Value = fltr.Value });
                             break;
                         case "startdate":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "startdate", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "startdate", Value = fltr.Value });
                             break;
                         case "enddate":
-                            templateFilters.Add(new CourseTemplateFilterDto { Name = "enddate", Value = filter.Value });
+                            templateFilters.Add(new CourseTemplateFilterDto { Name = "enddate", Value = fltr.Value });
                             break;
                         default:
-                            _logger.LogWarning("Неизвестный фильтр: {FilterName}", filter.Name);
+                            _logger.LogWarning("Неизвестный фильтр: {FilterName}", fltr.Name);
                             break;
                     }
                 }
