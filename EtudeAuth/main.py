@@ -605,7 +605,7 @@ async def get_user_info(
         "surname": current_user.surname,
         "patronymic": current_user.patronymic,
         "org_email": current_user.email,
-        "position": current_user.surname + '_position',
+        "position": current_user.position,
     }
 
 
