@@ -1,4 +1,6 @@
-﻿namespace EtudeBackend.Features.TrainingRequests.DTOs;
+﻿using System.Text.Json.Serialization;
+
+namespace EtudeBackend.Features.TrainingRequests.DTOs;
 
 public class ApplicationDto
 {
@@ -33,22 +35,46 @@ public class UserBasicDto
 
 public class CourseBasicDto
 {
+    [JsonPropertyName("course_id")]
     public Guid Id { get; set; }
+    
+    [JsonPropertyName("course_name")]
     public string Name { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_type")]
     public string Type { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_track")]
     public string Track { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_format")]
     public string Format { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_trainingCenter")]
     public string TrainingCenter { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_startDate")]
     public DateOnly StartDate { get; set; }
+    
+    [JsonPropertyName("course_endDate")]
     public DateOnly EndDate { get; set; }
 }
 
 public class CourseDetailDto : CourseBasicDto
 {
+    [JsonPropertyName("course_description")]
     public string Description { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_price")]
     public string Price { get; set; }
+    
+    [JsonPropertyName("course_educationGoal")]
     public string EducationGoal { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_link")]
     public string Link { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_learner")]
     public UserBasicDto Learner { get; set; } = new UserBasicDto();
 }
 
@@ -99,24 +125,52 @@ public class ApplicationStatusDto
 
 public class ApplicationCourseDto
 {
+    [JsonPropertyName("course_id")]
     public Guid Id { get; set; }
+    
+    [JsonPropertyName("course_name")]
     public string Name { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_description")]
     public string Description { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_type")]
     public string Type { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_track")]
     public string Track { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_format")]
     public string Format { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_trainingCenter")]
     public string TrainingCenter { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_startDate")]
     public DateOnly StartDate { get; set; }
+    
+    [JsonPropertyName("course_endDate")]
     public DateOnly EndDate { get; set; }
+    
+    [JsonPropertyName("course_link")]
     public string Link { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_price")]
     public string Price { get; set; }
+    
+    [JsonPropertyName("course_educationGoal")]
     public string EducationGoal { get; set; } = string.Empty;
+    
+    [JsonPropertyName("course_learner")]
     public UserBasicDto? Learner { get; set; }
 }
 
 public class ApplicationResponseDto
 {
+    [JsonPropertyName("application_id")]
     public Guid ApplicationId { get; set; }
+    
+    [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; }
     public ApplicationStatusDto Status { get; set; } = new();
     public ApplicationCourseDto Course { get; set; } = new();
@@ -130,12 +184,25 @@ public class ApplicationFilterDto
 
 public class ApplicationDetailResponseDto
 {
+    [JsonPropertyName("application_id")]
     public Guid ApplicationId { get; set; }
+    
+    [JsonPropertyName("created_at")]
     public DateTimeOffset CreatedAt { get; set; }
+    
+    [JsonPropertyName("comment")]
     public string Comment { get; set; } = string.Empty;
+    
+    [JsonPropertyName("status")]
     public ApplicationStatusDto Status { get; set; } = new();
+    
+    [JsonPropertyName("author")]
     public UserBasicDto Author { get; set; } = new();
+    
+    [JsonPropertyName("approvers")]
     public List<UserBasicDto> Approvers { get; set; } = new List<UserBasicDto>();
+    
+    [JsonPropertyName("course")]
     public ApplicationCourseDto Course { get; set; } = new();
 }
 

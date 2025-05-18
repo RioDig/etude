@@ -2,6 +2,7 @@
 using EtudeBackend.Features.Auth.Models;
 using EtudeBackend.Features.Auth.Services;
 using EtudeBackend.Features.TrainingRequests.DTOs;
+using EtudeBackend.Features.TrainingRequests.Entities;
 using EtudeBackend.Features.TrainingRequests.Repositories;
 using EtudeBackend.Features.TrainingRequests.Services;
 using EtudeBackend.Features.Users.Repositories;
@@ -455,14 +456,14 @@ public async Task<IActionResult> ChangeApplicationStatus(Guid id, [FromBody] Cha
             return BadRequest(new { message = "Указанный статус не найден" });
 
         // Проверяем корректность перехода статусов
-        bool validStatusTransition = await ValidateStatusTransitionAsync(currentStatus.Name, newStatus.Name, application);
+        bool validStatusTransition = await ValidateStatusTransitionAsync(currentStatus, newStatus, application);
         if (!validStatusTransition)
         {
             return BadRequest(new { message = $"Недопустимый переход статуса из '{currentStatus.Name}' в '{newStatus.Name}'" });
         }
 
         // Если меняем статус на "Approvement"
-        if (newStatus.Name == "Approvement" || DetermineStatusType(newStatus.Name) == "Approvement")
+        if (newStatus.Type == "Approvement" || DetermineStatusType(newStatus.Type) == "Approvement")
         {
             try
             {
@@ -525,31 +526,31 @@ public async Task<IActionResult> ChangeApplicationStatus(Guid id, [FromBody] Cha
     }
 }
 
-private async Task<bool> ValidateStatusTransitionAsync(string currentStatusName, string newStatusName, ApplicationDetailDto application)
+private async Task<bool> ValidateStatusTransitionAsync(Status currentStatusObj, Status newStatusObj, ApplicationDetailDto application)
 {
     try
     {
         // Проверка корректности перехода статусов
-        if (currentStatusName == "Confirmation" && newStatusName == "Approvement")
+        if (currentStatusObj.Type == "Confirmation" && newStatusObj.Type == "Approvement")
             return true; // Переход из Confirmation в Approvement разрешен
         
-        if (currentStatusName == "Confirmation" && newStatusName == "Rejected")
+        if (currentStatusObj.Type == "Confirmation" && newStatusObj.Type == "Rejected")
             return true; // Переход из Confirmation в Rejected разрешен
         
-        if (currentStatusName == "Processed")
+        if (currentStatusObj.Type == "Processed")
         {
             // Переход из Processed в кастомный статус или Registered
-            var newStatus = await _statusRepository.GetByNameAsync(newStatusName);
+            var newStatus = await _statusRepository.GetByNameAsync(newStatusObj.Name);
             if (newStatus == null)
                 return false;
                 
             // Если статус не защищен или это Registered
-            return !newStatus.IsProtected || newStatusName == "Registered";
+            return !newStatus.IsProtected || newStatusObj.Type == "Registered";
         }
         
         // Запрещаем переход из Approvement в другие статусы вручную
         // (переход из Approvement в Processed должен происходить автоматически)
-        if (currentStatusName == "Approvement")
+        if (currentStatusObj.Type == "Approvement")
             return false;
             
         // По умолчанию запрещаем переход
@@ -558,7 +559,7 @@ private async Task<bool> ValidateStatusTransitionAsync(string currentStatusName,
     catch (Exception ex)
     {
         _logger.LogError(ex, "Ошибка при проверке валидности перехода статуса из {CurrentStatus} в {NewStatus}", 
-            currentStatusName, newStatusName);
+            currentStatusObj, newStatusObj.Name);
         return false;
     }
 }
