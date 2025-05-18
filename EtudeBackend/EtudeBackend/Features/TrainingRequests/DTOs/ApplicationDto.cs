@@ -108,7 +108,7 @@ public class UpdateApplicationDto
     public string? Price { get; set; }
     public string? Link { get; set; }
     public string? EducationGoal { get; set; } = string.Empty;
-    public List<int>? Approvers { get; set; }
+    public List<string>? Approvers { get; set; }
 }
 
 public class ChangeStatusDto
