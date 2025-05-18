@@ -63,10 +63,10 @@ public class CreateCourseTemplateDto
     public string TrainingCenter { get; set; } = string.Empty;
     
     [JsonPropertyName("course_template_startDate")]
-    public DateOnly StartDate { get; set; }
+    public DateOnly? StartDate { get; set; }
     
     [JsonPropertyName("course_template_endDate")]
-    public DateOnly EndDate { get; set; }
+    public DateOnly? EndDate { get; set; }
     
     [JsonPropertyName("course_template_link")]
     public string Link { get; set; } = string.Empty;
