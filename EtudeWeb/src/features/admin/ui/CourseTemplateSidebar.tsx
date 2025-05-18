@@ -7,6 +7,7 @@ import {
   useUpdateCourseTemplate
 } from '@/entities/courseTemplate'
 import { notification } from '@/shared/lib/notification'
+import { formatDate } from '@/shared/utils/formatDate.ts'
 
 interface CourseTemplateSidebarProps {
   open: boolean
@@ -62,7 +63,7 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
   const handleDateChange = (field: string, date: Date | null) => {
     setFormValues((prev) => ({
       ...prev,
-      [field]: date ? date.toISOString().split('T')[0] : null
+      [field]: date ? formatDate(date) : null
     }))
   }
 

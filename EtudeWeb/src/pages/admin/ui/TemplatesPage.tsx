@@ -18,7 +18,6 @@ import { notification } from '@/shared/lib/notification'
 import { CourseTemplateSidebar } from '@/features/admin/ui/CourseTemplateSidebar'
 import { useQueryClient } from '@tanstack/react-query'
 import { FilterValue } from '@/entities/filter'
-import { CourseTypeLabels } from '@/shared/labels/courseType.ts'
 import { CourseTrackLabels } from '@/shared/labels/courseTrack.ts'
 
 export const TemplatesPage: React.FC = () => {
