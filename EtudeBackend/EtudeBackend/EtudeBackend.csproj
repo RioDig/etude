@@ -29,8 +29,8 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Reports\" />
       <Folder Include="Shared\Data\Migrations\" />
-      <Folder Include="wwwroot\reports\" />
     </ItemGroup>
 
     <ItemGroup>

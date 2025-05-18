@@ -1,5 +1,4 @@
-﻿using EtudeBackend.Data;
-using EtudeBackend.Features.Reports.DTOs;
+﻿using EtudeBackend.Features.Reports.DTOs;
 using EtudeBackend.Features.Reports.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,17 +7,16 @@ namespace EtudeBackend.Features.Reports.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-
+[Authorize]
 public class ReportController : ControllerBase
 {
-    private readonly IWebHostEnvironment _env;
-    
     private readonly IReportService _reportService;
+    private readonly ILogger<ReportController> _logger;
 
-    public ReportController(IReportService reportService, IWebHostEnvironment env)
+    public ReportController(IReportService reportService, ILogger<ReportController> logger)
     {
         _reportService = reportService;
-        _env = env;
+        _logger = logger;
     }
 
     /// <summary>
@@ -28,8 +26,17 @@ public class ReportController : ControllerBase
     [ProducesResponseType(typeof(List<ReportInfoDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetReports([FromQuery] List<ReportFilterDto>? filter = null)
     {
-        var reports = await _reportService.GetAllReportsAsync(filter);
-        return Ok(reports);
+        try
+        {
+            var reports = await _reportService.GetAllReportsAsync(filter);
+            return Ok(reports);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при получении списка отчетов");
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Произошла внутренняя ошибка сервера при получении отчетов" });
+        }
     }
 
     /// <summary>
@@ -42,30 +49,39 @@ public class ReportController : ControllerBase
     {
         try
         {
-            // var fileContent = await _reportService.DownloadReportAsync(id);
-            // return File(
-            //     fileContent,
-            //     "text/plain",
-            //     $"report-{id}.txt");
+            var fileContent = await _reportService.DownloadReportAsync(id);
             
-            var fileName = $"{id}.xlsx";
-            var fullPath = Path.Combine(_env.WebRootPath, "reports", fileName);
-
-            if (!System.IO.File.Exists(fullPath))
-                return NotFound("Файл не найден");
-
-            return File(System.IO.File.ReadAllBytes(fullPath),
+            // Получаем информацию об отчете
+            var report = await _reportService.GetAllReportsAsync(new List<ReportFilterDto> 
+            { 
+                new ReportFilterDto { Name = "id", Value = id.ToString() } 
+            });
+            
+            var reportInfo = report.FirstOrDefault();
+            string fileName = reportInfo != null 
+                ? $"отчет_{reportInfo.ReportType}_{reportInfo.ReportCreateDate:yyyyMMdd}.xlsx"
+                : $"отчет_{id}.xlsx";
+            
+            return File(
+                fileContent,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName);
         }
         catch (KeyNotFoundException ex)
         {
+            _logger.LogWarning(ex, "Отчет не найден: {Message}", ex.Message);
             return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при скачивании отчета");
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Произошла внутренняя ошибка сервера при скачивании отчета" });
         }
     }
 
     /// <summary>
-    /// Генерирует новый отчет
+    /// Генерирует новый отчет по завершенным обучениям
     /// </summary>
     [HttpGet("generate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -74,29 +90,23 @@ public class ReportController : ControllerBase
     {
         try
         {
-            // var fileContent = await _reportService.GenerateReportAsync();
-            // return File(
-            //     fileContent,
-            //     "text/plain",
-            //     $"report-{DateTime.Now:yyyyMMdd}.txt");
+            var fileContent = await _reportService.GenerateReportAsync();
             
-            var trainings = MockData.GetSampleTrainings();
-            var fileName = $"{Guid.NewGuid()}.xlsx";
-            var savePath = Path.Combine(_env.WebRootPath, "reports");
-
-            if (!Directory.Exists(savePath))
-                Directory.CreateDirectory(savePath);
-
-            var fullPath = Path.Combine(savePath, fileName);
-            ReportGenerator.GenerateCompletedTrainingsReport(trainings, fullPath);
-
-            return File(System.IO.File.ReadAllBytes(fullPath),
+            return File(
+                fileContent,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                fileName);
+                $"отчет_по_обучениям_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Ошибка при генерации отчета: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
-            return BadRequest(new { message = ex.Message });
+            _logger.LogError(ex, "Ошибка при генерации отчета");
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { message = "Произошла внутренняя ошибка сервера при генерации отчета" });
         }
     }
 }

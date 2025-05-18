@@ -6,16 +6,16 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+
 builder.Services.AddControllers();
 
-// Configure Infrastructure
+
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// Add features
+
 builder.Services.AddFeatures();
 
-// Add AutoMapper
+
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 builder.Services.AddSession(options =>
@@ -33,29 +33,29 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.PostConfigure<CookieAuthenticationOptions>(IdentityConstants.ApplicationScheme, options =>
 {
-    // Отключаем редирект при неавторизованном доступе
+
     options.Events = new CookieAuthenticationEvents
     {
         OnRedirectToLogin = context =>
         {
-            // Вместо редиректа возвращаем 401 ошибку
+
             context.Response.StatusCode = StatusCodes.Status401Unauthorized;
             return Task.CompletedTask;
         },
         OnRedirectToAccessDenied = context =>
         {
-            // Возвращаем 403 ошибку вместо редиректа при доступе к запрещенному ресурсу
+
             context.Response.StatusCode = StatusCodes.Status403Forbidden;
             return Task.CompletedTask;
         }
     };
 });
 
-// Add Swagger
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHostedService<DocumentApprovalService>();
-// Add CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
@@ -69,20 +69,20 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Глобальная обработка исключений
+
 app.UseApiExceptionHandler();
 
-// Configure the HTTP request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    // Apply migrations in development
+
     app.ApplyMigrations();
 }
 
-// Use CORS
+
 app.UseCors("AllowAll");
 app.UseStaticFiles();
 app.UseHttpsRedirection();
