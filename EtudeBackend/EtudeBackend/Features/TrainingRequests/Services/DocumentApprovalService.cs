@@ -27,7 +27,7 @@ public class DocumentApprovalService : BackgroundService
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("Фоновая служба проверки документов запущена");
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -41,7 +41,7 @@ public class DocumentApprovalService : BackgroundService
 
             await Task.Delay(_checkInterval, stoppingToken);
         }
-        
+
         _logger.LogInformation("Фоновая служба проверки документов остановлена");
     }
 
@@ -80,20 +80,20 @@ public class DocumentApprovalService : BackgroundService
             {
                 if (stoppingToken.IsCancellationRequested)
                     break;
-                    
+
                 try
                 {
                     // Проверяем статус согласования в EtudeAuth
                     var docStatus = await etudeAuthApiService.GetDocumentStatusAsync(application.SoloDocId.ToString());
-                    
+
                     if (docStatus?.IsApproval == true)
                     {
-                        _logger.LogInformation("Документ {DocId} согласован в EtudeAuth, обновляем статус на Processed", 
+                        _logger.LogInformation("Документ {DocId} согласован в EtudeAuth, обновляем статус на Processed",
                             application.SoloDocId);
 
                         // Меняем статус заявки на "Processed"
                         application.StatusId = processedStatus.Id;
-                        
+
                         // Добавляем запись в историю
                         var historyEntry = new
                         {
@@ -102,36 +102,36 @@ public class DocumentApprovalService : BackgroundService
                             StatusName = processedStatus.Name,
                             Comment = "Автоматическое изменение статуса: документ согласован в системе EtudeAuth"
                         };
-                        
+
                         string historyJson = System.Text.Json.JsonSerializer.Serialize(historyEntry);
                         application.ApprovalHistory += (string.IsNullOrEmpty(application.ApprovalHistory) ? "" : "\n") + historyJson;
-                        
+
                         application.UpdatedAt = DateTimeOffset.UtcNow;
                         await applicationRepository.UpdateAsync(application);
-                        
-                        _logger.LogInformation("Статус заявки {AppId} успешно обновлен на 'Processed'", 
+
+                        _logger.LogInformation("Статус заявки {AppId} успешно обновлен на 'Processed'",
                             application.Id);
                     }
                     else if (docStatus != null && !docStatus.IsApproval)
                     {
-                        _logger.LogDebug("Документ {DocId} ещё на согласовании в EtudeAuth. Статус согласования: {IsApproval}", 
+                        _logger.LogDebug("Документ {DocId} ещё на согласовании в EtudeAuth. Статус согласования: {IsApproval}",
                             application.SoloDocId, docStatus.IsApproval);
-                            
+
                         if (docStatus.CoordinationStatus != null && docStatus.CoordinationStatus.Count > 0)
                         {
-                            _logger.LogDebug("Детали согласования: {StatusDetails}", 
+                            _logger.LogDebug("Детали согласования: {StatusDetails}",
                                 string.Join(", ", docStatus.CoordinationStatus.Select(kv => $"{kv.Key}: {kv.Value}")));
                         }
                     }
                     else
                     {
-                        _logger.LogWarning("Не удалось получить статус документа {DocId} из EtudeAuth", 
+                        _logger.LogWarning("Не удалось получить статус документа {DocId} из EtudeAuth",
                             application.SoloDocId);
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Ошибка при проверке статуса документа {DocId} в EtudeAuth", 
+                    _logger.LogError(ex, "Ошибка при проверке статуса документа {DocId} в EtudeAuth",
                         application.SoloDocId);
                 }
             }

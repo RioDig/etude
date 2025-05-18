@@ -30,11 +30,11 @@ public class ReportController : ControllerBase
         try
         {
             List<ReportFilterDto>? reportFilters = null;
-    
+
             if (filter != null && filter.Count > 0)
             {
                 reportFilters = new List<ReportFilterDto>();
-            
+
                 foreach (var fltr in filter)
                 {
                     switch (fltr.Name.ToLower())
@@ -45,18 +45,18 @@ public class ReportController : ControllerBase
                         case "date":
                             reportFilters.Add(new ReportFilterDto { Name = "date", Value = fltr.Value });
                             break;
-                        // Добавьте другие фильтры при необходимости
+                            // Добавьте другие фильтры при необходимости
                     }
                 }
             }
-    
+
             var reports = await _reportService.GetAllReportsAsync(reportFilters);
             return Ok(reports);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении списка отчетов");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера при получении отчетов" });
         }
     }
@@ -72,18 +72,18 @@ public class ReportController : ControllerBase
         try
         {
             var fileContent = await _reportService.DownloadReportAsync(id);
-            
+
             // Получаем информацию об отчете
-            var report = await _reportService.GetAllReportsAsync(new List<ReportFilterDto> 
-            { 
-                new ReportFilterDto { Name = "id", Value = id.ToString() } 
+            var report = await _reportService.GetAllReportsAsync(new List<ReportFilterDto>
+            {
+                new ReportFilterDto { Name = "id", Value = id.ToString() }
             });
-            
+
             var reportInfo = report.FirstOrDefault();
-            string fileName = reportInfo != null 
+            string fileName = reportInfo != null
                 ? $"отчет_{reportInfo.ReportType}_{reportInfo.ReportCreateDate:yyyyMMdd}.xlsx"
                 : $"отчет_{id}.xlsx";
-            
+
             return File(
                 fileContent,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -97,7 +97,7 @@ public class ReportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при скачивании отчета");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера при скачивании отчета" });
         }
     }
@@ -113,7 +113,7 @@ public class ReportController : ControllerBase
         try
         {
             var fileContent = await _reportService.GenerateReportAsync();
-            
+
             return File(
                 fileContent,
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -127,7 +127,7 @@ public class ReportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при генерации отчета");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Произошла внутренняя ошибка сервера при генерации отчета" });
         }
     }

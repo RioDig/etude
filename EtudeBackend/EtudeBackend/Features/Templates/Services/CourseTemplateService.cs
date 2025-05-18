@@ -76,10 +76,10 @@ public class CourseTemplateService : ICourseTemplateService
 
             // Вызываем метод репозитория для фильтрации
             var templates = await _repository.FilterByAsync(filterDictionary);
-            
+
             // Логируем количество найденных шаблонов
             _logger.LogInformation("Найдено {Count} шаблонов по заданным фильтрам", templates.Count);
-            
+
             return _mapper.Map<List<CourseTemplateDto>>(templates);
         }
         catch (Exception ex)

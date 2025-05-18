@@ -16,7 +16,7 @@ public class FilterItem
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("value")]
     public string Value { get; set; } = string.Empty;
 }
@@ -38,10 +38,10 @@ public class JsonFiltersBinder : IModelBinder
         }
 
         string jsonValue = valueProviderResult.FirstValue;
-        
+
         try
         {
-            var filters = System.Text.Json.JsonSerializer.Deserialize<List<FilterItem>>(jsonValue, 
+            var filters = System.Text.Json.JsonSerializer.Deserialize<List<FilterItem>>(jsonValue,
                 new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true

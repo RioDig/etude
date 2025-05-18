@@ -13,6 +13,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import { FilterValue, usePageFilters } from '@/entities/filter'
 import { Control } from '@/shared/ui/controls'
 import useDebounce from '@/shared/hooks/useDebounce.ts'
+import { CourseTrackLabels } from '@/shared/labels/courseTrack.ts'
+import { CourseTypeLabels } from '@/shared/labels/courseType.ts'
+import { CourseFormatLabels } from '@/shared/labels/courseFormat.ts'
 
 interface CatalogViewProps {
   onSelectTemplate: (template: CourseTemplate) => void
@@ -177,9 +180,9 @@ export const CatalogView: React.FC<CatalogViewProps> = ({
               startDate={template.course_template_startDate || new Date().toISOString()}
               endDate={template.course_template_endDate || new Date().toISOString()}
               tags={[
-                { id: '1', label: getReadableType(template.course_template_type) },
-                { id: '2', label: getReadableFormat(template.course_template_format) },
-                { id: '3', label: template.course_template_track }
+                { id: '1', label: CourseTypeLabels[template.course_template_type] },
+                { id: '2', label: CourseFormatLabels[template.course_template_format] },
+                { id: '3', label: CourseTrackLabels[template.course_template_track] }
               ]}
               isSelected={selectedTemplateId === template.course_template_id}
               onClick={() => handleTemplateSelect(template)}

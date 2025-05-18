@@ -17,7 +17,7 @@ public class Application
 
     [Column(TypeName = "text")]
     public string ApprovalHistory { get; set; } = string.Empty;
-    
+
     public List<string> Approvers { get; set; }
 
     [Column(TypeName = "timestamp with time zone")]

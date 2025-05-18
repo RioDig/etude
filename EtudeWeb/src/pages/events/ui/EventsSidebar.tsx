@@ -14,7 +14,13 @@ import {
   useChangeApplicationStatus,
   useDeleteApplication
 } from '@/entities/event'
-import { Application, ApplicationStatusType, CustomStatus, StatusType } from '@/shared/types'
+import {
+  Application,
+  ApplicationStatus,
+  ApplicationStatusType,
+  CustomStatus,
+  StatusType
+} from '@/shared/types'
 import { useAuth } from '@/entities/session'
 import { useCustomStatuses } from '@/entities/customStatus'
 import { CourseTypeLabels } from '@/shared/labels/courseType'
@@ -35,7 +41,7 @@ type ModalType = 'edit' | 'approve' | 'reject' | 'delete' | 'changeStatus' | 'co
 
 export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, event }) => {
   const { user } = useAuth()
-  const isAdmin = user?.role === 'admin'
+  const isAdmin = user?.role !== 'admin'
 
   const [modalType, setModalType] = useState<ModalType>(null)
   const [statusComment, setStatusComment] = useState('')
@@ -332,6 +338,32 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
 
   const headerActions = getHeaderActions()
 
+  const getBadges = (
+    status: CustomStatus
+  ): {
+    text: string
+    variant?: 'default' | 'error' | 'warning' | 'success' | 'system'
+  }[] => {
+    if (status.type === StatusType.Processed) {
+      return [
+        {
+          text: StatusTypeLabels[StatusType.Processed],
+          variant: 'system'
+        },
+        {
+          text: status.name,
+          variant: 'system'
+        }
+      ]
+    }
+    return [
+      {
+        text: StatusTypeLabels[status.type ?? StatusType.Processed],
+        variant: statusVariant
+      }
+    ]
+  }
+
   return (
     <>
       <Sidebar
@@ -343,7 +375,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
             ? `${CourseTypeLabels[eventData.course.course_type]}, ${CourseFormatLabels[eventData.course.course_format]}`
             : ''
         }
-        badge={eventData ? { text: statusText, variant: statusVariant } : undefined}
+        badge={eventData ? getBadges(eventData.status) : undefined}
         headerActions={headerActions}
         footerActions={[
           {

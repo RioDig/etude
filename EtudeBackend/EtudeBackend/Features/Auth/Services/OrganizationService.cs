@@ -158,7 +158,7 @@ public class OrganizationService : IOrganizationService
 
         return employees;
     }
-    
+
     public async Task<EmployeeDto?> GetEmployeeByUserIdAsync(string userId)
     {
         try
@@ -229,32 +229,32 @@ public class OrganizationService : IOrganizationService
         var structure = await GetOrganizationStructureAsync();
         return structure.Company.Name;
     }
-    
+
     private bool IsEmployeeMatch(EmployeeInfoDto employee, string employeeId)
     {
         // Проверяем, совпадает ли email с идентификатором
         if (employee.Email.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
             return true;
-    
+
         // Проверяем, совпадает ли имя с идентификатором (менее надежно)
         if (employee.Name.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
             return true;
-    
-        return false;
-    }    
 
-// Вспомогательный метод для проверки соответствия ID сотрудника
+        return false;
+    }
+
+    // Вспомогательный метод для проверки соответствия ID сотрудника
     private bool IsMatchingEmployeeId(EmployeeInfoDto employee, string employeeId)
     {
         // Если ID в EtudeAuth это email - наиболее вероятный сценарий
         if (employee.Email.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
             return true;
-    
+
         // Дополнительная проверка: возможно ID - это часть имени или email без домена
         string emailWithoutDomain = employee.Email.Split('@')[0];
         if (emailWithoutDomain.Equals(employeeId, StringComparison.OrdinalIgnoreCase))
             return true;
-    
+
         return false;
     }
 }

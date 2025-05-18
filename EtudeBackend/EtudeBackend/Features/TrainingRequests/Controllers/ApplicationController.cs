@@ -103,7 +103,7 @@ public class ApplicationController : ControllerBase
                 {
                     // Для каждой заявки используем общий метод для получения детальной информации
                     var detailedResponse = await GetDetailedApplicationResponse(app.Id);
-                    
+
                     // Преобразуем формат для списка заявок
                     responseItems.Add(new ApplicationResponseDto
                     {
@@ -163,7 +163,7 @@ public class ApplicationController : ControllerBase
         }
     }
 
-     private IQueryable<Application> ApplyFilters(IQueryable<Application> query, Dictionary<string, string> filters)
+    private IQueryable<Application> ApplyFilters(IQueryable<Application> query, Dictionary<string, string> filters)
     {
         foreach (var filter in filters)
         {
@@ -295,7 +295,7 @@ public class ApplicationController : ControllerBase
             }
         };
     }
-    
+
 
 
     private string DetermineStatusType(string statusName)
@@ -381,7 +381,7 @@ public class ApplicationController : ControllerBase
         return result;
     }
 
-   [HttpPost]
+    [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -391,7 +391,7 @@ public class ApplicationController : ControllerBase
         // Проверка валидности модели запроса
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
-        
+
         // Получаем ID текущего пользователя
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
@@ -402,22 +402,22 @@ public class ApplicationController : ControllerBase
             // Проверяем, что все необходимые поля заполнены
             if (string.IsNullOrEmpty(requestDto.Name))
                 return BadRequest(new { message = "Имя курса обязательно для заполнения" });
-                
+
             if (requestDto.Approvers == null || requestDto.Approvers.Count == 0)
                 return BadRequest(new { message = "Необходимо указать хотя бы одного согласующего" });
-                
+
             if (string.IsNullOrEmpty(requestDto.LearnerId))
                 return BadRequest(new { message = "Необходимо указать обучающегося" });
 
             // Валидация согласующих через EtudeAuth
             var validApprovers = new List<string>();
             var invalidApprovers = new List<string>();
-            
+
             foreach (var approverId in requestDto.Approvers)
             {
                 // Проверяем существование согласующего через EtudeAuth API
                 var approver = await _organizationService.GetEmployeeByUserIdAsync(approverId);
-                
+
                 if (approver != null)
                 {
                     _logger.LogInformation("Согласующий с ID {ApproverId} найден в EtudeAuth", approverId);
@@ -429,12 +429,13 @@ public class ApplicationController : ControllerBase
                     invalidApprovers.Add(approverId);
                 }
             }
-            
+
             if (invalidApprovers.Count > 0)
             {
-                return BadRequest(new { 
-                    message = "Следующие согласующие не найдены в системе EtudeAuth:", 
-                    missingApprovers = invalidApprovers 
+                return BadRequest(new
+                {
+                    message = "Следующие согласующие не найдены в системе EtudeAuth:",
+                    missingApprovers = invalidApprovers
                 });
             }
 
@@ -476,17 +477,17 @@ public class ApplicationController : ControllerBase
 
             // Вызываем сервис для создания заявки
             var createdApplication = await _applicationService.CreateApplicationAsync(applicationDto, userIdClaim);
-            
-            _logger.LogInformation("Пользователь {UserId} успешно создал заявку на обучение {ApplicationId}", 
+
+            _logger.LogInformation("Пользователь {UserId} успешно создал заявку на обучение {ApplicationId}",
                 userIdClaim, createdApplication.Id);
-            
+
             // Получаем расширенную информацию о заявке для ответа
             var detailedResponse = await GetDetailedApplicationResponse(createdApplication.Id);
-            
+
             // Возвращаем созданную заявку с кодом 201 Created
             return CreatedAtAction(
-                nameof(GetApplicationById), 
-                new { id = createdApplication.Id }, 
+                nameof(GetApplicationById),
+                new { id = createdApplication.Id },
                 detailedResponse);
         }
         catch (ApiException ex)
@@ -509,22 +510,22 @@ public class ApplicationController : ControllerBase
         {
             throw new ApiException($"Не удалось найти созданную заявку с ID {applicationId}", 500);
         }
-        
+
         // Получаем статус для получения его типа
         var status = await _statusRepository.GetByIdAsync(application.Status.Id);
         string statusType = status?.Type ?? "Processed";
-        
+
         // Получаем курс
         var course = await _courseRepository.GetByIdAsync(application.Course.Id);
-        
+
         // Получаем обучающегося из локальной БД
         UserBasicDto learner = new UserBasicDto();
-        
+
         if (course != null && course.EmployeeId != Guid.Empty)
         {
             // Получаем обучающегося из базы данных
             var learnerUser = await _userManager.FindByIdAsync(course.EmployeeId.ToString());
-            
+
             if (learnerUser != null)
             {
                 learner = new UserBasicDto
@@ -537,7 +538,7 @@ public class ApplicationController : ControllerBase
                     Department = string.Empty,
                     IsLeader = false
                 };
-                
+
                 // Обогащаем данными о департаменте при наличии email
                 if (!string.IsNullOrEmpty(learnerUser.OrgEmail))
                 {
@@ -550,30 +551,30 @@ public class ApplicationController : ControllerBase
                 }
             }
         }
-        
+
         // Получаем последний комментарий
         string comment = await _applicationService.GetLatestCommentAsync(applicationId);
-        
+
         // Получаем полную информацию о заявке
         var detailedApplication = await _applicationRepository.GetByIdAsync(applicationId);
-        
+
         // Получаем и заполняем список согласующих
         List<UserBasicDto> approvers = new List<UserBasicDto>();
-        
+
         if (detailedApplication != null && detailedApplication.Approvers.Count > 0)
         {
             try
             {
                 // Десериализуем список ID согласующих
                 var approverIds = detailedApplication.Approvers;
-                
+
                 if (approverIds.Count > 0)
                 {
                     foreach (var approverId in approverIds)
                     {
                         // Проверяем сначала в локальной БД
                         var approverUser = await _userManager.FindByIdAsync(approverId);
-                        
+
                         if (approverUser != null)
                         {
                             var approver = new UserBasicDto
@@ -586,7 +587,7 @@ public class ApplicationController : ControllerBase
                                 Department = string.Empty,
                                 IsLeader = false
                             };
-                            
+
                             // Обогащаем данными из EtudeAuth
                             var extendedApprover = await _organizationService.GetEmployeeByUserIdAsync(approverId);
                             if (extendedApprover != null)
@@ -594,7 +595,7 @@ public class ApplicationController : ControllerBase
                                 approver.Department = extendedApprover.Department;
                                 approver.IsLeader = extendedApprover.IsLeader;
                             }
-                            
+
                             approvers.Add(approver);
                         }
                         else
@@ -636,7 +637,7 @@ public class ApplicationController : ControllerBase
                 _logger.LogError(ex, "Ошибка при десериализации списка согласующих: {ApproversJson}", detailedApplication.Approvers);
             }
         }
-        
+
         return new ApplicationDetailResponseDto
         {
             ApplicationId = application.Id,
@@ -667,7 +668,7 @@ public class ApplicationController : ControllerBase
             }
         };
     }
-    
+
 
     private ApplicationDetailResponseDto MapToApplicationDetailResponseDto(ApplicationDetailDto detail)
     {
@@ -722,138 +723,138 @@ public class ApplicationController : ControllerBase
     }
 
     [HttpPatch("changeStatus")]
-[ProducesResponseType(StatusCodes.Status200OK)]
-[ProducesResponseType(StatusCodes.Status404NotFound)]
-[ProducesResponseType(StatusCodes.Status400BadRequest)]
-public async Task<IActionResult> ChangeApplicationStatus([FromBody] ChangeStatusDto statusDto)
-{
-    if (!ModelState.IsValid)
-        return BadRequest(ModelState);
-
-    try
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ChangeApplicationStatus([FromBody] ChangeStatusDto statusDto)
     {
-        var application = await _applicationService.GetApplicationByIdAsync(statusDto.Id);
-        if (application == null)
-            return NotFound(new { message = "Заявка не найдена" });
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
 
-        // Получаем текущий статус
-        var currentStatus = await _statusRepository.GetByIdAsync(application.Status.Id);
-        if (currentStatus == null)
-            return StatusCode(500, new { message = "Текущий статус заявки не найден" });
-
-        // Получаем новый статус
-        var newStatus = await _statusRepository.GetByIdAsync(statusDto.StatusId);
-        if (newStatus == null)
-            return BadRequest(new { message = "Указанный статус не найден" });
-
-        // Проверяем корректность перехода статусов
-        bool validStatusTransition = await ValidateStatusTransitionAsync(currentStatus, newStatus, application);
-        if (!validStatusTransition)
+        try
         {
-            return BadRequest(new { message = $"Недопустимый переход статуса из '{currentStatus.Name}' в '{newStatus.Name}'" });
-        }
+            var application = await _applicationService.GetApplicationByIdAsync(statusDto.Id);
+            if (application == null)
+                return NotFound(new { message = "Заявка не найдена" });
 
-        // Если меняем статус на "Approvement"
-        if (newStatus.Type == "Approvement" || DetermineStatusType(newStatus.Type) == "Approvement")
-        {
-            try
+            // Получаем текущий статус
+            var currentStatus = await _statusRepository.GetByIdAsync(application.Status.Id);
+            if (currentStatus == null)
+                return StatusCode(500, new { message = "Текущий статус заявки не найден" });
+
+            // Получаем новый статус
+            var newStatus = await _statusRepository.GetByIdAsync(statusDto.StatusId);
+            if (newStatus == null)
+                return BadRequest(new { message = "Указанный статус не найден" });
+
+            // Проверяем корректность перехода статусов
+            bool validStatusTransition = await ValidateStatusTransitionAsync(currentStatus, newStatus, application);
+            if (!validStatusTransition)
             {
-                // Создаем документ в EtudeAuth
-                var docModel = new CreateDocumentModel
+                return BadRequest(new { message = $"Недопустимый переход статуса из '{currentStatus.Name}' в '{newStatus.Name}'" });
+            }
+
+            // Если меняем статус на "Approvement"
+            if (newStatus.Type == "Approvement" || DetermineStatusType(newStatus.Type) == "Approvement")
+            {
+                try
                 {
-                    EtudeDocID = application.Id.ToString(),
-                    DocInfo = new DocumentInfo
+                    // Создаем документ в EtudeAuth
+                    var docModel = new CreateDocumentModel
                     {
-                        Title = application.Course.Name,
-                        Description = application.Course.Description,
-                        Type = "TrainingRequest",
-                        CreatedAt = DateTime.UtcNow,
-                        AdditionalInfo = new Dictionary<string, string>
+                        EtudeDocID = application.Id.ToString(),
+                        DocInfo = new DocumentInfo
+                        {
+                            Title = application.Course.Name,
+                            Description = application.Course.Description,
+                            Type = "TrainingRequest",
+                            CreatedAt = DateTime.UtcNow,
+                            AdditionalInfo = new Dictionary<string, string>
                         {
                             { "CourseType", application.Course.Type },
                             { "StartDate", application.Course.StartDate.ToString("yyyy-MM-dd") },
                             { "EndDate", application.Course.EndDate.ToString("yyyy-MM-dd") },
                             { "TrainingCenter", application.Course.TrainingCenter }
                         }
-                    },
-                    Coordinating = application.Approvers.ToDictionary(
-                        a => a.Id, 
-                        a => a.Id)
-                };
+                        },
+                        Coordinating = application.Approvers.ToDictionary(
+                            a => a.Id,
+                            a => a.Id)
+                    };
 
-                // Вызов сервиса EtudeAuth для создания документа
-                // var result = await _etudeAuthApiService.CreateDocumentAsync(docModel);
-                
-                // if (!result.Success)
-                // {
-                //     return BadRequest(new { message = "Не удалось создать документ в системе согласования: " + result.Message });
-                // }
-                //
-                // // Если нужно сохранить DocumentId из EtudeAuth
-                // if (!string.IsNullOrEmpty(result.DocumentId))
-                // {
-                //     // Здесь можно было бы сохранить полученный DocumentId если это нужно
-                //     _logger.LogInformation("Документ создан в EtudeAuth с ID: {DocumentId}", result.DocumentId);
-                // }
+                    // Вызов сервиса EtudeAuth для создания документа
+                    // var result = await _etudeAuthApiService.CreateDocumentAsync(docModel);
+
+                    // if (!result.Success)
+                    // {
+                    //     return BadRequest(new { message = "Не удалось создать документ в системе согласования: " + result.Message });
+                    // }
+                    //
+                    // // Если нужно сохранить DocumentId из EtudeAuth
+                    // if (!string.IsNullOrEmpty(result.DocumentId))
+                    // {
+                    //     // Здесь можно было бы сохранить полученный DocumentId если это нужно
+                    //     _logger.LogInformation("Документ создан в EtudeAuth с ID: {DocumentId}", result.DocumentId);
+                    // }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Ошибка при создании документа в EtudeAuth");
+                    return StatusCode(500, new { message = "Ошибка при создании документа в системе согласования" });
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Ошибка при создании документа в EtudeAuth");
-                return StatusCode(500, new { message = "Ошибка при создании документа в системе согласования" });
-            }
+
+            // Меняем статус заявки
+            var updatedApplication = await _applicationService.ChangeApplicationStatusAsync(statusDto.Id, statusDto);
+            if (updatedApplication == null)
+                return NotFound(new { message = "Не удалось обновить статус заявки" });
+
+            return Ok(updatedApplication);
         }
-
-        // Меняем статус заявки
-        var updatedApplication = await _applicationService.ChangeApplicationStatusAsync(statusDto.Id, statusDto);
-        if (updatedApplication == null)
-            return NotFound(new { message = "Не удалось обновить статус заявки" });
-                
-        return Ok(updatedApplication);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Неожиданная ошибка при изменении статуса заявки {ApplicationId}", statusDto.Id);
-        return StatusCode(500, new { message = "Произошла внутренняя ошибка сервера" });
-    }
-}
-
-private async Task<bool> ValidateStatusTransitionAsync(Status currentStatusObj, Status newStatusObj, ApplicationDetailDto application)
-{
-    try
-    {
-        // Проверка корректности перехода статусов
-        if (currentStatusObj.Type == "Confirmation" && newStatusObj.Type == "Approvement")
-            return true; // Переход из Confirmation в Approvement разрешен
-        
-        if (currentStatusObj.Type == "Confirmation" && newStatusObj.Type == "Rejected")
-            return true; // Переход из Confirmation в Rejected разрешен
-        
-        if (currentStatusObj.Type == "Processed")
+        catch (Exception ex)
         {
-            // Переход из Processed в кастомный статус или Registered
-            var newStatus = await _statusRepository.GetByNameAsync(newStatusObj.Name);
-            if (newStatus == null)
-                return false;
-                
-            // Если статус не защищен или это Registered
-            return !newStatus.IsProtected || newStatusObj.Type == "Registered";
+            _logger.LogError(ex, "Неожиданная ошибка при изменении статуса заявки {ApplicationId}", statusDto.Id);
+            return StatusCode(500, new { message = "Произошла внутренняя ошибка сервера" });
         }
-        
-        // Запрещаем переход из Approvement в другие статусы вручную
-        // (переход из Approvement в Processed должен происходить автоматически)
-        if (currentStatusObj.Type == "Approvement")
-            return false;
-            
-        // По умолчанию запрещаем переход
-        return false;
     }
-    catch (Exception ex)
+
+    private async Task<bool> ValidateStatusTransitionAsync(Status currentStatusObj, Status newStatusObj, ApplicationDetailDto application)
     {
-        _logger.LogError(ex, "Ошибка при проверке валидности перехода статуса из {CurrentStatus} в {NewStatus}", 
-            currentStatusObj, newStatusObj.Name);
-        return false;
+        try
+        {
+            // Проверка корректности перехода статусов
+            if (currentStatusObj.Type == "Confirmation" && newStatusObj.Type == "Approvement")
+                return true; // Переход из Confirmation в Approvement разрешен
+
+            if (currentStatusObj.Type == "Confirmation" && newStatusObj.Type == "Rejected")
+                return true; // Переход из Confirmation в Rejected разрешен
+
+            if (currentStatusObj.Type == "Processed")
+            {
+                // Переход из Processed в кастомный статус или Registered
+                var newStatus = await _statusRepository.GetByNameAsync(newStatusObj.Name);
+                if (newStatus == null)
+                    return false;
+
+                // Если статус не защищен или это Registered
+                return !newStatus.IsProtected || newStatusObj.Type == "Registered";
+            }
+
+            // Запрещаем переход из Approvement в другие статусы вручную
+            // (переход из Approvement в Processed должен происходить автоматически)
+            if (currentStatusObj.Type == "Approvement")
+                return false;
+
+            // По умолчанию запрещаем переход
+            return false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при проверке валидности перехода статуса из {CurrentStatus} в {NewStatus}",
+                currentStatusObj, newStatusObj.Name);
+            return false;
+        }
     }
-}
 
     /// <summary>
     /// Удаляет заявку

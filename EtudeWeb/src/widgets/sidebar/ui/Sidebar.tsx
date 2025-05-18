@@ -42,7 +42,7 @@ export interface SidebarProps {
   badge?: {
     text: string
     variant?: 'default' | 'error' | 'warning' | 'success' | 'system'
-  }
+  }[]
 
   /**
    * Действия в хедере (кнопки)
@@ -361,11 +361,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </button>
           </div>
 
-          {badge && (
-            <div className="mt-4">
-              <Badge variant={badge.variant || 'default'}>{badge.text}</Badge>
-            </div>
-          )}
+          <div className="flex gap-3">
+            {badge &&
+              badge.map((item, index) => (
+                <div className="mt-4" key={index}>
+                  <Badge variant={item.variant || 'default'}>{item.text}</Badge>
+                </div>
+              ))}
+          </div>
+
 
           {headerActions && headerActions.length > 0 && (
             <HeaderActionsContainer actions={headerActions} />

@@ -12,7 +12,7 @@ public class JsonQueryBinderProvider : IModelBinderProvider
         {
             throw new ArgumentNullException(nameof(context));
         }
-        
+
         // Ищем атрибут JsonQuery на параметре
         if (context.Metadata.ModelType.IsGenericType &&
             context.Metadata.ModelType.GetGenericTypeDefinition() == typeof(List<>) &&
@@ -20,7 +20,7 @@ public class JsonQueryBinderProvider : IModelBinderProvider
         {
             return new JsonQueryModelBinder();
         }
-        
+
         return null;
     }
 }

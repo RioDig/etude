@@ -48,29 +48,34 @@ public class UserStatisticsService : IUserStatisticsService
 
         var allCompetencies = new List<CompetencyDto>
         {
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Разработка на C#" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "ASP.NET Core" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Entity Framework Core" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Управление проектами" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Agile методологии" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Базы данных SQL" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Микросервисная архитектура" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "DevOps практики" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Контейнеризация (Docker)" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Azure Cloud Services" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Лидерство в команде" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Автоматизированное тестирование" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Паттерны проектирования" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Непрерывная интеграция (CI/CD)" },
-            new CompetencyDto { Id = Guid.NewGuid(), Name = "Функциональное программирование" }
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "Разработка на C#" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000002"), Name = "ASP.NET Core" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000003"), Name = "Entity Framework Core" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000004"), Name = "Управление проектами" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000005"), Name = "Agile методологии" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000006"), Name = "Базы данных SQL" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000007"), Name = "Микросервисная архитектура" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000008"), Name = "DevOps практики" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000009"), Name = "Контейнеризация (Docker)" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000010"), Name = "Azure Cloud Services" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000011"), Name = "Лидерство в команде" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000012"), Name = "Автоматизированное тестирование" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000013"), Name = "Паттерны проектирования" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000014"), Name = "Непрерывная интеграция (CI/CD)" },
+            new CompetencyDto { Id = Guid.Parse("00000000-0000-0000-0000-000000000015"), Name = "Функциональное программирование" }
         };
 
-        var random = new Random();
-        int count = random.Next(3, 7);
+        // Используем детерминированный сид из userId (можно хешировать любым способом, например, через GetHashCode)
+        int seed = userId.GetHashCode();
+        var random = new Random(seed);
 
-        var shuffledCompetencies = allCompetencies.OrderBy(c => random.Next()).Take(count).ToList();
+        // Выбираем фиксированное количество (например, всегда 5)
+        var deterministicCompetencies = allCompetencies
+            .OrderBy(c => random.Next())
+            .Take(5)
+            .ToList();
 
-        return shuffledCompetencies;
+        return deterministicCompetencies;
     }
 
     public async Task<List<PastEventDto>> GetPastEventsAsync()

@@ -25,7 +25,7 @@ public class CustomStatusController : ControllerBase
         _logger = logger;
         _statusRepository = statusRepository;
     }
-    
+
     /// <summary>
     /// Получает список всех кастомных статусов
     /// </summary>
@@ -41,11 +41,11 @@ public class CustomStatusController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении списка статусов");
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Внутренняя ошибка сервера при получении списка статусов" });
         }
     }
-    
+
     /// <summary>
     /// Получает кастомный статус по идентификатору
     /// </summary>
@@ -57,21 +57,21 @@ public class CustomStatusController : ControllerBase
         try
         {
             var status = await _statusService.GetStatusByIdAsync(id);
-            
+
             if (status == null)
                 return NotFound(new { message = "Статус не найден" });
-            
+
             return Ok(status);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при получении статуса по ID: {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Внутренняя ошибка сервера при получении статуса" });
         }
     }
 
-    
+
     /// <summary>
     /// Создает новый кастомный статус
     /// </summary>
@@ -83,7 +83,7 @@ public class CustomStatusController : ControllerBase
         var existingStatus = await _statusRepository.GetByNameAsync(statusDto.Name);
         if (existingStatus != null)
             throw new ApiException($"Статус с именем '{statusDto.Name}' уже существует", 400);
-        
+
         var status = new Status
         {
             Id = Guid.NewGuid(),
@@ -93,9 +93,9 @@ public class CustomStatusController : ControllerBase
             IsProtected = false,
             IsTerminal = false
         };
-    
+
         var createdStatus = await _statusRepository.AddAsync(status);
-    
+
         // Создаем DTO вручную
         var resultDto = new StatusDto
         {
@@ -107,10 +107,10 @@ public class CustomStatusController : ControllerBase
             IsTerminal = createdStatus.IsTerminal,
             ApplicationCount = 0
         };
-    
+
         return resultDto;
     }
-    
+
     /// <summary>
     /// Обновляет существующий кастомный статус
     /// </summary>
@@ -126,24 +126,24 @@ public class CustomStatusController : ControllerBase
                 return BadRequest(ModelState);
 
             var updatedStatus = await _statusService.UpdateStatusAsync(id, statusDto);
-            
+
             if (updatedStatus == null)
                 return NotFound(new { message = "Статус не найден" });
-            
+
             return Ok(updatedStatus);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при обновлении статуса с ID: {Id}", id);
-        
+
             if (ex.Message.Contains("защищенный") || ex.Message.Contains("уже существует"))
                 return BadRequest(new { message = ex.Message });
-            
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Внутренняя ошибка сервера при обновлении статуса" });
         }
     }
-    
+
     /// <summary>
     /// Удаляет кастомный статус
     /// </summary>
@@ -156,21 +156,21 @@ public class CustomStatusController : ControllerBase
         try
         {
             var (success, errorMessage) = await _statusService.DeleteStatusAsync(id);
-        
+
             if (!success)
             {
                 if (errorMessage == null)
                     return NotFound(new { message = "Статус не найден" });
-                
+
                 return BadRequest(new { message = errorMessage });
             }
-            
+
             return NoContent();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при удалении статуса с ID: {Id}", id);
-            return StatusCode(StatusCodes.Status500InternalServerError, 
+            return StatusCode(StatusCodes.Status500InternalServerError,
                 new { message = "Внутренняя ошибка сервера при удалении статуса" });
         }
     }

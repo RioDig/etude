@@ -17,7 +17,7 @@ public static class ReportGenerator
             "Цель обучения", "ФИО участника", "Должность участника", "Подразделение участника",
             "Дата создания заявления", "Согласующие"
         };
-        
+
         for (int i = 0; i < headers.Length; i++)
         {
             var cell = worksheet.Cell(1, i + 1);
@@ -27,7 +27,7 @@ public static class ReportGenerator
             cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
             cell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
         }
-        
+
         int row = 2;
         foreach (var item in items)
         {
@@ -72,14 +72,14 @@ public static class ReportGenerator
 
         // Форматирование таблицы
         worksheet.Columns().AdjustToContents();
-        
+
         // Ограничиваем ширину колонок для лучшей читабельности
         foreach (var column in worksheet.Columns())
         {
             if (column.Width > 60)
                 column.Width = 60;
         }
-        
+
         // Устанавливаем автофильтр и границы
         var usedRange = worksheet.RangeUsed();
         if (usedRange != null)

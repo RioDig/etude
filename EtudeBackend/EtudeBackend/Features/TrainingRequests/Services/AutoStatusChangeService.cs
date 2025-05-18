@@ -23,9 +23,9 @@ public class AutoStatusChangeService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Служба автоматического изменения статусов запущена с интервалом {Interval} секунд", 
+        _logger.LogInformation("Служба автоматического изменения статусов запущена с интервалом {Interval} секунд",
             _interval.TotalSeconds);
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -39,7 +39,7 @@ public class AutoStatusChangeService : BackgroundService
 
             await Task.Delay(_interval, stoppingToken);
         }
-        
+
         _logger.LogInformation("Служба автоматического изменения статусов остановлена");
     }
 
@@ -81,7 +81,7 @@ public class AutoStatusChangeService : BackgroundService
 
                 // Меняем статус заявки на "Processed"
                 application.StatusId = processedStatus.Id;
-                
+
                 // Добавляем запись в историю
                 var historyEntry = new
                 {
@@ -90,15 +90,15 @@ public class AutoStatusChangeService : BackgroundService
                     StatusName = processedStatus.Name,
                     Comment = "Согласование сотрудниками в Соло успешно"
                 };
-                
+
                 string historyJson = System.Text.Json.JsonSerializer.Serialize(historyEntry);
                 application.ApprovalHistory += (string.IsNullOrEmpty(application.ApprovalHistory) ? "" : "\n") + historyJson;
-                
+
                 application.UpdatedAt = DateTimeOffset.UtcNow;
                 await applicationRepository.UpdateAsync(application);
-                
+
                 changedCount++;
-                _logger.LogInformation("Статус заявки {AppId} изменен с 'Approvement' на 'Processed'", 
+                _logger.LogInformation("Статус заявки {AppId} изменен с 'Approvement' на 'Processed'",
                     application.Id);
             }
 

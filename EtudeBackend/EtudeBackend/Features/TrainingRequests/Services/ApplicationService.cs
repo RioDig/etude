@@ -86,8 +86,8 @@ public class ApplicationService : IApplicationService
     public async Task<ApplicationDetailDto> CreateApplicationAsync(CreateApplicationDto applicationDto, string userId)
     {
         using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-        
-        try 
+
+        try
         {
             // Получаем данные обучающегося
             var learner = await _userManager.FindByIdAsync(applicationDto.LearnerId);
@@ -95,10 +95,10 @@ public class ApplicationService : IApplicationService
             {
                 throw new ApiException($"Обучающийся с ID {applicationDto.LearnerId} не найден в системе", 400);
             }
-            
-            _logger.LogInformation("Найден обучающийся: {LearnerId} - {Name} {Surname}", 
+
+            _logger.LogInformation("Найден обучающийся: {LearnerId} - {Name} {Surname}",
                 learner.Id, learner.Name, learner.Surname);
-            
+
             var course = new Course
             {
                 Id = Guid.NewGuid(),
@@ -115,15 +115,15 @@ public class ApplicationService : IApplicationService
                 Price = applicationDto.Price,
                 EducationGoal = applicationDto.EducationGoal,
                 IsActive = true,
-                CreatedAt = DateTimeOffset.UtcNow, 
+                CreatedAt = DateTimeOffset.UtcNow,
                 Learner = learner
             };
-            
-            _logger.LogInformation("Создаем курс для обучающегося {LearnerId}, EmployeeId: {EmployeeId}", 
+
+            _logger.LogInformation("Создаем курс для обучающегося {LearnerId}, EmployeeId: {EmployeeId}",
                 applicationDto.LearnerId, course.EmployeeId);
-            
+
             await _courseRepository.AddAsync(course);
-            
+
             // Получаем статус по умолчанию, если не указан другой
             Guid statusId = applicationDto.StatusId;
             if (statusId == Guid.Empty)
@@ -135,7 +135,7 @@ public class ApplicationService : IApplicationService
                 }
                 statusId = confirmationStatus.Id;
             }
-            
+
             // Сериализуем список ID согласующих
             var application = new Application
             {
@@ -146,30 +146,30 @@ public class ApplicationService : IApplicationService
                 ApprovalHistory = string.Empty,
                 Approvers = applicationDto.ApproverIds,
                 CreatedAt = DateTimeOffset.UtcNow,
-                SoloDocId = Guid.NewGuid() 
+                SoloDocId = Guid.NewGuid()
             };
-            
+
             await _applicationRepository.AddAsync(application);
 
             var createdApplication = await GetApplicationByIdAsync(application.Id);
             if (createdApplication == null)
                 throw new ApiException("Ошибка при создании заявки", 500);
-            
+
             transaction.Complete();
-            
-            _logger.LogInformation("Создана новая заявка с ID {ApplicationId} пользователем {UserId}", 
+
+            _logger.LogInformation("Создана новая заявка с ID {ApplicationId} пользователем {UserId}",
                 application.Id, userId);
-            
+
             return createdApplication;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при создании заявки пользователем {UserId}: {Message}", userId, ex.Message);
-            
+
             throw;
         }
     }
-    
+
 
     public async Task<ApplicationDetailDto?> UpdateApplicationAsync(Guid id, UpdateApplicationDto applicationDto)
     {
@@ -304,7 +304,7 @@ public class ApplicationService : IApplicationService
                     // Если точных совпадений нет, ищем частичные совпадения
                     else
                     {
-                        query = query.Where(a => a.Status.Type.Contains(filter.Value) || 
+                        query = query.Where(a => a.Status.Type.Contains(filter.Value) ||
                                                 a.Status.Name.Contains(filter.Value));
                     }
                     break;

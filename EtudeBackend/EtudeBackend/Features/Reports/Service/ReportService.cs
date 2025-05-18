@@ -129,13 +129,13 @@ public class ReportService : IReportService
             _logger.LogError("Статус 'Registered' не найден в системе");
             throw new InvalidOperationException("Статус 'Registered' не найден в системе");
         }
-        
+
         var applications = await _applicationRepository.GetByStatusIdAsync(registeredStatus.Id);
         if (applications == null || applications.Count == 0)
         {
             _logger.LogWarning("Не найдено заявок со статусом 'Registered'");
         }
-        
+
         var trainingItems = new List<TrainingItem>();
 
         foreach (var application in applications)
@@ -146,23 +146,23 @@ public class ReportService : IReportService
                 _logger.LogWarning("Курс с ID {CourseId} не найден", application.CourseId);
                 continue;
             }
-            
+
             var authorUser = await _context.Users.FindAsync(application.AuthorId);
             if (authorUser == null)
             {
                 _logger.LogWarning("Автор заявки с ID {AuthorId} не найден", application.AuthorId);
                 continue;
             }
-            
+
             var learnerEmployee = await _organizationService.GetEmployeeByEmailAsync(authorUser.OrgEmail);
-            
+
             var approversList = new List<User>();
             if (application.Approvers.Count > 0)
             {
                 try
                 {
                     List<string> approverIds = null;
-                    
+
                     try
                     {
                         foreach (var approver in application.Approvers)
@@ -177,13 +177,13 @@ public class ReportService : IReportService
                                 approverIds = new List<string>();
                             }
                         }
-                        
+
                     }
                     catch
                     {
                         approverIds = application.Approvers;
                     }
-                    
+
 
                     foreach (var approverId in approverIds)
                     {
@@ -241,9 +241,9 @@ public class ReportService : IReportService
 
         var fileName = $"{reportId}.xlsx";
         var filePath = Path.Combine(_reportsPath, fileName);
-        
+
         ReportGenerator.GenerateCompletedTrainingsReport(trainingItems, filePath);
-        
+
         var report = new Report
         {
             Id = reportId,

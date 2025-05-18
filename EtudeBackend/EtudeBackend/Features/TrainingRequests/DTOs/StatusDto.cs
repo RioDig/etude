@@ -6,7 +6,7 @@ public class StatusDto
     public string Name { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    
+
     public bool IsProtected { get; set; }
     public bool IsTerminal { get; set; }
     public int ApplicationCount { get; set; }

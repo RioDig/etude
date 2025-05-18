@@ -17,7 +17,7 @@ public class StatusMappingProfile : Profile
             .ForMember(dest => dest.IsProtected, opt => opt.MapFrom(src => src.IsProtected))
             .ForMember(dest => dest.IsTerminal, opt => opt.MapFrom(src => src.IsTerminal))
             .ForMember(dest => dest.ApplicationCount, opt => opt.Ignore());
-        
+
         // CreateStatusDto -> Status
         CreateMap<CreateStatusDto, Status>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
@@ -25,7 +25,7 @@ public class StatusMappingProfile : Profile
             .ForMember(dest => dest.Type, opt => opt.Ignore()) // Игнорируем тип при мапинге из CreateStatusDto
             .ForMember(dest => dest.IsProtected, opt => opt.MapFrom(src => false))
             .ForMember(dest => dest.IsTerminal, opt => opt.MapFrom(src => false));
-        
+
         // UpdateStatusDto -> Status
     }
 }

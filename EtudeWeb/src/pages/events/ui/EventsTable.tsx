@@ -4,11 +4,12 @@ import { EmptyMessage } from '@/shared/ui/emptyMessage'
 import { Tag } from '@/shared/ui/tag'
 import { Badge } from '@/shared/ui/badge'
 import { Spinner } from '@/shared/ui/spinner'
-import { Application, StatusType } from '@/shared/types'
+import { Application, ApplicationStatus, CustomStatus, StatusType } from '@/shared/types'
 import EmptyStateSvg from '@/shared/assets/images/empty-states/empty.svg'
 import { CourseTypeLabels } from '@/shared/labels/courseType'
 import { CourseFormatLabels } from '@/shared/labels/courseFormat'
 import { StatusTypeLabels } from '@/shared/labels/statusType.ts'
+import { CourseTrackLabels } from '@/shared/labels/courseTrack.ts'
 
 interface EventsTableProps {
   events: Application[]
@@ -32,6 +33,35 @@ export const EventsTable: React.FC<EventsTableProps> = ({
     setSortState(newSortState)
   }
 
+  const getBadges = (
+    status: ApplicationStatus,
+    variant: 'error' | 'default' | 'warning' | 'success' | 'system'
+  ): {
+    text: string
+    variant?: 'default' | 'error' | 'warning' | 'success' | 'system'
+  }[] => {
+    if (status.type === StatusType.Processed) {
+      return [
+        {
+          text: StatusTypeLabels[StatusType.Processed],
+          variant: 'system'
+        },
+        {
+          text: status.name,
+          variant: 'system'
+        }
+      ]
+    }
+
+    return [
+      {
+        // @ts-expect-error hotfix
+        text: StatusTypeLabels[status.type ?? StatusType.Processed],
+        variant: variant
+      }
+    ]
+  }
+
   const columns = [
     {
       id: 'status.type',
@@ -40,7 +70,15 @@ export const EventsTable: React.FC<EventsTableProps> = ({
       width: '12%',
       render: (event: Application) => {
         const { text, variant } = getStatusInfo(event.status.type)
-        return <Badge variant={variant}>{text}</Badge>
+        return (
+          <div className='flex gap-2'>
+            {getBadges(event.status, variant).map((badge, index) => (
+              <Badge variant={badge.variant} key={index}>
+                {badge.text}
+              </Badge>
+            ))}
+          </div>
+        )
       }
     },
     {
@@ -74,7 +112,7 @@ export const EventsTable: React.FC<EventsTableProps> = ({
       sortable: true,
       width: '15%',
       render: (event: Application) => {
-        return <Tag>{event.course.course_track}</Tag>
+        return <Tag>{CourseTrackLabels[event.course.course_track]}</Tag>
       }
     },
     {

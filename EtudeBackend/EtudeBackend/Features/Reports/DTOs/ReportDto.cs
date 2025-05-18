@@ -12,10 +12,10 @@ public class ReportInfoDto
 {
     [JsonPropertyName("report_id")]
     public Guid Id { get; set; }
-    
+
     [JsonPropertyName("report_type")]
     public string ReportType { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("report_createDate")]
     public DateTimeOffset ReportCreateDate { get; set; }
 }
@@ -24,12 +24,12 @@ public class Report
 {
     [JsonPropertyName("report_id")]
     public Guid Id { get; set; }
-    
+
     [JsonPropertyName("report_type")]
     public string ReportType { get; set; } = string.Empty;
-    
+
     [JsonPropertyName("report_createDate")]
     public DateTimeOffset CreatedAt { get; set; }
-    
+
     public string FilePath { get; set; } = string.Empty;
 }

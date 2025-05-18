@@ -21,16 +21,16 @@ public class JsonQueryModelBinder : IModelBinder
         }
 
         string jsonValue = valueProviderResult.FirstValue;
-        
+
         try
         {
             // Десериализуем JSON в нужный тип
-            var result = JsonSerializer.Deserialize(jsonValue, bindingContext.ModelType, 
-                new JsonSerializerOptions 
+            var result = JsonSerializer.Deserialize(jsonValue, bindingContext.ModelType,
+                new JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true
                 });
-                
+
             bindingContext.Result = ModelBindingResult.Success(result);
         }
         catch (JsonException ex)

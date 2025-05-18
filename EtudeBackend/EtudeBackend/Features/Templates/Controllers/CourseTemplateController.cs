@@ -32,11 +32,11 @@ public class CourseTemplateController : ControllerBase
         try
         {
             List<CourseTemplateFilterDto>? templateFilters = null;
-        
+
             if (filter != null && filter.Count > 0)
             {
                 templateFilters = new List<CourseTemplateFilterDto>();
-                
+
                 foreach (var fltr in filter)
                 {
                     switch (fltr.Name.ToLower())
@@ -68,7 +68,7 @@ public class CourseTemplateController : ControllerBase
                     }
                 }
             }
-        
+
             if (templateFilters != null && templateFilters.Count > 0)
             {
                 var templates = await _templateService.GetTemplatesByFiltersAsync(templateFilters);

@@ -31,7 +31,7 @@ public class CustomStatusService : ICustomStatusService
         var statuses = await _statusRepository.GetAllAsync();
 
         var statusDtos = new List<StatusDto>();
-    
+
         foreach (var status in statuses)
         {
             var statusDto = new StatusDto
@@ -43,14 +43,14 @@ public class CustomStatusService : ICustomStatusService
                 IsProtected = status.IsProtected,
                 IsTerminal = status.IsTerminal
             };
-        
+
             var applicationCount = await _applicationRepository.GetAllQuery()
                 .CountAsync(a => a.StatusId == status.Id);
-            
+
             statusDto.ApplicationCount = applicationCount;
             statusDtos.Add(statusDto);
         }
-    
+
         return statusDtos;
     }
 
@@ -59,7 +59,7 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByIdAsync(id);
         if (status == null)
             return null;
-    
+
         // Создаем DTO вручную, чтобы гарантировать копирование всех свойств
         var statusDto = new StatusDto
         {
@@ -70,12 +70,12 @@ public class CustomStatusService : ICustomStatusService
             IsProtected = status.IsProtected,
             IsTerminal = status.IsTerminal
         };
-    
+
         var applicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == id);
-        
+
         statusDto.ApplicationCount = applicationCount;
-    
+
         return statusDto;
     }
 
@@ -84,24 +84,24 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByNameAsync(name);
         if (status == null)
             return null;
-        
+
         // Логируем тип из БД
-        _logger.LogInformation("Статус из БД: Id={Id}, Name={Name}, Type={Type}", 
+        _logger.LogInformation("Статус из БД: Id={Id}, Name={Name}, Type={Type}",
             status.Id, status.Name, status.Type);
-            
+
         var statusDto = _mapper.Map<StatusDto>(status);
-        
+
         // Проверяем, что тип корректно замаппился
         _logger.LogInformation("После маппинга: DTO Type={Type}", statusDto.Type);
-        
+
         var applicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == statusDto.Id);
-            
+
         statusDto.ApplicationCount = applicationCount;
-        
+
         // Выводим тип в консоль для проверки
         Console.WriteLine($"Статус {statusDto.Name}, Тип: {statusDto.Type}");
-            
+
         return statusDto;
     }
 
@@ -110,29 +110,29 @@ public class CustomStatusService : ICustomStatusService
         var existingStatus = await _statusRepository.GetByNameAsync(statusDto.Name);
         if (existingStatus != null)
             throw new ApiException($"Статус с именем '{statusDto.Name}' уже существует", 400);
-            
+
         var status = _mapper.Map<Status>(statusDto);
         status.Id = Guid.NewGuid();
-        
+
         // Если тип не указан, используем "Processed" по умолчанию
         if (string.IsNullOrEmpty(status.Type))
             status.Type = "Processed";
-            
+
         // Проверяем валидность типа
         if (!IsValidStatusType(status.Type))
         {
             _logger.LogWarning("Указан невалидный тип статуса: {Type}. Используется тип по умолчанию (Processed)", status.Type);
             status.Type = "Processed";
         }
-        
+
         status.IsProtected = false;  // По умолчанию не защищенный
         status.IsTerminal = false;   // По умолчанию не терминальный
-        
+
         var createdStatus = await _statusRepository.AddAsync(status);
         var resultDto = _mapper.Map<StatusDto>(createdStatus);
-        
+
         resultDto.ApplicationCount = 0;
-        
+
         return resultDto;
     }
 
@@ -141,26 +141,26 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByIdAsync(id);
         if (status == null)
             return null;
-    
+
         if (status.IsProtected)
             throw new ApiException("Защищенный статус нельзя изменить", 400);
-    
+
         if (statusDto.Name != null && statusDto.Name != status.Name)
         {
             var existingStatus = await _statusRepository.GetByNameAsync(statusDto.Name);
             if (existingStatus != null)
                 throw new ApiException($"Статус с именем '{statusDto.Name}' уже существует", 400);
-            
+
             status.Name = statusDto.Name;
         }
-    
+
         if (statusDto.Description != null)
             status.Description = statusDto.Description;
-    
+
         // Не обновляем поле Type
-    
+
         await _statusRepository.UpdateAsync(status);
-    
+
         // Создаем DTO вручную
         var result = new StatusDto
         {
@@ -171,10 +171,10 @@ public class CustomStatusService : ICustomStatusService
             IsProtected = status.IsProtected,
             IsTerminal = status.IsTerminal
         };
-    
+
         result.ApplicationCount = await _applicationRepository.GetAllQuery()
             .CountAsync(a => a.StatusId == result.Id);
-        
+
         return result;
     }
 
@@ -183,20 +183,20 @@ public class CustomStatusService : ICustomStatusService
         var status = await _statusRepository.GetByIdAsync(id);
         if (status == null)
             return (false, null);
-        
+
         if (status.IsProtected)
             return (false, "Защищенный статус нельзя удалить");
-        
+
         var hasApplications = await _applicationRepository.GetAllQuery()
             .AnyAsync(a => a.StatusId == id);
-        
+
         if (hasApplications)
             return (false, "Нельзя удалить статус, который используется в заявках");
-        
+
         await _statusRepository.RemoveAsync(status);
         return (true, null);
     }
-    
+
     // Метод для проверки валидности типа статуса
     private bool IsValidStatusType(string type)
     {
