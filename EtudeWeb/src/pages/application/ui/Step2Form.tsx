@@ -40,14 +40,14 @@ export const Step2Form: React.FC<Step2FormProps> = ({ onValidChange }) => {
   const handleStartDateChange = (date: Date | null) => {
     setStartDate(date)
     if (date) {
-      updateApplicationData({ startDate: date.toISOString() })
+      updateApplicationData({ startDate: date.toISOString().split('T')[0] })
     }
   }
 
   const handleEndDateChange = (date: Date | null) => {
     setEndDate(date)
     if (date) {
-      updateApplicationData({ endDate: date.toISOString() })
+      updateApplicationData({ endDate: date.toISOString().split('T')[0] })
     }
   }
 
