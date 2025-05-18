@@ -26,8 +26,8 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
     course_template_track: '',
     course_template_format: '',
     course_template_trainingCenter: '',
-    course_template_startDate: '',
-    course_template_endDate: '',
+    course_template_startDate: null,
+    course_template_endDate: null,
     course_template_link: ''
   })
 
@@ -45,8 +45,8 @@ export const CourseTemplateSidebar: React.FC<CourseTemplateSidebarProps> = ({
         course_template_track: '',
         course_template_format: '',
         course_template_trainingCenter: '',
-        course_template_startDate: '',
-        course_template_endDate: '',
+        course_template_startDate: null,
+        course_template_endDate: null,
         course_template_link: ''
       })
     }

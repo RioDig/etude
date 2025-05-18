@@ -76,11 +76,7 @@ export const reportApi = {
     } catch (error) {
       console.error(`Error downloading report with id ${id}:`, error)
 
-      await delay(1200)
-
-      return new Blob([''], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      })
+      throw new Error(`Error downloading report`)
     }
   },
 

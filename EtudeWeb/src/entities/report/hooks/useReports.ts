@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { reportApi } from '../api/reportApi'
 import { usePageFilters } from '@/entities/filter'
 
@@ -39,9 +39,11 @@ export const useDownloadReport = () => {
 }
 
 export const useGenerateReport = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: reportApi.generateReport,
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] })
       const url = window.URL.createObjectURL(data)
       const link = document.createElement('a')
       link.href = url

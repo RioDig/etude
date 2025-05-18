@@ -162,16 +162,6 @@ export const TemplatesPage: React.FC = () => {
       width: '25%'
     },
     {
-      id: 'course_template_type',
-      header: 'Тип',
-      accessor: 'course_template_type',
-      sortable: true,
-      width: '10%',
-      render: (template: CourseTemplate) => {
-        return CourseTypeLabels[template.course_template_type]
-      }
-    },
-    {
       id: 'course_template_format',
       header: 'Формат',
       accessor: 'course_template_format',
