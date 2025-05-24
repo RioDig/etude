@@ -228,5 +228,17 @@ export const eventApi = {
 
       await delay(500)
     }
+  },
+
+  downloadICS: async (value: {startDate: Date, endDate: Date}): Promise<Blob> => {
+    try {
+      const response = await api.post('/Application/downloadICS',value, {
+        responseType: 'blob'
+      })
+      return response.data
+    } catch (error) {
+      console.error(`Ошибка при скачивании ICS: `, error)
+      throw new Error()
+    }
   }
 }

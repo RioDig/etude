@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/button'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 import { createPortal } from 'react-dom'
 import { SvgIconProps } from '@mui/material'
+import { Hint } from '@/shared/ui/hint'
 
 export interface SidebarAction {
   label?: string
@@ -13,6 +14,8 @@ export interface SidebarAction {
   variant?: 'primary' | 'secondary' | 'third'
   disabled?: boolean
   icon?: React.ReactElement<SvgIconProps>
+  hint?: string
+  ref?: React.RefObject<HTMLButtonElement>
 }
 
 export interface SidebarProps {
@@ -150,7 +153,7 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
         currentWidth += buttonWidth
         visible.push(action)
       } else {
-        hidden.push(action)
+        visible.push(action)
       }
     })
 
@@ -187,25 +190,37 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev)
   }
+  console.log(hiddenActions)
 
   return (
     <div className="mt-4">
       <div
         ref={actionsContainerRef}
-        className="flex items-center gap-4 flex-nowrap overflow-hidden"
+        className="flex flex-row items-center gap-4 flex-wrap overflow-hidden"
       >
-        {visibleActions.map((action, index) => (
-          <Button
-            key={`visible-${index}`}
-            variant={action.variant || 'secondary'}
-            onClick={action.onClick}
-            disabled={action.disabled}
-            className="shrink-0"
-            leftIcon={action.label ? action.icon : undefined}
-          >
-            {action.label ?? action.icon}
-          </Button>
-        ))}
+        {visibleActions.map((action, index) => {
+          const button = (
+            <Button
+              key={`visible-${index}`}
+              ref={action.ref ?? undefined}
+              variant={action.variant || 'secondary'}
+              onClick={action.onClick}
+              disabled={action.disabled}
+              className="shrink-0"
+              leftIcon={action.label ? action.icon : undefined}
+            >
+              {action.label ?? action.icon}
+            </Button>
+          )
+
+          return action.hint ? (
+            <Hint key={`visible-${index}`} content={action.hint} position="bottom">
+              {button}
+            </Hint>
+          ) : (
+            button
+          )
+        })}
 
         {hiddenActions.length > 0 && (
           <Button
@@ -369,7 +384,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               ))}
           </div>
-
 
           {headerActions && headerActions.length > 0 && (
             <HeaderActionsContainer actions={headerActions} />

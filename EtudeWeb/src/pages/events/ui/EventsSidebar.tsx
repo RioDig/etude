@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Sidebar, SidebarAction } from '@/widgets/sidebar'
 import { Typography } from '@/shared/ui/typography'
 import { Tag } from '@/shared/ui/tag'
@@ -16,7 +16,7 @@ import {
 } from '@/entities/event'
 import {
   Application,
-  ApplicationStatus,
+  ApplicationDetail,
   ApplicationStatusType,
   CustomStatus,
   StatusType
@@ -28,8 +28,9 @@ import { CourseFormatLabels } from '@/shared/labels/courseFormat'
 import clsx from 'clsx'
 import { getCommentColorVariant } from '@/widgets/calendar/utils/calendar-helpers.ts'
 import { StatusTypeLabels } from '@/shared/labels/statusType.ts'
-import { Autorenew, Check, Close, Delete, Edit } from '@mui/icons-material'
+import { Autorenew, Check, Close, Delete, Edit, EventAvailable } from '@mui/icons-material'
 import EventEditModal from '@/pages/events/ui/EventEditModal.tsx'
+import { DropdownMenu } from '@/shared/ui/dropdownmenu'
 
 interface EventsSidebarProps {
   open: boolean
@@ -250,6 +251,93 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
     )
   }
 
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+
+  const downloadICS = () => {
+    setIsDropdownOpen((prev) => !prev)
+  }
+
+  const exportToGoogle = (event: ApplicationDetail | undefined) => {
+    if (!event) return
+
+    const format = (date: Date) => date.toISOString().replace(/[-:]|\.\d{3}/g, '')
+
+    const url = new URL('https://www.google.com/calendar/render')
+    url.searchParams.set('action', 'TEMPLATE')
+    url.searchParams.set('text', event.course.course_name)
+    if (event.course.course_description)
+      url.searchParams.set('details', event.course.course_description)
+    if (event.course.course_link) url.searchParams.set('location', event.course.course_link)
+    url.searchParams.set(
+      'dates',
+      `${format(new Date(event.course.course_startDate))}/${format(new Date(event.course.course_endDate))}`
+    )
+
+    window.open(url.toString(), '_blank')
+  }
+
+  const exportToOutlook = (event: ApplicationDetail | undefined) => {
+    if (!event) return
+
+    const url = new URL('https://outlook.office.com/calendar/0/deeplink/compose')
+    url.searchParams.set('subject', event.course.course_name)
+    if (event.course.course_description)
+      url.searchParams.set('body', event.course.course_description)
+    if (event.course.course_link) url.searchParams.set('location', event.course.course_link)
+    url.searchParams.set('startdt', new Date(event.course.course_startDate).toISOString())
+    url.searchParams.set('enddt', new Date(event.course.course_endDate).toISOString())
+
+    window.open(url.toString(), '_blank')
+  }
+
+  const exportToYandex = (event: ApplicationDetail | undefined) => {
+    if (!event) return
+
+    const format = (date: Date) =>
+      date
+        .toISOString()
+        .replace(/[-:]|\.\d{3}/g, '')
+        .slice(0, 15)
+
+    const url = new URL('https://calendar.yandex.ru/event/new')
+    url.searchParams.set('name', event.course.course_name)
+    url.searchParams.set('description', event.course.course_description || '')
+    url.searchParams.set('location', event.course.course_link || '')
+    url.searchParams.set('start', format(new Date(event.course.course_startDate)))
+    url.searchParams.set('end', format(new Date(event.course.course_endDate)))
+
+    window.open(url.toString(), '_blank')
+  }
+
+  const downloadICSFile = (event: ApplicationDetail | undefined, filename = 'event.ics') => {
+    if (!event) return
+
+    const format = (date: Date) => date.toISOString().replace(/[-:]|\.\d{3}/g, '') + 'Z'
+
+    const icsContent = `
+BEGIN:VCALENDAR
+VERSION:2.0
+CALSCALE:GREGORIAN
+PRODID:-//Export//YourApp//EN
+BEGIN:VEVENT
+UID:${Date.now()}@yourapp.com
+DTSTAMP:${format(new Date())}
+DTSTART:${format(new Date(event.course.course_startDate))}
+DTEND:${format(new Date(event.course.course_endDate))}
+SUMMARY:${event.course.course_name}
+DESCRIPTION:${event.course.course_description || ''}
+LOCATION:${event.course.course_link || ''}
+END:VEVENT
+END:VCALENDAR`.trim()
+
+    const blob = new Blob([icsContent], { type: 'text/calendar' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = filename
+    link.click()
+  }
+
   const getHeaderActions = (): SidebarAction[] => {
     if (!eventDetails || isLoadingStatuses) return []
 
@@ -303,6 +391,14 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
         icon: <Delete />
       })
     }
+
+    actions.push({
+      label: 'Экспорт в календарь',
+      onClick: () => downloadICS(),
+      variant: 'secondary',
+      icon: <EventAvailable />,
+      ref: buttonRef
+    })
 
     return actions
   }
@@ -543,6 +639,38 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
           </div>
         )}
       </Sidebar>
+
+      {isDropdownOpen && (
+        <DropdownMenu
+          open={isDropdownOpen}
+          anchorEl={buttonRef.current}
+          onClose={() => setIsDropdownOpen(false)}
+          position="bottom-right"
+          className="max-w-[250px]"
+          defaultItems={[
+            {
+              label: 'Экспорт в Google Календарь',
+              onClick: () => exportToGoogle(eventDetails),
+              disabled: false
+            },
+            {
+              label: 'Экспорт в Outlook',
+              onClick: () => exportToOutlook(eventDetails),
+              disabled: false
+            },
+            {
+              label: 'Экспорт в Яндекс Календарь',
+              onClick: () => exportToYandex(eventDetails),
+              disabled: false
+            },
+            {
+              label: 'Скачать в .ics',
+              onClick: () => downloadICSFile(eventDetails),
+              disabled: false
+            }
+          ]}
+        />
+      )}
 
       {modalType === 'edit' && (
         <EventEditModal

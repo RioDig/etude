@@ -25,7 +25,7 @@ export const useApplications = () => {
     queryKey: ['applications', apiFilters],
     // @ts-expect-error hotfix
     queryFn: () => eventApi.getApplications(apiFilters),
-    staleTime: 1000 * 60 * 5, // Данные считаются свежими 5 минут
+    staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: true
   })
 }
@@ -53,7 +53,6 @@ export const useUpdateApplication = () => {
     mutationFn: ({ id, data }: { id: string; data: ApplicationUpdate }) =>
       eventApi.updateApplication(id, data),
     onSuccess: (_data, variables) => {
-      // Инвалидируем запросы для обновления данных в UI
       queryClient.invalidateQueries({ queryKey: ['application', variables.id] })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
     }
@@ -69,7 +68,6 @@ export const useChangeApplicationStatus = () => {
   return useMutation({
     mutationFn: (params: ApplicationStatusUpdate) => eventApi.changeApplicationStatus(params),
     onSuccess: (_data, variables) => {
-      // Инвалидируем запросы для обновления данных в UI
       queryClient.invalidateQueries({ queryKey: ['application', variables.id] })
       queryClient.invalidateQueries({ queryKey: ['applications'] })
     }
@@ -85,10 +83,23 @@ export const useDeleteApplication = () => {
   return useMutation({
     mutationFn: (id: string) => eventApi.deleteApplication(id),
     onSuccess: (_, id) => {
-      // Инвалидируем запросы для обновления данных в UI
       queryClient.invalidateQueries({ queryKey: ['applications'] })
-      // Удаляем детали заявки из кэша
       queryClient.removeQueries({ queryKey: ['application', id] })
+    }
+  })
+}
+
+export const useDownloadICS = () => {
+  return useMutation({
+    mutationFn: (params) => eventApi.downloadICS(params),
+    onSuccess: (data) => {
+      const url = window.URL.createObjectURL(data)
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `applications.ics`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
     }
   })
 }

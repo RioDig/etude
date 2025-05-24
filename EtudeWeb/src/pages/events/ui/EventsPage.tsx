@@ -9,12 +9,13 @@ import {
   CalendarTodayOutlined,
   TableChartOutlined,
   KeyboardArrowLeft,
-  KeyboardArrowRight
+  KeyboardArrowRight,
+  EventAvailable
 } from '@mui/icons-material'
 import { EventsTable } from './EventsTable'
 import { EventsCalendar } from './EventsCalendar'
 import { EventsSidebar } from './EventsSidebar'
-import { useApplications } from '@/entities/event'
+import { useApplications, useDeleteApplication } from '@/entities/event'
 import { Application, CourseFormat, CourseType, StatusType } from '@/shared/types'
 import { DatePicker } from '@/shared/ui/datepicker/Datepicker'
 import { createPortal } from 'react-dom'
@@ -22,6 +23,9 @@ import { StatusTypeLabels } from '@/shared/labels/statusType'
 import { CourseTypeLabels } from '@/shared/labels/courseType'
 import { CourseFormatLabels } from '@/shared/labels/courseFormat'
 import { useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/shared/ui/button'
+import { useDownloadICS } from '@/entities/event/hooks/useEvents.ts'
+import { notification } from '@/shared/lib/notification'
 
 export const EventsPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table')
@@ -208,7 +212,57 @@ export const EventsPage: React.FC = () => {
   }, [isDatePickerOpen, datePickerAnchor])
 
   const eventsCount = events?.length || 0
+  const downloadICSMutation = useDownloadICS()
 
+  function getDateRange(
+    currentDate: Date,
+    calendarViewMode: 'month' | 'week'
+  ): { startDate: string; endDate: string } {
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    const formatDate = (date: Date): string =>
+      `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
+
+    let startDate: Date
+    let endDate: Date
+
+    if (calendarViewMode === 'month') {
+      startDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1)
+      endDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0)
+    } else if (calendarViewMode === 'week') {
+      const day = currentDate.getDay()
+      const diffToMonday = (day + 6) % 7
+      startDate = new Date(currentDate)
+      startDate.setDate(currentDate.getDate() - diffToMonday)
+      endDate = new Date(startDate)
+      endDate.setDate(startDate.getDate() + 6)
+    } else {
+      throw new Error('Unsupported calendarViewMode')
+    }
+
+    return {
+      startDate: formatDate(startDate),
+      endDate: formatDate(endDate)
+    }
+  }
+
+  const handleDownloadICS = () => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-expect-error
+    downloadICSMutation.mutate(getDateRange(currentDate, calendarViewMode), {
+      onSuccess: () => {
+        notification.success({
+          title: 'Успешно',
+          description: 'Файл ICS скачан'
+        })
+      },
+      onError: (error) => {
+        notification.error({
+          title: 'Ошибка',
+          description: `Не удалось скачать файл ICS ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+        })
+      }
+    })
+  }
   return (
     <Container className="flex flex-col gap-6 h-full w-full">
       <div className="flex justify-between items-center">
@@ -232,6 +286,9 @@ export const EventsPage: React.FC = () => {
 
         {viewMode === 'calendar' && (
           <div className="flex items-center gap-4 flex-shrink-0 ml-auto">
+            <Button variant="secondary" leftIcon={<EventAvailable />} onClick={handleDownloadICS}>
+              Экспорт в .ics
+            </Button>
             <div className="flex items-center gap-2">
               <button
                 onClick={handlePrevPeriod}
