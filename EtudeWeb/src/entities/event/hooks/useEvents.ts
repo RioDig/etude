@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { eventApi } from '../api/eventApi'
 import { usePageFilters } from '@/entities/filter'
 import { ApplicationStatusUpdate, ApplicationUpdate } from '@/shared/types'
+import { notification } from '@/shared/lib/notification'
 
 /**
  * Хук для получения списка заявок с учетом фильтров
@@ -112,6 +113,12 @@ export const useAttachment = () => {
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
       queryClient.removeQueries({ queryKey: ['application', id] })
+    },
+    onError: (error, variables, context) => {
+      notification.error({
+        title: 'Ошибка',
+        description: `${error.message}`
+      })
     }
   })
 }

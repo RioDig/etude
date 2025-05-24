@@ -190,7 +190,6 @@ const HeaderActionsContainer: React.FC<HeaderActionsContainerProps> = ({ actions
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev)
   }
-  console.log(hiddenActions)
 
   return (
     <div className="mt-4">

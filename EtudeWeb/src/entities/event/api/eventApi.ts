@@ -246,8 +246,8 @@ export const eventApi = {
     try {
       await api.post('/Application/addAttachments', params)
     } catch (error) {
-      console.error(`Ошибка при добавлении ссылки `, error)
-      throw new Error()
+      console.error(`Ошибка при добавлении ссылки `, error.response.data.message)
+      throw new Error(error.response.data.message)
     }
   }
 }

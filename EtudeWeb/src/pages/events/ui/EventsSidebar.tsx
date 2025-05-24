@@ -429,12 +429,6 @@ END:VCALENDAR`.trim()
           })
           setModalType(null)
           setStatusComment('')
-        },
-        onError: (error) => {
-          notification.error({
-            title: 'Ошибка',
-            description: `Не удалось отправить результат ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
-          })
         }
       }
     )
