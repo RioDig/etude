@@ -81,6 +81,7 @@ public static class ServiceCollectionExtensions
         services.AddHttpContextAccessor();
         services.AddScoped<EtudeAuthApiService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
+        services.AddScoped<ICalendarService, CalendarService>();
 
         return services;
     }

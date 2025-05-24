@@ -12,4 +12,5 @@ public interface ICourseRepository : IRepository<Course>
     Task<List<Course>> GetByDateRangeAsync(DateOnly startDate, DateOnly endDate);
     Task<List<Course>> GetActiveCoursesAsync();
     Task<List<Course>> GetByEmployeeIdAsync(Guid employeeId);
+    Task<List<Course>> GetAllAsync();
 }

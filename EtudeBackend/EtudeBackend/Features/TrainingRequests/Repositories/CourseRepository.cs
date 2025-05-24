@@ -65,4 +65,9 @@ public class CourseRepository : Repository<Course>, ICourseRepository
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync();
     }
+    
+    public async Task<List<Course>> GetAllAsync()
+    {
+        return await _dbSet.ToListAsync();
+    }
 }

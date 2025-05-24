@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using System.Text;
 using System.Text.Json;
 using AutoMapper;
 using EtudeBackend.Features.Auth.Models;
@@ -37,11 +38,13 @@ public class ApplicationController : ControllerBase
     private readonly IMapper _mapper;
     private readonly IApplicationRepository _applicationRepository;
     private readonly ICourseRepository _courseRepository;
+    private readonly ICalendarService _calendarService;
 
     public ApplicationController(IApplicationService applicationService, IDistributedCache cache,
         ILogger<ApplicationController> logger, UserManager<ApplicationUser> userManager, IOrganizationService organizationService,
         EtudeAuthApiService etudeAuthApiService, IStatusRepository statusRepository, IMapper mapper,
-        IApplicationRepository applicationRepository, ICourseRepository courseRepository)
+        IApplicationRepository applicationRepository, ICourseRepository courseRepository,
+        ICalendarService calendarService)
     {
         _applicationService = applicationService;
         _cache = cache;
@@ -53,6 +56,7 @@ public class ApplicationController : ControllerBase
         _mapper = mapper;
         _applicationRepository = applicationRepository;
         _courseRepository = courseRepository;
+        _calendarService = calendarService;
     }
 
     /// <summary>
@@ -871,4 +875,43 @@ public class ApplicationController : ControllerBase
 
         return NoContent();
     }
+    
+    
+    /// <summary>
+    /// Генерирует ICS файл для заявок в указанном диапазоне дат
+    /// </summary>
+    [HttpPost("downloadICS")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DownloadICS([FromBody] DownloadIcsRequestDto request)
+    {
+        try
+        {
+            if (request.StartDate > request.EndDate)
+            {
+                return BadRequest(new { message = "Дата начала не может быть позже даты окончания" });
+            }
+
+            var icsContent = await _calendarService.GenerateIcsCalendarAsync(request.StartDate, request.EndDate);
+            
+            return new FileContentResult(Encoding.UTF8.GetBytes(icsContent), "text/calendar")
+            {
+                FileDownloadName = $"training_events_{request.StartDate:yyyyMMdd}_to_{request.EndDate:yyyyMMdd}.ics"
+            };
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Заявки не найдены для диапазона дат: {StartDate} - {EndDate}", 
+                request.StartDate, request.EndDate);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при генерации ICS файла");
+            return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
+        }
+    }
+    
 }
