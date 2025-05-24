@@ -465,4 +465,19 @@ public class ApplicationService : IApplicationService
             _ => "HardSkills Skills"
         };
     }
+    
+    public async Task<bool> AddAttachmentAsync(Guid applicationId, string attachmentLink)
+    {
+        var application = await _applicationRepository.GetByIdAsync(applicationId);
+        if (application == null)
+        {
+            return false;
+        }
+
+        application.AttachmentLink = attachmentLink;
+        application.UpdatedAt = DateTimeOffset.UtcNow;
+    
+        await _applicationRepository.UpdateAsync(application);
+        return true;
+    }
 }

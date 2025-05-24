@@ -25,6 +25,8 @@ public class Application
 
     [Column(TypeName = "timestamp with time zone")]
     public DateTimeOffset? UpdatedAt { get; set; }
+    
+    public string? AttachmentLink { get; set; }
 
     public virtual Course Course { get; set; } = null!;
     public virtual Status Status { get; set; } = null!;

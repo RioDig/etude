@@ -49,6 +49,10 @@ public class ApplicationConfiguration : IEntityTypeConfiguration<Application>
             .WithMany(u => u.Applications)
             .HasForeignKey(a => a.AuthorId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        builder.Property(a => a.AttachmentLink)
+            .HasColumnType("text")
+            .IsRequired(false);
 
         builder.HasIndex(a => a.CourseId);
         builder.HasIndex(a => a.AuthorId);

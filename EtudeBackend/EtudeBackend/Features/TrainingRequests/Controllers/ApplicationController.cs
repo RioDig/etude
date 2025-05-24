@@ -646,6 +646,7 @@ public class ApplicationController : ControllerBase
         {
             ApplicationId = application.Id,
             CreatedAt = application.CreatedAt,
+            AttachmentLink = detailedApplication?.AttachmentLink ?? string.Empty,
             Comment = comment,
             Status = new ApplicationStatusDto
             {
@@ -910,6 +911,59 @@ public class ApplicationController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Ошибка при генерации ICS файла");
+            return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
+        }
+    }
+    
+    /// <summary>
+    /// Добавляет или обновляет вложение для заявки
+    /// </summary>
+    [HttpPost("addAttachments")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AddAttachment([FromBody] AddAttachmentRequestDto request)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized(new { message = "Необходима аутентификация" });
+            }
+            
+            var application = await _applicationService.GetApplicationByIdAsync(request.Id);
+            if (application == null)
+            {
+                return NotFound(new { message = "Заявка не найдена" });
+            }
+            
+            var status = await _statusRepository.GetByIdAsync(application.Status.Id);
+            if (status?.Type != "Registered")
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { message = "Добавление вложений разрешено только для заявок со статусом 'Registered'" });
+            }
+            
+            if (application.Course.Learner.Id != userId)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, 
+                    new { message = "Добавление вложений разрешено только для обучающегося по этой заявке" });
+            }
+            
+            var result = await _applicationService.AddAttachmentAsync(request.Id, request.Link);
+            if (!result)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, 
+                    new { message = "Не удалось обновить вложение" });
+            }
+
+            return Ok(new { message = "Вложение успешно добавлено/обновлено" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Ошибка при добавлении вложения для заявки {ApplicationId}", request.Id);
             return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
         }
     }

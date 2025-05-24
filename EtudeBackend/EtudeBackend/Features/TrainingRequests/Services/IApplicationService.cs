@@ -23,4 +23,8 @@ public interface IApplicationService
     Task<bool> DeleteApplicationAsync(Guid id);
 
     Task<string> GetLatestCommentAsync(Guid applicationId);
+    
+    
+    Task<bool> AddAttachmentAsync(Guid applicationId, string attachmentLink);
+
 }

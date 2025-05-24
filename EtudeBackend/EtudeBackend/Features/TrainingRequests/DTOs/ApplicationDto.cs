@@ -222,6 +222,9 @@ public class ApplicationDetailResponseDto
 
     [JsonPropertyName("course")]
     public ApplicationCourseDto Course { get; set; } = new();
+    
+    [JsonPropertyName("attachmentLink")]
+    public string AttachmentLink { get; set; } = string.Empty;
 }
 
 public class ApprovalHistoryEntry
@@ -272,4 +275,10 @@ public class CreateApplicationRequestDto
 
     [JsonPropertyName("approvers")]
     public List<string> Approvers { get; set; } = new List<string>();
+}
+
+public class AddAttachmentRequestDto
+{
+    public Guid Id { get; set; }
+    public string Link { get; set; } = string.Empty;
 }
