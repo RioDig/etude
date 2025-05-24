@@ -230,14 +230,23 @@ export const eventApi = {
     }
   },
 
-  downloadICS: async (value: {startDate: Date, endDate: Date}): Promise<Blob> => {
+  downloadICS: async (value: { startDate: Date; endDate: Date }): Promise<Blob> => {
     try {
-      const response = await api.post('/Application/downloadICS',value, {
+      const response = await api.post('/Application/downloadICS', value, {
         responseType: 'blob'
       })
       return response.data
     } catch (error) {
       console.error(`Ошибка при скачивании ICS: `, error)
+      throw new Error()
+    }
+  },
+
+  addAttachments: async (params: { id: string; link: string }): Promise<void> => {
+    try {
+      await api.post('/Application/addAttachments', params)
+    } catch (error) {
+      console.error(`Ошибка при добавлении ссылки `, error)
       throw new Error()
     }
   }

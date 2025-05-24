@@ -103,3 +103,15 @@ export const useDownloadICS = () => {
     }
   })
 }
+
+export const useAttachment = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (params: { id: string, link: string }) => eventApi.addAttachments(params),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['applications'] })
+      queryClient.removeQueries({ queryKey: ['application', id] })
+    }
+  })
+}

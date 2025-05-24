@@ -31,6 +31,7 @@ import { StatusTypeLabels } from '@/shared/labels/statusType.ts'
 import { Autorenew, Check, Close, Delete, Edit, EventAvailable } from '@mui/icons-material'
 import EventEditModal from '@/pages/events/ui/EventEditModal.tsx'
 import { DropdownMenu } from '@/shared/ui/dropdownmenu'
+import { useAttachment } from '@/entities/event/hooks/useEvents.ts'
 
 interface EventsSidebarProps {
   open: boolean
@@ -38,7 +39,7 @@ interface EventsSidebarProps {
   event: Application | null
 }
 
-type ModalType = 'edit' | 'approve' | 'reject' | 'delete' | 'changeStatus' | 'complete' | null
+type ModalType = 'edit' | 'approve' | 'reject' | 'delete' | 'changeStatus' | 'complete' | 'attachment' | null
 
 export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, event }) => {
   const { user } = useAuth()
@@ -47,6 +48,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   const [modalType, setModalType] = useState<ModalType>(null)
   const [statusComment, setStatusComment] = useState('')
   const [selectedStatusId, setSelectedStatusId] = useState('')
+  const [attachmentLink, setAttachmentLink] = useState('')
 
   const { data: eventDetails, isLoading, error } = useApplicationDetail(event?.application_id)
   const { data: customStatuses, isLoading: isLoadingStatuses } = useCustomStatuses()
@@ -54,6 +56,7 @@ export const EventsSidebar: React.FC<EventsSidebarProps> = ({ open, onClose, eve
   const updateMutation = useUpdateApplication()
   const changeStatusMutation = useChangeApplicationStatus()
   const deleteMutation = useDeleteApplication()
+  const attachmentMutation = useAttachment()
 
   // Получаем статусы по типу
   const getStatusIdByType = (statusType: StatusType): string => {
@@ -390,6 +393,13 @@ END:VCALENDAR`.trim()
         variant: 'secondary',
         icon: <Delete />
       })
+    } else if (!isAdmin && eventDetails.status.type === ApplicationStatusType.Registered) {
+      actions.push({
+        label: 'Добавить результат',
+        onClick: () => openModal('attachment'),
+        variant: 'primary',
+        icon: <Check />
+      })
     }
 
     actions.push({
@@ -401,6 +411,33 @@ END:VCALENDAR`.trim()
     })
 
     return actions
+  }
+
+  const handleAddAttachmentLink = () => {
+    if (!eventDetails) return
+
+    attachmentMutation.mutate(
+      {
+        id: eventDetails.application_id,
+        link: attachmentLink
+      },
+      {
+        onSuccess: () => {
+          notification.success({
+            title: 'Успешно',
+            description: 'Результат отправлен'
+          })
+          setModalType(null)
+          setStatusComment('')
+        },
+        onError: (error) => {
+          notification.error({
+            title: 'Ошибка',
+            description: `Не удалось отправить результат ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`
+          })
+        }
+      }
+    )
   }
 
   const getStatusInfo = (status: string) => {
@@ -509,6 +546,26 @@ END:VCALENDAR`.trim()
                     {eventDetails.comment}
                   </Typography>
                 </div>
+              </div>
+            )}
+            {eventData.attachmentLink && (
+              <div>
+                <Typography variant="b3Semibold">
+                  Доказательства присутствия на мероприятии
+                </Typography>
+                <Typography variant={'b4'} className="mb-2 text-mono-700">
+                  Ссылка любое облачное хранилище с артефактами, полученными после завершения
+                  мероприятия: сертификат с курса, краткое содержание доклада с конференции и другое
+                </Typography>
+                {eventData.attachmentLink.includes('http') ? (
+                  <Button as={'a'} href={eventData.attachmentLink}>
+                    {eventData.attachmentLink}
+                  </Button>
+                ) : (
+                  <Typography variant="b3Regular" className="whitespace-pre-wrap">
+                    {eventData.attachmentLink}
+                  </Typography>
+                )}
               </div>
             )}
             <div>
@@ -875,6 +932,42 @@ END:VCALENDAR`.trim()
             label="Комментарий (опционально)"
             value={statusComment}
             onChange={(e) => setStatusComment(e.target.value)}
+            rows={3}
+          />
+        </Modal>
+      )}
+
+      {modalType === 'attachment' && (
+        <Modal
+          isOpen={true}
+          onClose={() => setModalType(null)}
+          title="Добавление результата"
+          actions={
+            <>
+              <Button variant="secondary" onClick={() => setModalType(null)}>
+                Отмена
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleAddAttachmentLink}
+                disabled={attachmentMutation.isPending || isLoadingStatuses}
+              >
+                {attachmentMutation.isPending ? (
+                  <>
+                    <Spinner size="small" variant="white" className="mr-2" />
+                    <span>Отправка...</span>
+                  </>
+                ) : (
+                  'Отправить'
+                )}
+              </Button>
+            </>
+          }
+        >
+          <Control.Textarea
+            label="Укажите ссылку на любое файловое хранилище с материалами, полученными после посещения мероприятия или обучения на курсе"
+            value={attachmentLink}
+            onChange={(e) => setAttachmentLink(e.target.value)}
             rows={3}
           />
         </Modal>

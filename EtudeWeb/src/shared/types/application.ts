@@ -64,6 +64,8 @@ export interface Application {
    */
   status: ApplicationStatus
 
+  attachmentLink?: string
+
   /**
    * Курс по заявке
    */
@@ -88,6 +90,8 @@ export interface ApplicationDetail extends Application {
    * Согласующие заявки
    */
   approvers?: User[]
+
+  attachmentLink?: string
 }
 
 /**
