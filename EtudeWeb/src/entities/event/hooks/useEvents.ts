@@ -110,9 +110,9 @@ export const useAttachment = () => {
 
   return useMutation({
     mutationFn: (params: { id: string, link: string }) => eventApi.addAttachments(params),
-    onSuccess: (_, id) => {
+    onSuccess: (_, params) => {
       queryClient.invalidateQueries({ queryKey: ['applications'] })
-      queryClient.removeQueries({ queryKey: ['application', id] })
+      queryClient.removeQueries({ queryKey: ['application', params.id] })
     },
     onError: (error, variables, context) => {
       notification.error({
