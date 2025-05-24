@@ -26,7 +26,6 @@ public class CalendarService : ICalendarService
         var allCourses = await _courseRepository.GetAllAsync();
         
         var relevantCourses = allCourses.Where(c => 
-            // Курс начинается до конца запрошенного диапазона И заканчивается после начала запрошенного диапазона
             c.StartDate <= endDate && c.EndDate >= startDate
         ).ToList();
 
@@ -52,10 +51,6 @@ public class CalendarService : ICalendarService
             var applications = await _applicationRepository.GetByCourseIdAsync(course.Id);
             var application = applications.FirstOrDefault();
 
-            // Calculate actual start/end dates for this event within requested range
-            var eventStart = course.StartDate < startDate ? startDate : course.StartDate;
-            var eventEnd = course.EndDate > endDate ? endDate : course.EndDate;
-
             // Event
             icsBuilder.AppendLine("BEGIN:VEVENT");
 
@@ -63,26 +58,19 @@ public class CalendarService : ICalendarService
             icsBuilder.AppendLine($"UID:{course.Id}@etude");
             icsBuilder.AppendLine($"DTSTAMP:{DateTime.UtcNow.ToString("yyyyMMddTHHmmssZ")}");
 
-            // Start and end dates (using the clipped dates)
-            icsBuilder.AppendLine($"DTSTART;VALUE=DATE:{eventStart.ToString("yyyyMMdd")}");
-            icsBuilder.AppendLine($"DTEND;VALUE=DATE:{eventEnd.AddDays(1).ToString("yyyyMMdd")}");
+            // Используем оригинальные даты курса без изменений
+            icsBuilder.AppendLine($"DTSTART;VALUE=DATE:{course.StartDate.ToString("yyyyMMdd")}");
+            icsBuilder.AppendLine($"DTEND;VALUE=DATE:{course.EndDate.AddDays(1).ToString("yyyyMMdd")}");
 
             // Title and description
             string status = application?.Status?.Name ?? "Scheduled";
             string title = $"{course.Name} ({status})";
             
-            string description = BuildEventDescription(course, application, startDate, endDate);
+            string description = BuildEventDescription(course, application);
 
             icsBuilder.AppendLine($"SUMMARY:{EscapeIcsText(title)}");
             icsBuilder.AppendLine($"DESCRIPTION:{EscapeIcsText(description)}");
             icsBuilder.AppendLine($"LOCATION:{EscapeIcsText(course.TrainingCenter)}");
-
-            // Add note if dates were clipped
-            if (course.StartDate < startDate || course.EndDate > endDate)
-            {
-                icsBuilder.AppendLine($"COMMENT:{EscapeIcsText("Original dates: " + 
-                    $"{course.StartDate:yyyy-MM-dd} to {course.EndDate:yyyy-MM-dd}")}");
-            }
 
             // End event
             icsBuilder.AppendLine("END:VEVENT");
@@ -94,20 +82,18 @@ public class CalendarService : ICalendarService
         return icsBuilder.ToString();
     }
 
-    private string BuildEventDescription(Course course, Application? application, 
-        DateOnly rangeStart, DateOnly rangeEnd)
+    private string BuildEventDescription(Course course, Application? application)
     {
         var description = new StringBuilder();
         
-        description.AppendLine($"Название курса: {course.Name}");
-        description.AppendLine($"Тип мероприятия: {GetRussianCourseType(course.Type)}");
-        description.AppendLine($"Формат проведения: {course.Format}");
+        description.AppendLine($"Название: {course.Name}");
+        description.AppendLine($"Тип: {GetRussianCourseType(course.Type)}");
+        description.AppendLine($"Формат: {GetRussianCourseFormat(course.Format)}");
         
-        if (course.StartDate < rangeStart || course.EndDate > rangeEnd)
-        {
-            description.AppendLine($"Displayed dates: {GetDisplayedDate(course.StartDate, rangeStart)} to " +
-                                 $"{GetDisplayedDate(course.EndDate, rangeEnd)}");
-        }
+        if (!string.IsNullOrEmpty(course.TrainingCenter))
+            description.AppendLine($"Место проведения: {course.TrainingCenter}");
+        
+        description.AppendLine($"Даты проведения: {course.StartDate:dd.MM.yyyy} - {course.EndDate:dd.MM.yyyy}");
         
         if (!string.IsNullOrEmpty(course.EducationGoal))
             description.AppendLine($"Цель обучения: {course.EducationGoal}");
@@ -115,12 +101,28 @@ public class CalendarService : ICalendarService
         return description.ToString();
     }
 
-    private string GetDisplayedDate(DateOnly eventDate, DateOnly rangeDate)
+    private string GetRussianCourseType(CourseType type)
     {
-        return eventDate == rangeDate ? 
-            eventDate.ToString("yyyy-MM-dd") : 
-            $"{eventDate:yyyy-MM-dd} (clipped)";
+        return type switch
+        {
+            CourseType.Course => "Курс",
+            CourseType.Conference => "Конференция",
+            CourseType.Certification => "Сертификация",
+            CourseType.Workshop => "Мастер-класс",
+            _ => "Другое"
+        };
     }
+
+    private string GetRussianCourseFormat(CourseFormat format)
+    {
+        return format switch
+        {
+            CourseFormat.Online => "Онлайн",
+            CourseFormat.Offline => "Оффлайн",
+            _ => "Не определен"
+        };
+    }
+    
 
     private string EscapeIcsText(string text)
     {
@@ -133,17 +135,5 @@ public class CalendarService : ICalendarService
             .Replace(";", "\\;")
             .Replace("\n", "\\n")
             .Replace("\r", "");
-    }
-    
-    private string GetRussianCourseType(CourseType type)
-    {
-        return type switch
-        {
-            CourseType.Course => "Курс",
-            CourseType.Conference => "Конференция",
-            CourseType.Certification => "Сертификация",
-            CourseType.Workshop => "Мастер-класс",
-            _ => "Другое"
-        };
     }
 }
