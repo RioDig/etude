@@ -48,7 +48,7 @@ export interface TableProps<T> {
    * Данные для отображения (для API на основе пропсов)
    */
   data?: T[]
-
+  height?: string
   /**
    * Конфигурация колонок (для API на основе пропсов)
    */
@@ -202,6 +202,7 @@ export function Table<T>({
   rowClassName,
   cellClassName,
   testId = 'table',
+  height,
   onRowClick
 }: TableProps<T>) {
   const [localSortState, setLocalSortState] = useState<SortState>({
@@ -342,7 +343,7 @@ export function Table<T>({
 
     const tableContainerClass = clsx(
       scrollable ? 'overflow-x-auto w-full' : 'w-full',
-      infiniteScroll && 'max-h-[750px] overflow-y-auto'
+      infiniteScroll && height ? `max-h-[${height}] overflow-y-auto` : 'max-h-[750px] overflow-y-auto',
     )
 
     return (

@@ -177,6 +177,7 @@ export const ProfilePage: React.FC = () => {
         </Container>
 
         <Container className="flex-1 overflow-x-auto flex flex-col">
+          <div className="flex flex-col gap-6 h-full">
           <Typography variant="h2Regular" className="mb-4">
             Прошедшие мероприятия
           </Typography>
@@ -190,15 +191,20 @@ export const ProfilePage: React.FC = () => {
               Ошибка загрузки мероприятий: {eventsError.message}
             </Typography>
           ) : pastEvents && pastEvents.length > 0 ? (
-            <Table
-              data={pastEvents}
-              columns={columns}
-              sortState={sortState}
-              onSort={handleSort}
-              scrollable={true}
-              onRowClick={handleEventClick}
-              rowClassName="cursor-pointer"
-            />
+            <div className="flex-1 overflow-hidden">
+              <Table
+                data={pastEvents}
+                columns={columns}
+                sortState={sortState}
+                onSort={handleSort}
+                scrollable={true}
+                infiniteScroll={true}
+                height='500px'
+                onRowClick={handleEventClick}
+                rowClassName="cursor-pointer"
+                className="max-h-[500px]"
+              />
+            </div>
           ) : (
             <EmptyMessage
               variant="small"
@@ -213,6 +219,7 @@ export const ProfilePage: React.FC = () => {
               className="mr-5 leading-none"
             />
           )}
+          </div>
         </Container>
       </div>
 
@@ -224,7 +231,6 @@ export const ProfilePage: React.FC = () => {
           description={
             CourseTypeLabels[selectedEvent.course.course_type] || selectedEvent.course.course_type
           }
-          badge={getStatusInfo(selectedEvent.status)}
           footerActions={[
             {
               label: 'Закрыть',
