@@ -919,53 +919,55 @@ public class ApplicationController : ControllerBase
     /// Добавляет или обновляет вложение для заявки
     /// </summary>
     [HttpPost("addAttachments")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddAttachment([FromBody] AddAttachmentRequestDto request)
+[ProducesResponseType(StatusCodes.Status200OK)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
+[ProducesResponseType(StatusCodes.Status404NotFound)]
+[ProducesResponseType(StatusCodes.Status400BadRequest)]
+public async Task<IActionResult> AddAttachment([FromBody] AddAttachmentRequestDto request)
+{
+    try
     {
-        try
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized(new { message = "Необходима аутентификация" });
-            }
-            
-            var application = await _applicationService.GetApplicationByIdAsync(request.Id);
-            if (application == null)
-            {
-                return NotFound(new { message = "Заявка не найдена" });
-            }
-            
-            var status = await _statusRepository.GetByIdAsync(application.Status.Id);
-            if (status?.Type != "Registered")
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, 
-                    new { message = "Добавление вложений разрешено только для заявок со статусом 'Registered'" });
-            }
-            
-            if (application.Course.Learner.Id != userId)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, 
-                    new { message = "Добавление вложений разрешено только для обучающегося по этой заявке" });
-            }
-            
-            var result = await _applicationService.AddAttachmentAsync(request.Id, request.Link);
-            if (!result)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, 
-                    new { message = "Не удалось обновить вложение" });
-            }
+            return Unauthorized(new { message = "Необходима аутентификация" });
+        }
 
-            return Ok(new { message = "Вложение успешно добавлено/обновлено" });
-        }
-        catch (Exception ex)
+        var application = await _applicationRepository
+            .GetAllQuery()
+            .Include(a => a.Course) // Загружаем курс
+            .Include(a => a.Status) // Загружаем статус
+            .FirstOrDefaultAsync(a => a.Id == request.Id);
+
+        if (application == null)
         {
-            _logger.LogError(ex, "Ошибка при добавлении вложения для заявки {ApplicationId}", request.Id);
-            return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
+            return NotFound(new { message = "Заявка не найдена" });
         }
+
+        if (application.Status.Type != "Registered")
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, 
+                new { message = "Добавление вложений разрешено только для заявок со статусом 'Registered'" });
+        }
+
+        if (application.Course.EmployeeId.ToString() != userId)
+        {
+            return StatusCode(StatusCodes.Status403Forbidden, 
+                new { message = "Добавление вложений разрешено только для обучающегося по этой заявке" });
+        }
+        
+        application.AttachmentLink = request.Link;
+        application.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _applicationRepository.UpdateAsync(application);
+
+        return Ok(new { message = "Вложение успешно добавлено/обновлено" });
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Ошибка при добавлении вложения для заявки {ApplicationId}", request.Id);
+        return StatusCode(500, new { message = "Внутренняя ошибка сервера" });
+    }
+}
     
 }
